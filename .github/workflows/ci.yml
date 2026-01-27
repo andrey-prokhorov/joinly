@@ -11,27 +11,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # npm-audit:
-  #   name: Frontend security audit (npm)
-  #   runs-on: ubuntu-latest
-  #   defaults:
-  #     run:
-  #       working-directory: app
-  #   steps:
-  #     - uses: actions/checkout@v4
+  npm-audit:
+    name: Frontend security audit (npm)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Setup Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "22"
-  #         cache: npm
-  #         cache-dependency-path: app/package-lock.json
+      - name: Show directory tree (depth 4)
+        run: tree -L 4
 
-  #     - name: Install dependencies
-  #       run: npm ci
+      - name: Show current working directory
+        run: pwd      
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
        
-  #     - name: Run npm audit
-  #       run: npm audit --audit-level=high || echo "npm audit found high-severity vulnerabilities. Please review the audit output above."        
+      - name: Run npm audit
+        run: npm audit --audit-level=high || echo "npm audit found high-severity vulnerabilities. Please review the audit output above."        
 
   frontend-tests:
     name: Frontend (Vitest) unit tests
@@ -48,7 +54,7 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-          # cache-dependency-path: app/package-lock.json
+          cache-dependency-path: app/package-lock.json
 
       - name: Install dependencies
         run: npm ci
