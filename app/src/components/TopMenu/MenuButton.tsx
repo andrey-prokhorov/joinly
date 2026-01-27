@@ -19,5 +19,5 @@ const defaultSx: SxProps<Theme> = {
 }
 
 export const MenuButton = ({ sx, ...props }: MenuButtonProps) => {
-	return <Button variant="text" LinkComponent={Link} sx={defaultSx} {...props} />
+	return <Button variant="text" LinkComponent={Link} sx={{ ...defaultSx, ...sx }} {...props} />
 }
