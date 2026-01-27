@@ -3,8 +3,6 @@ import { TopMenu } from "../TopMenu/TopMenu"
 
 interface PageLayoutProps {
 	children: React.ReactNode
-	noMaxWidth?: boolean
-	hideMinaSidorMenu?: boolean
 }
 
 export const PageLayout = ({ children }: PageLayoutProps) => {

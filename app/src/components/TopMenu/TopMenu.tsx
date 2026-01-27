@@ -19,8 +19,8 @@ export const TopMenu = () => {
 				<Toolbar sx={{ padding: 0 }}>
 					<Box sx={{ flexGrow: 1 }}>
 						<Stack direction="row" alignItems="center">
-							<MenuButton href="/start">Start</MenuButton>
-							<MenuButton href="/events">Events</MenuButton>
+							<MenuButton to="/start">Start</MenuButton>
+							<MenuButton to="/events">Events</MenuButton>
 						</Stack>
 					</Box>
 				</Toolbar>

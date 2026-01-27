@@ -104,7 +104,7 @@ export const themeOptions: ThemeOptions = {
 			primary: "#E5F0FF",
 		},
 		hover: {
-			light: "#00E",
+			light: "#0000EE",
 		},
 		error: {
 			light: "#FAE5E7",
