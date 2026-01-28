@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
 	"vcs": {
 		"enabled": false,
 		"clientKind": "git",
@@ -8,28 +8,47 @@
 	"files": {
 		"ignoreUnknown": false,
 		"includes": [
-			"**/src/**/*",
-			"**/.vscode/**/*",
-			"**/index.html",
-			"**/vite.config.js",
-			"!**/src/routeTree.gen.ts",
-			"!**/src/styles.css"
+			"src/**/*.tsx",
+			"src/**/*.ts",
+			".vscode/*",
+			"index.html",
+			"vite.config.js",
+			"!src/routeTree.gen.ts",
+			"!src/api/types.ts"
 		]
 	},
 	"formatter": {
 		"enabled": true,
-		"indentStyle": "tab"
+		"indentStyle": "tab",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"lineWidth": 120,
+		"formatWithErrors": false
 	},
-	"assist": { "actions": { "source": { "organizeImports": "on" } } },
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true
+			"recommended": true,
+			"suspicious": {
+				"noConsole": {
+					"level": "error",
+					"options": {
+						"allow": ["assert", "error", "info", "warn"]
+					}
+				}
+			}
 		}
 	},
 	"javascript": {
 		"formatter": {
-			"quoteStyle": "double"
+			"quoteStyle": "double",
+			"jsxQuoteStyle": "double",
+			"trailingCommas": "es5",
+			"semicolons": "asNeeded",
+			"arrowParentheses": "always",
+			"bracketSpacing": true,
+			"bracketSameLine": false,
+			"quoteProperties": "asNeeded"
 		}
 	}
 }
