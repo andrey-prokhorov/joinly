@@ -37,7 +37,7 @@ jobs:
         run: npm ci
        
       - name: Run npm audit
-        run: npm audit --audit-level=high || echo "npm audit found high-severity vulnerabilities. Please review the audit output above."        
+        run: npm audit --audit-level=high
 
   frontend-tests:
     name: Frontend (Vitest) unit tests
@@ -82,7 +82,7 @@ jobs:
         run: npm ci
 
       - name: Run npm audit
-        run: npm audit --audit-level=high || echo "npm audit found high-severity vulnerabilities. Please review."
+        run: npm audit --audit-level=high
 
   api-lint-build:
     name: API lint & build
