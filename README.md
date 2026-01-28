@@ -12,12 +12,25 @@ Följ stegen nedan för att få igång projektet på din lokala maskin.
 
 ## Installation frontend
 
-```
+```bash
 cd app
 npm install
 npm run dev
-
 ```
+
+Frontend körs på http://localhost:3000
+
+## Installation backend (API)
+
+```bash
+cd api
+npm install
+npm run dev
+```
+
+API:et körs på http://localhost:3001
+
+Se [api/README.md](api/README.md) för mer info om backend.
 
 # Git
 

@@ -37,7 +37,7 @@ jobs:
         run: npm ci
        
       - name: Run npm audit
-        run: npm audit --audit-level=high || echo "npm audit found high-severity vulnerabilities. Please review the audit output above."        
+        run: npm audit --audit-level=high
 
   frontend-tests:
     name: Frontend (Vitest) unit tests
@@ -62,3 +62,49 @@ jobs:
       - name: Unit tests (Vitest)
         run: npm run test:ci
 
+  api-audit:
+    name: API security audit (npm)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=high
+
+  api-lint-build:
+    name: API lint & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint (Biome)
+        run: npm run lint
+
+      - name: Build TypeScript
+        run: npm run build
