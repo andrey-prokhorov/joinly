@@ -1,8 +1,0 @@
-Mötesprotokoll 27 januari, Sara och Patrik
-User Stories
-
-Vid mötet gick vi igenom lista med förslag på User Stories som Andrey tagit fram tidigare. Vi satte upp struktur i Github Projects för att hantera Epics, User Stories och tasks. Vi skapade också upp User Stories baserat på förslagen och grupperade dem i Epics.
-
-Vi diskuterade lite kort kring hur en User Story bör se ut och vad den skall täcka:
-
-Hur ska vi tänka med format på User Stories och tasks. Vad beskriver en user story? När kommer teknikval och specifika utvecklingsrelaterade termer in i kravspecen.

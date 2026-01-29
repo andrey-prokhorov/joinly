@@ -1,9 +1,0 @@
-Möte Grupp SAPP - Torsdag 22 januari
-
-Syfte: Återkoppling efter föreläsning på onsdag
-
-På mötet så pratade vi om vad som sagts angående projektet på onsdagens föreläsning samt efterföljande kort möte med Benjamin.
-
-Huvudfokuset i mötet blev därefter val av verktyg för kravhantering och skapandet av user stories och hur de sedan kopplas till användbara taskt för utveckling. Vi pratade också en del om teknikval för utveckling av applikationen och vi kom fram till (vilket vi hade pratat snabbt om även innan mötet) att vi bygger Backend/API i node.js och att vi bygger frontend i React. Vi landade i de teknikvalen då samtliga i projekt-gruppen antingen är hyffsat bekanta med teknikerna eller är sugna på att sätta sig mer in i dessa.
-
-VI gick också över i att prata lite om hur vi ska tänka kring scopet på applikationen. Vad är möjligt att bygga med tanke på den ganska begränsade tiden vi har att använda och även hur detta ska påverka kravarbetet. Ska vi krava endast det som är rimligt att bygga eller kan scopet för kraven vara större men med den vetskapen att det inte kommer att hinna implementeras
