@@ -3,9 +3,9 @@ import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import helmet from "helmet";
 import config from "./config.js";
-import './db/database.js';  // Initiera databas vid start       
-// Importera 
-import authRoutes from './routes/auth.js';    
+import "./db/database.js"; // Initiera databas vid start
+// Importera
+import authRoutes from "./routes/auth.js";
 
 const app = express();
 
