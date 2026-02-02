@@ -81,8 +81,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit
-        run: npm audit --audit-level=high
+      # --omit=dev: Newman (test runner) har kända sårbarheter i sina dependencies
+      # som inte påverkar produktion. Vi auditerar därför bara prod-dependencies.
+      # Se api/README.md för mer info.
+      - name: Run npm audit (production dependencies only)
+        run: npm audit --omit=dev --audit-level=high
 
   api-lint-build:
     name: API lint & build
@@ -108,3 +111,45 @@ jobs:
 
       - name: Build TypeScript
         run: npm run build
+
+  api-integration-tests:
+    name: API integration tests (Newman)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Start server in background
+        run: npm start &
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3001/api/health > /dev/null; then
+              echo "Server is ready!"
+              exit 0
+            fi
+            echo "Attempt $i/30..."
+            sleep 1
+          done
+          echo "Server failed to start"
+          exit 1
+
+      - name: Run Newman tests
+        run: npm run test:api
