@@ -1,16 +1,16 @@
 // endpoint som hanterar inloggning
-
 import bcrypt from "bcryptjs";
-import { type Request, type Response, Router } from "express";
+import { type Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import config from "../config.js";
 import db from "../db/database.js";
-//Validera eposten
+import { type AuthRequest, authenticateToken } from "../middleware/auth.js";
+// validera eposten
 import { isValidEmail } from "../utils/validators.js";
 
 const router = Router();
 
-// Typ för User från databasen
+// typ för User från databasen
 interface DbUser {
 	id: number;
 	email: string;
@@ -21,19 +21,19 @@ interface DbUser {
 }
 
 // POST /api/auth/login
-router.post("/login", (req: Request, res: Response) => {
+router.post("/login", (req, res) => {
 	const { email, password } = req.body;
 
-	// Enkel validering
+	// enkel validering
 	if (!email || !password) {
 		return res.status(400).json({ message: "E-post och lösenord krävs." });
 	}
-	// Validera epostformat
+	// validera epostformat
 	if (!isValidEmail(email)) {
 		return res.status(400).json({ message: "Ogiltig e-postadress." });
 	}
 
-	// Hämta användare från databasen
+	// hämta användare från databasen
 	const user = db
 		.prepare(
 			"SELECT id, email, password_hash, name, role FROM users WHERE email = ?",
@@ -72,6 +72,13 @@ router.post("/login", (req: Request, res: Response) => {
 			role: user.role,
 		},
 	});
+});
+
+// GET /api/auth/me - returnera inloggad användare
+router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
+	// authenticateToken har redan verifierat token och lagt user på req
+	// Om vi kommer hit är användaren inloggad
+	res.json({ user: req.user, message: "Användare är inloggad." });
 });
 
 export default router;
