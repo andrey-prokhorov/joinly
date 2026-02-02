@@ -128,6 +128,18 @@ Därför kör CI:n `npm audit --omit=dev` som bara auditerar produktions-depende
 
 ## Ändringslogg
 
+### 2026-02-02 - Login med JWT (Pål) - Issue #9
+
+- SQLite databas med users-tabell och seed-data för testanvändare
+- Config-modul med JWT-inställningar (secret, expiry)
+- Validators för e-post och lösenord
+- Implementerat `POST /api/auth/login` - autentisering med e-post och lösenord
+- Implementerat `GET /api/auth/me` - hämta inloggad användare (skyddad route)
+- Skapat JWT middleware för att skydda routes
+- Lagt till Newman API-tester (6 tester, 13 assertions)
+- Lagt till CI-jobb: `api-integration-tests`
+- Fixat: `data/`-mappen skapas automatiskt (för CI-kompatibilitet)
+
 ### 2026-01-28 - Initial setup (Pål)
 
 - Skapat grundstruktur med TypeScript + Express 5
