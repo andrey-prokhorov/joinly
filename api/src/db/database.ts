@@ -1,4 +1,4 @@
-// hanera databsen
+// hantera databasen
 
 import { mkdirSync } from "node:fs";
 import path from "node:path";
@@ -24,29 +24,30 @@ const db: DatabaseType = new Database(dbPath);
 db.pragma("foreign_keys = ON");
 
 // Skapa users-tabell
-db.exec(`                                                                                          
-    CREATE TABLE IF NOT EXISTS users (                                                               
-      id INTEGER PRIMARY KEY AUTOINCREMENT,                                                          
-      email TEXT UNIQUE NOT NULL,                                                                    
-      password_hash TEXT NOT NULL,                                                                   
-      name TEXT,                                                                                     
-      role TEXT DEFAULT 'user',                                                                      
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP                                                  
-      )                                                                                                
-      `);
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    name TEXT,
+    role TEXT DEFAULT 'user',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`);
 
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get() as {
 	count: number;
 };
 if (userCount.count === 0) {
 	// Hasha lösenordet (synkront för enkel setup)
+	// Salt rounds 12 = OWASP rekommendation (starkare än default 10)
 	const testPassword = "Test123!"; // Uppfyller: 8+ tecken, stor, liten, siffra, special
-	const hashedPassword = bcrypt.hashSync(testPassword, 10);
+	const hashedPassword = bcrypt.hashSync(testPassword, 12);
 
 	// Lägg till testanvändare
-	db.prepare(`                                                                                    
-    INSERT INTO users (email, password_hash, name, role)                                          
-    VALUES (?, ?, ?, ?)                                                                           
+	db.prepare(`
+    INSERT INTO users (email, password_hash, name, role)
+    VALUES (?, ?, ?, ?)
   `).run("test@example.com", hashedPassword, "Test User", "user");
 
 	console.log("Seed: Testanvändare skapad (test@example.com / Test123!)");

@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Joinly API - Auth Tests",
-		"description": "Tester för autentisering i Joinly API.\n\n## Tester\n1. Health check\n2. Login OK\n3. Login fel lösenord\n4. Login saknar fält\n5. Me utan token\n6. Me med token\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"description": "Tester för autentisering i Joinly API.\n\n## Tester\n1. Health check\n2. Login OK\n3. Login fel lösenord\n4. Login saknar fält\n5. Me utan token\n6. Me med token\n7. Login icke-existerande email\n8. Login ogiltigt email-format\n9. Me malformad Authorization header\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -231,7 +231,7 @@
 							"// Test: Response innehåller user-info",
 							"pm.test('Response has user info', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.user).to.have.property('userId');",
+							"    pm.expect(json.user).to.have.property('id');",
 							"    pm.expect(json.user).to.have.property('email');",
 							"    pm.expect(json.user.email).to.eql('test@example.com');",
 							"});"
@@ -246,6 +246,125 @@
 					{
 						"key": "Authorization",
 						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/me",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "me"]
+				}
+			}
+		},
+		{
+			"name": "7. Login - Icke-existerande email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Okänd email ger 401 (inte 404 - för att inte avslöja vilka email som finns)",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Samma felmeddelande som vid fel lösenord (timing attack prevention)",
+							"pm.test('Response has generic error message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('Ogiltig');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"finns-inte@example.com\",\n    \"password\": \"Test123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "login"]
+				}
+			}
+		},
+		{
+			"name": "8. Login - Ogiltigt email-format",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Ogiltigt email-format ger 400 (bad request)",
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Test: Felmeddelande om ogiltig email",
+							"pm.test('Response mentions invalid email', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message.toLowerCase()).to.include('ogiltig');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"inte-en-email\",\n    \"password\": \"Test123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "login"]
+				}
+			}
+		},
+		{
+			"name": "9. Me - Malformad Authorization header",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Felaktigt format på Authorization header ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Felmeddelande om token",
+							"pm.test('Response mentions token issue', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message.toLowerCase()).to.include('token');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "NotBearer some-invalid-format"
 					}
 				],
 				"url": {

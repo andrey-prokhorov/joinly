@@ -16,8 +16,9 @@ import config from "../config.js";
 // ================================
 
 // Payload som finns inuti JWT-token (samma som vi skapade i login)
+// OBS: använder "id" (inte "userId") för att matcha user-objektet från login
 interface JwtPayload {
-	userId: number;
+	id: number;
 	email: string;
 	role: string;
 }
@@ -42,7 +43,12 @@ export const authenticateToken = (
 	const authHeader = req.headers.authorization;
 
 	// STEG 2: Extrahera token (ta bort "Bearer " prefixet)
-	const token = authHeader?.split(" ")[1];
+	// Använder regex istället för split() för att hantera edge cases
+	// (t.ex. dubbla mellanslag, olika casing på "Bearer")
+	const token =
+		authHeader && /^Bearer\s+/i.test(authHeader)
+			? authHeader.replace(/^Bearer\s+/i, "").trim()
+			: undefined;
 
 	// STEG 3: Kolla om token finns
 	if (!token) {

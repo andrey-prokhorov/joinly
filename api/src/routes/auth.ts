@@ -1,12 +1,40 @@
 // endpoint som hanterar inloggning
 import bcrypt from "bcryptjs";
 import { type Response, Router } from "express";
+import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import config from "../config.js";
 import db from "../db/database.js";
 import { type AuthRequest, authenticateToken } from "../middleware/auth.js";
 // validera eposten
 import { isValidEmail } from "../utils/validators.js";
+
+// TIMING ATTACK PREVENTION
+// --------------------------
+// När någon försöker logga in mäter vi lösenordet med bcrypt.compareSync().
+// Problemet: om användaren INTE finns hoppar vi över bcrypt → snabbt svar.
+// Om användaren FINNS kör vi bcrypt → långsamt svar (100-300ms).
+// En attackerare kan mäta svarstiden och räkna ut vilka email som finns!
+//
+// Lösning: vi kör ALLTID bcrypt, även om användaren inte finns.
+// Då tar båda fallen lika lång tid och attacken fungerar inte.
+const DUMMY_HASH =
+	"$2b$12$K8HpHfKxMvYwJQpCqWKMqeSN5.5kkNFnRhKYqTvqL9CxvM0VxNKXG";
+
+// RATE LIMITING (Brute-force skydd)
+// ----------------------------------
+// Begränsar antal login-försök per IP-adress.
+// Utan detta kan en attackerare testa tusentals lösenord per sekund.
+// Inställningar: max 5 försök per 15 minuter per IP.
+const loginLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minuter
+	max: 5, // max 5 försök per fönster
+	message: {
+		message: "För många inloggningsförsök. Försök igen om 15 minuter.",
+	},
+	standardHeaders: true, // skickar RateLimit-* headers
+	legacyHeaders: false, // stänger av X-RateLimit-* headers
+});
 
 const router = Router();
 
@@ -20,8 +48,8 @@ interface DbUser {
 	created_at: string;
 }
 
-// POST /api/auth/login
-router.post("/login", (req, res) => {
+// POST /api/auth/login (med rate limiting)
+router.post("/login", loginLimiter, (req, res) => {
 	const { email, password } = req.body;
 
 	// enkel validering
@@ -41,6 +69,8 @@ router.post("/login", (req, res) => {
 		.get(email) as DbUser | undefined;
 
 	if (!user) {
+		// Kör bcrypt ändå för att förhindra timing attack (se DUMMY_HASH ovan)
+		bcrypt.compareSync(password, DUMMY_HASH);
 		return res.status(401).json({ message: "Ogiltig e-post eller lösenord." });
 	}
 
@@ -55,8 +85,10 @@ router.post("/login", (req, res) => {
 	// OBS: "as jwt.SignOptions" behövs pga ett känt typproblem i @types/jsonwebtoken
 	// där expiresIn använder en "branded type" (StringValue) som inte accepterar vanlig string.
 	// Detta är en vedertagen workaround, inte slarv.
+	// Skapa JWT payload med samma struktur som user-objektet vi returnerar
+	// Detta gör att /me och /login ger konsistent data
 	const token = jwt.sign(
-		{ userId: user.id, email: user.email, role: user.role },
+		{ id: user.id, email: user.email, role: user.role },
 		config.jwt.secret,
 		{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions,
 	);
