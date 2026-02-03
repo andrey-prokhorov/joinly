@@ -9,26 +9,26 @@ export const isValidEmail = (email: string): boolean => {
 
 const SPECIAL_CHARS = /[!@#$%^&*(),.?":{}|<>_+\-=[\]\\;'/~`]/;
 
-//validera lösenord
+// validera lösenord
 // minst 8 tecken, minst en stor bokstav, en liten bokstav, en siffra och ett specialtecken
+// OBS: vi trimmar INTE lösenord - whitespace bevaras för konsistens med login
 export const isValidPassword = (password: string): boolean => {
-	const pwd = password.trim();
 	return (
-		pwd.length >= 8 &&
-		/[A-Z]/.test(pwd) &&
-		/[a-z]/.test(pwd) &&
-		/[0-9]/.test(pwd) &&
-		SPECIAL_CHARS.test(pwd)
+		password.length >= 8 &&
+		/[A-Z]/.test(password) &&
+		/[a-z]/.test(password) &&
+		/[0-9]/.test(password) &&
+		SPECIAL_CHARS.test(password)
 	);
 };
 
 // Returnera felmeddelande för lösenord (använder samma logik som isValidPassword)
 export const getPasswordError = (password: string): string | null => {
-	const pwd = password.trim();
-	if (pwd.length < 8) return "Lösenord måste vara minst 8 tecken";
-	if (!/[A-Z]/.test(pwd)) return "Lösenord måste innehålla stor bokstav";
-	if (!/[a-z]/.test(pwd)) return "Lösenord måste innehålla liten bokstav";
-	if (!/[0-9]/.test(pwd)) return "Lösenord måste innehålla en siffra";
-	if (!SPECIAL_CHARS.test(pwd)) return "Lösenord måste innehålla specialtecken";
+	if (password.length < 8) return "Lösenord måste vara minst 8 tecken";
+	if (!/[A-Z]/.test(password)) return "Lösenord måste innehålla stor bokstav";
+	if (!/[a-z]/.test(password)) return "Lösenord måste innehålla liten bokstav";
+	if (!/[0-9]/.test(password)) return "Lösenord måste innehålla en siffra";
+	if (!SPECIAL_CHARS.test(password))
+		return "Lösenord måste innehålla specialtecken";
 	return null;
 };

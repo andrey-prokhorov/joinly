@@ -23,17 +23,33 @@ const DUMMY_HASH =
 
 // RATE LIMITING (Brute-force skydd)
 // ----------------------------------
-// Begränsar antal login-försök per IP-adress.
-// Utan detta kan en attackerare testa tusentals lösenord per sekund.
-// Inställningar: max 5 försök per 15 minuter per IP.
-const loginLimiter = rateLimit({
+// Vi använder TVÅ rate limiters för bättre skydd:
+// 1. Per IP-adress - stoppar enkel brute-force
+// 2. Per email - stoppar distribuerade attacker (via proxies/botnets)
+
+// Rate limiter per IP-adress
+const loginLimiterByIp = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minuter
-	max: 5, // max 5 försök per fönster
+	max: 10, // max 10 försök per IP (lite högre för delade nätverk)
 	message: {
 		message: "För många inloggningsförsök. Försök igen om 15 minuter.",
 	},
-	standardHeaders: true, // skickar RateLimit-* headers
-	legacyHeaders: false, // stänger av X-RateLimit-* headers
+	standardHeaders: true,
+	legacyHeaders: false,
+});
+
+// Rate limiter per email-adress (skyddar mot distribuerade attacker)
+const loginLimiterByEmail = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minuter
+	max: 5, // max 5 försök per email (striktare)
+	message: {
+		message:
+			"För många inloggningsförsök för denna e-post. Försök igen om 15 minuter.",
+	},
+	keyGenerator: (req) => req.body?.email?.toLowerCase() || req.ip || "unknown",
+	standardHeaders: true,
+	legacyHeaders: false,
+	skip: (req) => !req.body?.email, // skippa om ingen email finns
 });
 
 const router = Router();
@@ -48,8 +64,8 @@ interface DbUser {
 	created_at: string;
 }
 
-// POST /api/auth/login (med rate limiting)
-router.post("/login", loginLimiter, (req, res) => {
+// POST /api/auth/login (med dubbel rate limiting: IP + email)
+router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {
 	const { email, password } = req.body;
 
 	// enkel validering

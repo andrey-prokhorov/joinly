@@ -35,10 +35,15 @@ db.exec(`
   )
 `);
 
+// SEED DATA (endast i development/test, ALDRIG i produktion)
+// ---------------------------------------------------------
+const isProduction = process.env.NODE_ENV === "production";
+
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get() as {
 	count: number;
 };
-if (userCount.count === 0) {
+
+if (userCount.count === 0 && !isProduction) {
 	// Hasha lösenordet (synkront för enkel setup)
 	// Salt rounds 12 = OWASP rekommendation (starkare än default 10)
 	const testPassword = "Test123!"; // Uppfyller: 8+ tecken, stor, liten, siffra, special
@@ -51,6 +56,10 @@ if (userCount.count === 0) {
   `).run("test@example.com", hashedPassword, "Test User", "user");
 
 	console.log("Seed: Testanvändare skapad (test@example.com / Test123!)");
+} else if (userCount.count === 0 && isProduction) {
+	console.log(
+		"Produktion: Ingen seed-data skapas. Lägg till användare manuellt.",
+	);
 }
 
 // Logga att databasen är redo
