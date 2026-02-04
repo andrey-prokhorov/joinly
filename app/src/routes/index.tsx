@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { StartPage } from "@/components/StartPage/StartPage"
+import { StartPage } from "@/pages/StartPage/StartPage"
 
 const App = () => {
 	return <StartPage />

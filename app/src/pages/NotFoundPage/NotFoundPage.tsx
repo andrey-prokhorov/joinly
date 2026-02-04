@@ -1,6 +1,6 @@
 import { Link, Stack, Typography } from "@mui/material"
-import { AppBox } from "../AppBox/AppBox"
-import { PageLayout } from "../PageLayout/PageLayout"
+import { InfoBox } from "../../components/InfoBox/InfoBox"
+import { PageLayout } from "../../components/PageLayout/PageLayout"
 
 export const NotFoundPage = () => (
 	<PageLayout>
@@ -8,7 +8,7 @@ export const NotFoundPage = () => (
 			Sidan kunde inte hittas
 		</Typography>
 
-		<AppBox>
+		<InfoBox>
 			<Stack spacing={3} textAlign="left">
 				<Typography variant="h6">Vi kunde tyvärr inte hitta sidan du söker.</Typography>
 
@@ -16,6 +16,6 @@ export const NotFoundPage = () => (
 					Testa att gå till <Link href="/">startsidan</Link>.
 				</Typography>
 			</Stack>
-		</AppBox>
+		</InfoBox>
 	</PageLayout>
 )

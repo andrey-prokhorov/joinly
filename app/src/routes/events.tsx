@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { EventsPage } from "@/components/EventsPage/EventsPage"
+import { EventsPage } from "@/pages/EventsPage/EventsPage"
 
 const Events = () => {
 	return <EventsPage />
