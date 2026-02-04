@@ -1,12 +1,12 @@
 import { Box, type BoxProps } from "@mui/material"
 import type { SxProps, Theme } from "@mui/material/styles"
 
-export interface AppBoxProps extends BoxProps {
+export interface InfoBoxProps extends BoxProps {
 	sx?: SxProps<Theme>
 	children: React.ReactNode
 }
 
-export const AppBox: React.FC<AppBoxProps> = ({ children, sx, ...rest }) => (
+export const InfoBox: React.FC<InfoBoxProps> = ({ children, sx, ...rest }) => (
 	<Box
 		sx={{
 			mb: 3,

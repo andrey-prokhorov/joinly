@@ -1,6 +1,6 @@
 import { Stack, Typography } from "@mui/material"
-import { AppBox } from "../AppBox/AppBox"
-import { PageLayout } from "../PageLayout/PageLayout"
+import { InfoBox } from "../../components/InfoBox/InfoBox"
+import { PageLayout } from "../../components/PageLayout/PageLayout"
 
 export const StartPage = () => (
 	<PageLayout>
@@ -8,9 +8,11 @@ export const StartPage = () => (
 			Startsida
 		</Typography>
 
-		<AppBox>
-			<Stack spacing={3} textAlign="left">
-				<Typography variant="h6">Välkommen till Joinly!</Typography>
+		<InfoBox>
+			<Stack spacing={3} textAlign="left" py={2}>
+				<Typography variant="h6">
+					Välkommen till <span color="accent.primary">joinly</span>!
+				</Typography>
 
 				<Typography variant="body1">
 					Joinly är en app för att hitta sällskap för träning – snabbt och utan krångel. Här kan du enkelt hitta eller
@@ -18,6 +20,6 @@ export const StartPage = () => (
 					grupper eller planera långt i förväg – se vad som händer idag eller imorgon och häng på.
 				</Typography>
 			</Stack>
-		</AppBox>
+		</InfoBox>
 	</PageLayout>
 )
