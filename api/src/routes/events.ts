@@ -17,7 +17,7 @@ interface DbEvent {
 }
 
 // GET /api/events - hämta alla events
-router.get("/", authenticateToken, (req: AuthRequest, res: Response) => {
+router.get("/", authenticateToken, (_req: AuthRequest, res: Response) => {
 	try {
 		const events = db
 			.prepare("SELECT * FROM events ORDER BY starts_at ASC")

@@ -57,7 +57,7 @@ if (eventCount.count === 0 && !isProduction) {
   `).run(
 		id,
 		"Högdalen Running Club Event",
-		"Conference",
+		"Running",
 		"2024-06-01T09:00:00",
 		"2024-06-01T17:00:00",
 		"Stockholm",
