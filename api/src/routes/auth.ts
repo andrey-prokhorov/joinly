@@ -4,7 +4,7 @@ import { type Response, Router } from "express";
 import rateLimit from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import config from "../config.js";
-import db from "../db/database.js";
+import db from "../db/database-users.js";
 import { type AuthRequest, authenticateToken } from "../middleware/auth.js";
 // validera eposten
 import { isValidEmail } from "../utils/validators.js";

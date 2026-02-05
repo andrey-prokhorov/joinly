@@ -31,11 +31,23 @@ Servern startar på **http://localhost:3001**
 
 ## Tillgängliga endpoints
 
+### Autentisering
+| Metod | Endpoint | Auth | Beskrivning |
+|-------|----------|------|-------------|
+| POST | `/api/auth/login` | Nej | Logga in, returnerar JWT-token |
+| GET | `/api/auth/me` | Ja | Hämta inloggad användare |
+
+### Events
+| Metod | Endpoint | Auth | Beskrivning |
+|-------|----------|------|-------------|
+| GET | `/api/events` | Ja | Hämta alla events (sorterat på startdatum) |
+| GET | `/api/events/:id` | Ja | Hämta specifikt event med ID |
+| GET | `/api/events/filter/search` | Ja | Hämta events med filter (city, category, date_from, date_to) |
+
+### System
 | Metod | Endpoint | Auth | Beskrivning |
 |-------|----------|------|-------------|
 | GET | `/api/health` | Nej | Hälsokontroll (för CI/CD) |
-| POST | `/api/auth/login` | Nej | Logga in, returnerar JWT-token |
-| GET | `/api/auth/me` | Ja | Hämta inloggad användare |
 
 ## npm scripts
 
@@ -57,11 +69,13 @@ api/
 │   ├── index.ts          # Express server & routes
 │   ├── config.ts         # Konfiguration
 │   ├── db/
-│   │   └── database.ts   # SQLite setup & seed
+│   │   ├── database.ts   # SQLite setup & seed (users)
+│   │   └── database-events.ts # Events databas setup & seed
 │   ├── middleware/
 │   │   └── auth.ts       # JWT-verifiering
 │   ├── routes/
-│   │   └── auth.ts       # Login & me endpoints
+│   │   ├── auth.ts       # Login & me endpoints
+│   │   └── events.ts     # Events endpoints
 │   └── utils/
 │       └── validators.ts # Input-validering
 ├── tests/
@@ -121,8 +135,10 @@ Därför kör CI:n `npm audit --omit=dev` som bara auditerar produktions-depende
 
 - [x] Databas (SQLite)
 - [x] Autentisering (JWT + bcrypt)
+- [x] Events API-endpoints (CRUD + filtering)
 - [ ] ACL (behörighetskontroll)
-- [ ] API-endpoints (baserat på user stories)
+- [ ] Användarregistrering
+- [ ] Event-skapande för inloggade användare
 
 ---
 

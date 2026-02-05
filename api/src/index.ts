@@ -3,9 +3,11 @@ import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import helmet from "helmet";
 import config from "./config.js";
-import "./db/database.js"; // Initiera databas vid start
-// Importera
+import "./db/database-users.js"; // Initiera databas vid start
+import "./db/database-events.js"; // Initiera events databas vid start
+// Importera routes
 import authRoutes from "./routes/auth.js";
+import eventRoutes from "./routes/events.js";
 
 const app = express();
 
@@ -61,8 +63,9 @@ app.use(cors()); // Cross-origin requests
 app.use(express.json()); // Parse JSON body
 app.use(requestLogger); // Logga alla requests
 
-// Använda auth-routes
+// Använda routes
 app.use("/api/auth", authRoutes);
+app.use("/api/events", eventRoutes);
 
 // Health endpoint - användbart för CI/CD och monitoring
 app.get("/api/health", (_req, res) => {
