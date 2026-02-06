@@ -1,14 +1,12 @@
-// endpoint som hanterar inloggning
-import bcrypt from "bcryptjs";
-import { type Response, Router } from "express";
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
-import jwt from "jsonwebtoken";
-import config from "../config.js";
-import db from "../db/database.js";
-import { type AuthRequest, authenticateToken } from "../middleware/auth.js";
-// validera eposten
-import { isValidEmail } from "../utils/validators.js";
-import { v4 as uuidv4 } from "uuid";
+import bcrypt from "bcryptjs"
+import { type Response, Router } from "express"
+import rateLimit, { ipKeyGenerator } from "express-rate-limit"
+import jwt from "jsonwebtoken"
+import { v4 as uuidv4 } from "uuid"
+import config from "../config.js"
+import db from "../db/database.js"
+import { type AuthRequest, authenticateToken } from "../middleware/auth.js"
+import { isValidEmail } from "../utils/validators.js"
 
 // TIMING ATTACK PREVENTION
 // --------------------------
@@ -20,9 +18,9 @@ import { v4 as uuidv4 } from "uuid";
 // Lösning: vi kör ALLTID bcrypt, även om användaren inte finns.
 // Då tar båda fallen lika lång tid och attacken fungerar inte.
 const DUMMY_HASH =
-	"$2b$12$K8HpHfKxMvYwJQpCqWKMqeSN5.5kkNFnRhKYqTvqL9CxvM0VxNKXG";
+	"$2b$12$K8HpHfKxMvYwJQpCqWKMqeSN5.5kkNFnRhKYqTvqL9CxvM0VxNKXG"
 
-const uuid = uuidv4();
+const uuid = uuidv4()
 
 // RATE LIMITING (Brute-force skydd)
 // ----------------------------------
@@ -39,7 +37,7 @@ const loginLimiterByIp = rateLimit({
 	},
 	standardHeaders: true,
 	legacyHeaders: false,
-});
+})
 
 // Rate limiter per email-adress (skyddar mot distribuerade attacker)
 const loginLimiterByEmail = rateLimit({
@@ -54,51 +52,51 @@ const loginLimiterByEmail = rateLimit({
 	standardHeaders: true,
 	legacyHeaders: false,
 	skip: (req) => !req.body?.email, // skippa om ingen email finns
-});
+})
 
-const router = Router();
+const router = Router()
 
 // typ för User från databasen
 interface DbUser {
-	id: number;
-	email: string;
-	password_hash: string;
-	name: string | null;
-	role: string;
-	created_at: string;
+	id: number
+	email: string
+	password_hash: string
+	name: string | null
+	role: string
+	created_at: string
 }
 
 // POST /api/auth/login (med dubbel rate limiting: IP + email)
 router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {
-	const { email, password } = req.body;
+	const { email, password } = req.body
 
 	// enkel validering
 	if (!email || !password) {
-		return res.status(400).json({ message: "E-post och lösenord krävs." });
+		return res.status(400).json({ message: "E-post och lösenord krävs." })
 	}
 	// validera epostformat
 	if (!isValidEmail(email)) {
-		return res.status(400).json({ message: "Ogiltig e-postadress." });
+		return res.status(400).json({ message: "Ogiltig e-postadress." })
 	}
 
 	// hämta användare från databasen
 	const user = db
 		.prepare(
-			"SELECT id, email, password_hash, name, role FROM users WHERE email = ?",
+			"SELECT id, email, password_hash, name, role FROM users WHERE email = ?"
 		)
-		.get(email) as DbUser | undefined;
+		.get(email) as DbUser | undefined
 
 	if (!user) {
 		// Kör bcrypt ändå för att förhindra timing attack (se DUMMY_HASH ovan)
-		bcrypt.compareSync(password, DUMMY_HASH);
-		return res.status(401).json({ message: "Ogiltig e-post eller lösenord." });
+		bcrypt.compareSync(password, DUMMY_HASH)
+		return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
 	}
 
 	// verifiera lösenord
-	const validPassword = bcrypt.compareSync(password, user.password_hash);
+	const validPassword = bcrypt.compareSync(password, user.password_hash)
 
 	if (!validPassword) {
-		return res.status(401).json({ message: "Ogiltig e-post eller lösenord." });
+		return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
 	}
 
 	// Skapa JWT-token
@@ -110,8 +108,8 @@ router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {
 	const token = jwt.sign(
 		{ id: user.id, email: user.email, role: user.role },
 		config.jwt.secret,
-		{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions,
-	);
+		{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions
+	)
 
 	// skicka token till klienten
 	res.json({
@@ -123,14 +121,14 @@ router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {
 			name: user.name,
 			role: user.role,
 		},
-	});
-});
+	})
+})
 
 // GET /api/auth/me - returnera inloggad användare
 router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
 	// authenticateToken har redan verifierat token och lagt user på req
 	// Om vi kommer hit är användaren inloggad
-	res.json({ user: req.user, message: "Användare är inloggad." });
-});
+	res.json({ user: req.user, message: "Användare är inloggad." })
+})
 
-export default router;
+export default router
