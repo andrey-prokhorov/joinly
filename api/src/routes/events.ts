@@ -1,5 +1,5 @@
 import { type Response, Router } from "express";
-import db from "../db/database-events.js";
+import db from "../db/database.js";
 import { type AuthRequest, authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
@@ -82,7 +82,7 @@ router.get(
 
 		try {
 			let query = "SELECT * FROM events WHERE 1=1";
-			const params: any[] = [];
+			const params: string[] = [];
 
 			// Filter för stad
 			if (city && typeof city === "string") {

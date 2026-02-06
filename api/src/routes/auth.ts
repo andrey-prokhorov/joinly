@@ -4,10 +4,11 @@ import { type Response, Router } from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import config from "../config.js";
-import db from "../db/database-users.js";
+import db from "../db/database.js";
 import { type AuthRequest, authenticateToken } from "../middleware/auth.js";
 // validera eposten
 import { isValidEmail } from "../utils/validators.js";
+import { v4 as uuidv4 } from "uuid";
 
 // TIMING ATTACK PREVENTION
 // --------------------------
@@ -20,6 +21,8 @@ import { isValidEmail } from "../utils/validators.js";
 // Då tar båda fallen lika lång tid och attacken fungerar inte.
 const DUMMY_HASH =
 	"$2b$12$K8HpHfKxMvYwJQpCqWKMqeSN5.5kkNFnRhKYqTvqL9CxvM0VxNKXG";
+
+const uuid = uuidv4();
 
 // RATE LIMITING (Brute-force skydd)
 // ----------------------------------
@@ -46,7 +49,8 @@ const loginLimiterByEmail = rateLimit({
 		message:
 			"För många inloggningsförsök för denna e-post. Försök igen om 15 minuter.",
 	},
-	keyGenerator: (req) => req.body?.email?.toLowerCase() || ipKeyGenerator(req.toString()),
+	keyGenerator: (req) =>
+		req.body?.email?.toLowerCase() || ipKeyGenerator(req?.ip || uuid),
 	standardHeaders: true,
 	legacyHeaders: false,
 	skip: (req) => !req.body?.email, // skippa om ingen email finns

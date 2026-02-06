@@ -3,9 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import express from "express";
 import helmet from "helmet";
 import config from "./config.js";
-import "./db/database-users.js"; // Initiera databas vid start
-import "./db/database-events.js"; // Initiera events databas vid start
-// Importera routes
+import { initDatabase, seedData } from "./db/database.js";
 import authRoutes from "./routes/auth.js";
 import eventRoutes from "./routes/events.js";
 
@@ -56,6 +54,14 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 
 	next();
 };
+
+const isProduction = process.env.NODE_ENV === "production";
+
+initDatabase();
+
+if (!isProduction) {
+	seedData();
+}
 
 // Middleware-kedja (ordningen är viktig!)
 app.use(helmet()); // Security headers
