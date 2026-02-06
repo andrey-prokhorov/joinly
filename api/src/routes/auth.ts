@@ -1,7 +1,7 @@
 // endpoint som hanterar inloggning
 import bcrypt from "bcryptjs";
 import { type Response, Router } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import config from "../config.js";
 import db from "../db/database-users.js";
@@ -46,7 +46,7 @@ const loginLimiterByEmail = rateLimit({
 		message:
 			"För många inloggningsförsök för denna e-post. Försök igen om 15 minuter.",
 	},
-	keyGenerator: (req) => req.body?.email?.toLowerCase() || req.ip || "unknown",
+	keyGenerator: (req) => req.body?.email?.toLowerCase() || ipKeyGenerator(req.toString()),
 	standardHeaders: true,
 	legacyHeaders: false,
 	skip: (req) => !req.body?.email, // skippa om ingen email finns
