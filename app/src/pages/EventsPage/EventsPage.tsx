@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemButton, ListItemText, Stack, Typography } from "@mui/material"
+import { List, ListItem, ListItemButton, ListItemText, Typography } from "@mui/material"
 import { InfoBox } from "@/components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 

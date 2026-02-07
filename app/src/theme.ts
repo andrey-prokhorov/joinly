@@ -1,7 +1,5 @@
 import { createTheme, type ThemeOptions } from "@mui/material/styles"
 
-const baseTheme = createTheme()
-
 export const themeOptions: ThemeOptions = {
 	typography: {
 		fontFamily: "'Segoe UI', Arial, sans-serif",
