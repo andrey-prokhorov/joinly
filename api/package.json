@@ -13,6 +13,7 @@
 		"lint": "biome check src/",
 		"lint:fix": "biome check --write src/",
 		"format": "biome format --write src/",
+		"format:fix": "npm run format && npm run lint:fix",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:api": "newman run tests/auth.postman_collection.json"
@@ -25,7 +26,8 @@
 		"express": "^5.0.1",
 		"express-rate-limit": "^8.2.1",
 		"helmet": "^8.0.0",
-		"jsonwebtoken": "^9.0.3"
+		"jsonwebtoken": "^9.0.3",
+		"uuid": "^13.0.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.4",

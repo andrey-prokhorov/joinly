@@ -1,18 +1,18 @@
-import "dotenv/config";
+import "dotenv/config"
 
 // Definiera typer för config
 interface Config {
 	server: {
-		port: number;
-		nodeEnv: string;
-	};
+		port: number
+		nodeEnv: string
+	}
 	jwt: {
-		secret: string;
-		expiresIn: string;
-	};
-	isProduction: () => boolean;
-	isDevelopment: () => boolean;
-	isTest: () => boolean;
+		secret: string
+		expiresIn: string
+	}
+	isProduction: () => boolean
+	isDevelopment: () => boolean
+	isTest: () => boolean
 }
 
 // Konfiguration för Joinly API
@@ -29,22 +29,22 @@ export const config: Config = {
 
 	// Hjälpfunktioner
 	isProduction() {
-		return this.server.nodeEnv === "production";
+		return this.server.nodeEnv === "production"
 	},
 	isDevelopment() {
-		return this.server.nodeEnv === "development";
+		return this.server.nodeEnv === "development"
 	},
 	isTest() {
-		return this.server.nodeEnv === "test";
+		return this.server.nodeEnv === "test"
 	},
-};
+}
 
 // Säkerhetskoll: varna om default secret i produktion
 if (
 	config.isProduction() &&
 	config.jwt.secret === "dev-secret-change-in-production"
 ) {
-	throw new Error("KRITISKT: JWT_SECRET måste sättas i produktion!");
+	throw new Error("KRITISKT: JWT_SECRET måste sättas i produktion!")
 }
 
-export default config;
+export default config

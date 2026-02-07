@@ -1,7 +1,7 @@
 {
 	"info": {
-		"name": "Joinly API - Auth Tests",
-		"description": "Tester för autentisering i Joinly API.\n\n## Tester\n1. Health check\n2. Login OK\n3. Login fel lösenord\n4. Login saknar fält\n5. Me utan token\n6. Me med token\n7. Login icke-existerande email\n8. Login ogiltigt email-format\n9. Me malformad Authorization header\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"name": "Joinly API - Auth & Events Tests",
+		"description": "Tester för autentisering och events i Joinly API.\n\n## Auth Tester\n1. Health check\n2. Login OK\n3. Login fel lösenord\n4. Login saknar fält\n5. Me utan token\n6. Me med token\n7. Login icke-existerande email\n8. Login ogiltigt email-format\n9. Me malformad Authorization header\n\n## Events Tester\n10. Events - Get all (with token)\n11. Events - Get all (without token)\n12. Events - Get by ID (with token)\n13. Events - Get by ID (without token)\n14. Events - Filter search (with token)\n15. Events - Filter search (without token)\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -371,6 +371,253 @@
 					"raw": "{{baseUrl}}/api/auth/me",
 					"host": ["{{baseUrl}}"],
 					"path": ["api", "auth", "me"]
+				}
+			}
+		},
+		{
+			"name": "10. Events - Get all (with token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Med giltig token ger 200",
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Test: Response har success: true",
+							"pm.test('Response has success true', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.eql(true);",
+							"});",
+							"",
+							"// Test: Response innehåller events array",
+							"pm.test('Response has events array', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.events).to.be.an('array');",
+							"    pm.expect(json.count).to.be.a('number');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "11. Events - Get all (without token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Utan token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Response säger att token saknas",
+							"pm.test('Response says no token', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('token');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/events",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "12. Events - Get by ID (with token)", 
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Med giltig token ger antingen 200 (event finns) eller 404 (event finns inte)",
+							"pm.test('Status code is 200 or 404', function () {",
+							"    pm.expect([200, 404]).to.include(pm.response.code);",
+							"});",
+							"",
+							"// Test: Om 200, kontrollera att response har event",
+							"pm.test('If 200, response has event data', function () {",
+							"    if (pm.response.code === 200) {",
+							"        const json = pm.response.json();",
+							"        pm.expect(json.success).to.eql(true);",
+							"        pm.expect(json.event).to.be.an('object');",
+							"    }",
+							"});",
+							"",
+							"// Test: Om 404, kontrollera felmeddelande",
+							"pm.test('If 404, response has error message', function () {",
+							"    if (pm.response.code === 404) {",
+							"        const json = pm.response.json();",
+							"        pm.expect(json.success).to.eql(false);",
+							"        pm.expect(json.message).to.include('hittades inte');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/test-event-id-123",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "test-event-id-123"]
+				}
+			}
+		},
+		{
+			"name": "13. Events - Get by ID (without token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Utan token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Response säger att token saknas",
+							"pm.test('Response says no token', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('token');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/test-event-id-123",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "test-event-id-123"]
+				}
+			}
+		},
+		{
+			"name": "14. Events - Filter search (with token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Med giltig token ger 200",
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Test: Response har success: true",
+							"pm.test('Response has success true', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.eql(true);",
+							"});",
+							"",
+							"// Test: Response innehåller events array och filters",
+							"pm.test('Response has events array and filters', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.events).to.be.an('array');",
+							"    pm.expect(json.count).to.be.a('number');",
+							"    pm.expect(json.filters).to.be.an('object');",
+							"    pm.expect(json.filters.city).to.eql('Stockholm');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "filter", "search"],
+					"query": [
+						{
+							"key": "city",
+							"value": "Stockholm"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "15. Events - Filter search (without token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Utan token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Response säger att token saknas",
+							"pm.test('Response says no token', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('token');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "filter", "search"],
+					"query": [
+						{
+							"key": "city",
+							"value": "Stockholm"
+						}
+					]
 				}
 			}
 		}
