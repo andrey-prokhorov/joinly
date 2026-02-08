@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Joinly API - Auth & Events Tests",
-		"description": "Tester för autentisering och events i Joinly API.\n\n## Register Tester\n1. Health check\n2. Register OK (ny användare)\n3. Register - Dubblett-email\n4. Register - Dåligt lösenord\n5. Register - Saknade fält\n\n## Auth Tester\n6. Login OK\n7. Login fel lösenord\n8. Login saknar fält\n9. Me utan token\n10. Me med token\n11. Login icke-existerande email\n12. Login ogiltigt email-format\n13. Me malformad Authorization header\n\n## Events Tester\n14. Events - Get all (with token)\n15. Events - Get all (without token)\n16. Events - Get by ID (with token)\n17. Events - Get by ID (without token)\n18. Events - Filter search (with token)\n19. Events - Filter search (without token)\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"description": "Tester för autentisering och events i Joinly API.\n\n## Register Tester\n1. Health check\n2. Register OK (ny användare)\n3. Register - Dubblett-email\n4. Register - Dåligt lösenord\n5. Register - Saknade fält\n\n## Auth Tester\n6. Login OK\n7. Login fel lösenord\n8. Login saknar fält\n9. Me utan token\n10. Me med token\n11. Login icke-existerande email\n12. Login ogiltigt email-format\n13. Me malformad Authorization header\n\n## Events Tester\n14. Events - Get all (with token)\n15. Events - Get all (without token)\n16. Events - Get by ID (with token)\n17. Events - Get by ID (without token)\n18. Events - Filter search (with token)\n19. Events - Filter search (without token)\n\n## Logout Tester\n20. Logout OK (invaliderar token)\n21. Me efter logout (ska ge 401)\n22. Logout utan token\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -794,6 +794,112 @@
 							"value": "Stockholm"
 						}
 					]
+				}
+			}
+		},
+		{
+			"name": "20. Logout OK",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Logout lyckas med 200",
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Test: Response bekräftar utloggning",
+							"pm.test('Response confirms logout', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('Utloggad');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/logout",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "logout"]
+				}
+			}
+		},
+		{
+			"name": "21. Me efter logout (token blacklistad)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Blacklistad token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Felmeddelande om invaliderad token",
+							"pm.test('Response says token invalidated', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('invaliderats');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/me",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "me"]
+				}
+			}
+		},
+		{
+			"name": "22. Logout utan token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Utan token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Response säger att token saknas",
+							"pm.test('Response says no token', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('token');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/logout",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "logout"]
 				}
 			}
 		}

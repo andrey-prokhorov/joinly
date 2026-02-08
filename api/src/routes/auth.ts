@@ -214,4 +214,28 @@ router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
 	res.json({ user: req.user, message: "Användare är inloggad." })
 })
 
+// POST /api/auth/logout - invalidera token (lägg i blacklist)
+router.post("/logout", authenticateToken, (req: AuthRequest, res: Response) => {
+	// Hämta token från Authorization header (samma logik som middleware)
+	const authHeader = req.headers.authorization
+	const token = authHeader?.replace(/^Bearer\s+/i, "").trim()
+
+	if (!token) {
+		return res.status(400).json({ message: "Ingen token att invalidera." })
+	}
+
+	// Hämta tokenens utgångstid från JWT payload
+	const decoded = jwt.decode(token) as { exp?: number }
+	const expiresAt = decoded?.exp
+		? new Date(decoded.exp * 1000).toISOString()
+		: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+
+	// Lägg token i blacklist
+	db.prepare(
+		"INSERT OR IGNORE INTO token_blacklist (token, expires_at) VALUES (?, ?)"
+	).run(token, expiresAt)
+
+	res.json({ message: "Utloggad." })
+})
+
 export default router
