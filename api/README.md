@@ -345,7 +345,7 @@ JWT-tokens är stateless - servern kan normalt inte invalidera dem innan de går
 
 1. Vid logout sparas token i `token_blacklist`-tabellen med utgångstid
 2. Auth-middleware kontrollerar blacklist **innan** JWT verifieras
-3. Utgångna tokens rensas automatiskt vid serverstart
+3. Utgångna tokens rensas automatiskt vid databasinitiering
 
 Detta ger säkrare sessionshantering, speciellt viktigt om en token komprometteras.
 

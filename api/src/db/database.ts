@@ -40,6 +40,9 @@ export function initDatabase(): void {
 	// Skapa events-tabell
 	createEventsTable(db)
 
+	// Rensa utgångna tokens från blacklist (körs alltid, även i production)
+	cleanExpiredTokens(db)
+
 	console.log("Database tables initialized")
 }
 
@@ -51,9 +54,6 @@ export function seedData(): void {
 		console.log("Produktion: Ingen seed-data skapas. Lägg till data manuellt.")
 		return
 	}
-	// innan vi seedar, rensa bort utgångna tokens från blacklist (sparar diskutrymme)
-	cleanExpiredTokens(db)
-
 	seedUsers(db)
 	seedEvents(db)
 }

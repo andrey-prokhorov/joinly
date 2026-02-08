@@ -14,6 +14,11 @@
 			"key": "authToken",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "registerEmail",
+			"value": "newman-fallback@test.com",
+			"type": "string"
 		}
 	],
 	"item": [
@@ -53,6 +58,17 @@
 			"name": "2. Register OK",
 			"event": [
 				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generera unik email med timestamp så testet inte krockar med tidigare körningar",
+							"const uniqueEmail = 'newman+' + Date.now() + '@test.com';",
+							"pm.collectionVariables.set('registerEmail', uniqueEmail);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
 					"listen": "test",
 					"script": {
 						"exec": [
@@ -71,9 +87,10 @@
 							"// Test: Response innehåller user-info",
 							"pm.test('Response has user info', function () {",
 							"    const json = pm.response.json();",
+							"    const expectedEmail = pm.collectionVariables.get('registerEmail');",
 							"    pm.expect(json.user).to.have.property('id');",
 							"    pm.expect(json.user).to.have.property('email');",
-							"    pm.expect(json.user.email).to.eql('newman@test.com');",
+							"    pm.expect(json.user.email).to.eql(expectedEmail);",
 							"    pm.expect(json.user).to.have.property('name');",
 							"    pm.expect(json.user.name).to.eql('Newman Testare');",
 							"    pm.expect(json.user.role).to.eql('user');",
@@ -93,7 +110,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"newman@test.com\",\n    \"password\": \"Test123!\"\n}"
+					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"{{registerEmail}}\",\n    \"password\": \"Test123!\"\n}"
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/auth/register",
@@ -134,7 +151,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"newman@test.com\",\n    \"password\": \"Test123!\"\n}"
+					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"{{registerEmail}}\",\n    \"password\": \"Test123!\"\n}"
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/auth/register",

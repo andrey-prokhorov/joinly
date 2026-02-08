@@ -51,8 +51,8 @@ export const getPasswordError = (password: string): string | null => {
 	return null
 }
 
-// returnera felmeddelande för namn (använder samma logik som isValidName)
-// Strippar HTML-taggar och control characters för att förhindra XSS
+// returnera felmeddelande för namn - avvisar HTML-taggar och control characters
+// OBS: denna funktion bara validerar/avvisar, sanitizeName() är ett separat steg för lagring
 export const getNameError = (name: string): string | null => {
 	const trimmedName = name.trim()
 	if (trimmedName.length < 2) return "Namn måste vara minst 2 tecken"
