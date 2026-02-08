@@ -10,6 +10,7 @@
 import type { NextFunction, Request, Response } from "express"
 import jwt from "jsonwebtoken"
 import config from "../config.js"
+import db from "../db/database.js"
 
 // ================================
 // TYPER
@@ -53,6 +54,15 @@ export const authenticateToken = (
 	// STEG 3: Kolla om token finns
 	if (!token) {
 		res.status(401).json({ message: "Ingen token tillhandahållen." })
+		return
+	}
+	// STEG 3.5 Kolla om token är blacklistad (utloggad)
+	const blacklisted = db
+		.prepare("SELECT id FROM token_blacklist WHERE token = ?")
+		.get(token)
+
+	if (blacklisted) {
+		res.status(401).json({ message: "Token har invaliderats." })
 		return
 	}
 

@@ -4,6 +4,10 @@ import { mkdirSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import Database, { type Database as DatabaseType } from "better-sqlite3"
+import {
+	cleanExpiredTokens,
+	createBlacklistTable,
+} from "./database-blacklist.js"
 
 // ES modules: skapa __dirname manuellt
 const __filename = fileURLToPath(import.meta.url)
@@ -30,9 +34,14 @@ import { createUsersTable, seedUsers } from "./database-users.js"
 export function initDatabase(): void {
 	// Skapa users-tabell
 	createUsersTable(db)
+	// Skapa token blacklist-tabell
+	createBlacklistTable(db)
 
 	// Skapa events-tabell
 	createEventsTable(db)
+
+	// Rensa utgångna tokens från blacklist (körs alltid, även i production)
+	cleanExpiredTokens(db)
 
 	console.log("Database tables initialized")
 }
@@ -45,7 +54,6 @@ export function seedData(): void {
 		console.log("Produktion: Ingen seed-data skapas. Lägg till data manuellt.")
 		return
 	}
-
 	seedUsers(db)
 	seedEvents(db)
 }

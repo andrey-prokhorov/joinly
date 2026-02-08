@@ -6,11 +6,16 @@ import { v4 as uuidv4 } from "uuid"
 import config from "../config.js"
 import db from "../db/database.js"
 import { type AuthRequest, authenticateToken } from "../middleware/auth.js"
-import { isValidEmail } from "../utils/validators.js"
+import {
+	getEmailError,
+	getNameError,
+	getPasswordError,
+	sanitizeName,
+} from "../utils/validators.js"
 
 // TIMING ATTACK PREVENTION
 // --------------------------
-// När någon försöker logga in mäter vi lösenordet med bcrypt.compareSync().
+// När någon försöker logga in mäter vi lösenordet med bcrypt.compare().
 // Problemet: om användaren INTE finns hoppar vi över bcrypt → snabbt svar.
 // Om användaren FINNS kör vi bcrypt → långsamt svar (100-300ms).
 // En attackerare kan mäta svarstiden och räkna ut vilka email som finns!
@@ -24,22 +29,28 @@ const uuid = uuidv4()
 
 // RATE LIMITING (Brute-force skydd)
 // ----------------------------------
-// Vi använder TVÅ rate limiters för bättre skydd:
-// 1. Per IP-adress - stoppar enkel brute-force
-// 2. Per email - stoppar distribuerade attacker (via proxies/botnets)
+// Funktion som skapar rate limiters med gemensam config.
+// Används för både login och register med olika gränser.
+// Login har även en separat email-baserad limiter (se nedan).
+const createRateLimiter = (max: number, message: string) =>
+	rateLimit({
+		windowMs: 15 * 60 * 1000,
+		max,
+		message: { message },
+		standardHeaders: true,
+		legacyHeaders: false,
+	})
 
-// Rate limiter per IP-adress
-const loginLimiterByIp = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minuter
-	max: 10, // max 10 försök per IP (lite högre för delade nätverk)
-	message: {
-		message: "För många inloggningsförsök. Försök igen om 15 minuter.",
-	},
-	standardHeaders: true,
-	legacyHeaders: false,
-})
+const loginLimiterByIp = createRateLimiter(
+	10,
+	"För många inloggningsförsök. Försök igen om 15 minuter."
+)
+const registerLimiter = createRateLimiter(
+	5,
+	"För många registreringsförsök. Försök igen om 15 minuter."
+)
 
-// Rate limiter per email-adress (skyddar mot distribuerade attacker)
+// Rate limiter per email-adress vid Login (skyddar mot distribuerade attacker)
 const loginLimiterByEmail = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minuter
 	max: 5, // max 5 försök per email (striktare)
@@ -66,69 +77,204 @@ interface DbUser {
 	created_at: string
 }
 
-// POST /api/auth/login (med dubbel rate limiting: IP + email)
-router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {
-	const { email, password } = req.body
+// POST /api/auth/register
+router.post("/register", registerLimiter, async (req, res) => {
+	const { email, password, name } = req.body
 
-	// enkel validering
-	if (!email || !password) {
-		return res.status(400).json({ message: "E-post och lösenord krävs." })
+	// typkontroll + validering (skyddar mot icke-strängvärden som ger 500 istället för 400)
+	if (
+		typeof email !== "string" ||
+		typeof password !== "string" ||
+		typeof name !== "string" ||
+		!email ||
+		!password ||
+		!name
+	) {
+		return res.status(400).json({ message: "E-post, lösenord och namn krävs." })
 	}
+
+	// normalisera email (förhindrar dubbletter med olika casing)
+	const normalizedEmail = email.trim().toLowerCase()
+
 	// validera epostformat
-	if (!isValidEmail(email)) {
-		return res.status(400).json({ message: "Ogiltig e-postadress." })
+	const emailError = getEmailError(normalizedEmail)
+	if (emailError) {
+		return res.status(400).json({ message: emailError })
 	}
 
-	// hämta användare från databasen
-	const user = db
-		.prepare(
-			"SELECT id, email, password_hash, name, role FROM users WHERE email = ?"
+	// validera lösenord
+	const passwordError = getPasswordError(password)
+	if (passwordError) {
+		return res.status(400).json({ message: passwordError })
+	}
+
+	// validera namn mot rå input först (avvisar t.ex. HTML-taggar med felmeddelande)
+	// sanitering görs separat efter validering - bara för lagring
+	const rawName = typeof name === "string" ? name.trim() : ""
+	const nameError = getNameError(rawName)
+	if (nameError) {
+		return res.status(400).json({ message: nameError })
+	}
+	const sanitizedName = sanitizeName(rawName)
+
+	try {
+		// kolla om användaren redan finns
+		const existingUser = db
+			.prepare("SELECT id FROM users WHERE email = ?")
+			.get(normalizedEmail) as { id: number } | undefined
+
+		if (existingUser) {
+			return res
+				.status(409)
+				.json({ message: "E-postadressen är redan registrerad." })
+		}
+
+		// hash lösenord (async för att inte blockera event loop)
+		const passwordHash = await bcrypt.hash(password, 12)
+
+		// spara användare i databasen
+		const result = db
+			.prepare(
+				"INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, 'user')"
+			)
+			.run(normalizedEmail, passwordHash, sanitizedName)
+
+		if (result.changes === 0) {
+			return res.status(500).json({ message: "Kunde inte skapa användare." })
+		}
+		// hämta result.lastInsertRowid som är den nya användarens ID.
+		const newUserId = result.lastInsertRowid as number
+		// skapa jwt-token med id, email och role (för konsistens med /login)
+		const token = jwt.sign(
+			{ id: newUserId, email: normalizedEmail, role: "user" },
+			config.jwt.secret,
+			{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions
 		)
-		.get(email) as DbUser | undefined
-
-	if (!user) {
-		// Kör bcrypt ändå för att förhindra timing attack (se DUMMY_HASH ovan)
-		bcrypt.compareSync(password, DUMMY_HASH)
-		return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
+		//returnera 201 med message, token, user (id, email, name, role)
+		res.status(201).json({
+			message: "Användare skapad. Du kan nu logga in.",
+			token,
+			user: {
+				id: newUserId,
+				email: normalizedEmail,
+				name: sanitizedName,
+				role: "user",
+			},
+		})
+	} catch (_error) {
+		return res.status(500).json({ message: "Kunde inte skapa användare." })
 	}
-
-	// verifiera lösenord
-	const validPassword = bcrypt.compareSync(password, user.password_hash)
-
-	if (!validPassword) {
-		return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
-	}
-
-	// Skapa JWT-token
-	// OBS: "as jwt.SignOptions" behövs pga ett känt typproblem i @types/jsonwebtoken
-	// där expiresIn använder en "branded type" (StringValue) som inte accepterar vanlig string.
-	// Detta är en vedertagen workaround, inte slarv.
-	// Skapa JWT payload med samma struktur som user-objektet vi returnerar
-	// Detta gör att /me och /login ger konsistent data
-	const token = jwt.sign(
-		{ id: user.id, email: user.email, role: user.role },
-		config.jwt.secret,
-		{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions
-	)
-
-	// skicka token till klienten
-	res.json({
-		message: "Inloggning lyckades.",
-		token,
-		user: {
-			id: user.id,
-			email: user.email,
-			name: user.name,
-			role: user.role,
-		},
-	})
 })
+
+// POST /api/auth/login (med dubbel rate limiting: IP + email)
+router.post(
+	"/login",
+	loginLimiterByIp,
+	loginLimiterByEmail,
+	async (req, res) => {
+		const { email, password } = req.body
+
+		// typkontroll + validering (skyddar mot icke-strängvärden som ger 500 istället för 400)
+		if (
+			typeof email !== "string" ||
+			typeof password !== "string" ||
+			!email ||
+			!password
+		) {
+			return res.status(400).json({ message: "E-post och lösenord krävs." })
+		}
+
+		// normalisera email (matcha hur register sparar)
+		const normalizedEmail = email.trim().toLowerCase()
+
+		// validera epostformat (samma check som register för konsistens)
+		const emailError = getEmailError(normalizedEmail)
+		if (emailError) {
+			return res.status(400).json({ message: emailError })
+		}
+
+		// hämta användare från databasen
+		const user = db
+			.prepare(
+				"SELECT id, email, password_hash, name, role FROM users WHERE email = ?"
+			)
+			.get(normalizedEmail) as DbUser | undefined
+
+		if (!user) {
+			// Kör bcrypt ändå för att förhindra timing attack (se DUMMY_HASH ovan)
+			await bcrypt.compare(password, DUMMY_HASH)
+			return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
+		}
+
+		// verifiera lösenord
+		const validPassword = await bcrypt.compare(password, user.password_hash)
+
+		if (!validPassword) {
+			return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
+		}
+
+		// Skapa JWT-token
+		// OBS: "as jwt.SignOptions" behövs pga ett känt typproblem i @types/jsonwebtoken
+		// där expiresIn använder en "branded type" (StringValue) som inte accepterar vanlig string.
+		// Detta är en vedertagen workaround, inte slarv.
+		// Skapa JWT payload med samma struktur som user-objektet vi returnerar
+		// Detta gör att /me och /login ger konsistent data
+		const token = jwt.sign(
+			{ id: user.id, email: user.email, role: user.role },
+			config.jwt.secret,
+			{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions
+		)
+
+		// skicka token till klienten
+		res.json({
+			message: "Inloggning lyckades.",
+			token,
+			user: {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				role: user.role,
+			},
+		})
+	}
+)
 
 // GET /api/auth/me - returnera inloggad användare
 router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
 	// authenticateToken har redan verifierat token och lagt user på req
 	// Om vi kommer hit är användaren inloggad
 	res.json({ user: req.user, message: "Användare är inloggad." })
+})
+
+// POST /api/auth/logout - invalidera token (lägg i blacklist)
+router.post("/logout", authenticateToken, (req: AuthRequest, res: Response) => {
+	// Hämta token från Authorization header
+	// authenticateToken middleware garanterar att authHeader finns och token är giltig
+	const authHeader = req.headers.authorization ?? ""
+	const token = authHeader.replace(/^Bearer\s+/i, "").trim()
+
+	// Defensiv check - bör aldrig triggas tack vare authenticateToken middleware
+	if (!token) {
+		return res.status(401).json({ message: "Ogiltig eller saknad token." })
+	}
+
+	// Hämta tokenens utgångstid från JWT payload (unix epoch i sekunder)
+	// JWT exp är redan unix epoch - spara direkt utan formatkonvertering
+	const decoded = jwt.decode(token) as { exp?: number }
+	const expiresAt = decoded?.exp ?? Math.floor(Date.now() / 1000) + 86400
+
+	// Lägg token i blacklist
+	try {
+		db.prepare(
+			"INSERT OR IGNORE INTO token_blacklist (token, expires_at) VALUES (?, ?)"
+		).run(token, expiresAt)
+	} catch (_error) {
+		return res
+			.status(500)
+			.json({ message: "Kunde inte logga ut. Försök igen." })
+	}
+
+	res.json({ message: "Utloggad." })
 })
 
 export default router
