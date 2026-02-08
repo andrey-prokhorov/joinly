@@ -7,11 +7,12 @@ import { v4 as uuidv4 } from "uuid"
 export function createEventsTable(db: DatabaseType): void {
 	db.exec(`
     CREATE TABLE IF NOT EXISTS events (
-      id TEXT PRIMARY KEY,                
+      id TEXT PRIMARY KEY,
+	  title TEXT, 
       description TEXT,                   
       category TEXT,
-      starts_at DATETIME,                 
-      ends_at DATETIME,
+      start_time DATETIME,                 
+      end_time DATETIME,
       city TEXT,
       city_district TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -36,8 +37,8 @@ export function seedEvents(db: DatabaseType): void {
 	const id = uuidv4()
 
 	db.prepare(`
-    INSERT INTO events (id, description, category, starts_at, ends_at, city, city_district)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO events (id, title, category, start_time, end_time, city, city_district, description)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
 		id,
 		"Högdalen Running Club Event",
@@ -45,7 +46,8 @@ export function seedEvents(db: DatabaseType): void {
 		"2024-06-01T09:00:00",
 		"2024-06-01T17:00:00",
 		"Stockholm",
-		"Högdalen"
+		"Högdalen",
+		"Join us for a day of running and fun in Högdalen! Whether you're a seasoned runner or just looking to get active, this event is for everyone. We'll have various running routes, from beginner-friendly to more challenging ones. Don't forget to bring your running shoes and a water bottle!"
 	)
 
 	console.log("Seed: Testevent skapad (Högdalen Running Club Event)")

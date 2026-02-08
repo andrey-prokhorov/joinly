@@ -45,6 +45,9 @@ Servern startar på **http://localhost:3001**
 | GET | `/api/events` | Ja | Hämta alla events (sorterat på startdatum) |
 | GET | `/api/events/:id` | Ja | Hämta specifikt event med ID |
 | GET | `/api/events/filter/search` | Ja | Hämta events med filter (city, category, date_from, date_to) |
+| POST | `/api/events` | Ja | Skapa nytt event |
+| PUT | `/api/events/:id` | Ja | Uppdatera event med ID |
+| DELETE | `/api/events/:id` | Ja | Ta bort event med ID |
 
 ### System
 | Metod | Endpoint | Auth | Beskrivning |
@@ -180,10 +183,11 @@ Authorization: Bearer <token>
   "events": [
     {
       "id": "abc-123",
-      "description": "Lördagskonsert i parken",
+      "title": "Lördagskonsert i parken",
+      "description": "En fantastisk utomhuskonsert",
       "category": "music",
-      "starts_at": "2026-03-15T18:00:00",
-      "ends_at": "2026-03-15T21:00:00",
+      "start_time": "2026-03-15T18:00:00",
+      "end_time": "2026-03-15T21:00:00",
       "city": "Stockholm",
       "city_district": "Södermalm",
       "created_at": "2026-02-01T10:00:00"
@@ -209,6 +213,130 @@ Authorization: Bearer <token>
 ```
 
 **Fel:** 404 om event inte finns.
+
+### Skapa nytt event
+
+```http
+POST /api/events
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Konsert i parken",
+  "description": "En fantastisk utomhuskonsert",
+  "category": "music",
+  "start_time": "2026-06-15T18:00:00",
+  "end_time": "2026-06-15T21:00:00",
+  "city": "Stockholm",
+  "city_district": "Södermalm"
+}
+```
+
+**Svar (201):**
+```json
+{
+  "success": true,
+  "message": "Event skapat framgångsrikt.",
+  "event": {
+    "id": "abc-123",
+    "title": "Konsert i parken",
+    "description": "En fantastisk utomhuskonsert",
+    "category": "music",
+    "start_time": "2026-06-15T18:00:00",
+    "end_time": "2026-06-15T21:00:00",
+    "city": "Stockholm",
+    "city_district": "Södermalm",
+    "created_at": "2026-02-08T10:00:00"
+  }
+}
+```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 400 | Saknade fält (title, description, category, start_time, end_time, city krävs) |
+| 400 | Ogiltigt datumformat (använd ISO 8601) |
+| 400 | Starttid efter sluttid |
+| 401 | Saknar eller ogiltig token |
+
+### Uppdatera event
+
+```http
+PUT /api/events/:id
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Uppdaterad konsert",
+  "description": "Uppdaterad beskrivning", 
+  "category": "culture"
+}
+```
+
+Alla fält är valfria - skicka bara det du vill uppdatera.
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "message": "Event uppdaterat framgångsrikt.",
+  "event": {
+    "id": "abc-123",
+    "title": "Uppdaterad konsert",
+    "description": "Uppdaterad beskrivning", 
+    "category": "culture",
+    "start_time": "2026-06-15T18:00:00",
+    "end_time": "2026-06-15T21:00:00",
+    "city": "Stockholm",
+    "city_district": "Södermalm",
+    "created_at": "2026-02-08T10:00:00"
+  }
+}
+```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 400 | Inga fält att uppdatera |
+| 400 | Ogiltigt datumformat |
+| 400 | Resulterande starttid efter sluttid |
+| 401 | Saknar eller ogiltig token |
+| 404 | Event med detta ID finns inte |
+
+### Ta bort event
+
+```http
+DELETE /api/events/:id
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "message": "Event borttaget framgångsrikt.",
+  "deletedEvent": {
+    "id": "abc-123",
+    "title": "Konsert i parken",
+    "description": "En fantastisk utomhuskonsert",
+    "category": "music",
+    "start_time": "2026-06-15T18:00:00",
+    "end_time": "2026-06-15T21:00:00",
+    "city": "Stockholm",
+    "city_district": "Södermalm",
+    "created_at": "2026-02-08T10:00:00"
+  }
+}
+```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 401 | Saknar eller ogiltig token |
+| 404 | Event med detta ID finns inte |
 
 ### Filtrera events
 
@@ -334,6 +462,7 @@ Därför kör CI:n `npm audit --omit=dev` som bara auditerar produktions-depende
 - [x] Events API-endpoints (CRUD + filtering)
 - [x] Användarregistrering med validering
 - [x] Logout med token blacklist
+- [x] Events CRUD operationer (skapa, uppdatera, ta bort)
 - [ ] ACL (behörighetskontroll)
 - [ ] Event-skapande för inloggade användare
 
