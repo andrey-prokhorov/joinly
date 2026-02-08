@@ -34,7 +34,9 @@ Servern startar på **http://localhost:3001**
 ### Autentisering
 | Metod | Endpoint | Auth | Beskrivning |
 |-------|----------|------|-------------|
+| POST | `/api/auth/register` | Nej | Skapa konto (namn, e-post, lösenord), returnerar JWT |
 | POST | `/api/auth/login` | Nej | Logga in, returnerar JWT-token |
+| POST | `/api/auth/logout` | Ja | Logga ut, invaliderar token via blacklist |
 | GET | `/api/auth/me` | Ja | Hämta inloggad användare |
 
 ### Events
@@ -69,12 +71,13 @@ api/
 │   ├── index.ts          # Express server & routes
 │   ├── config.ts         # Konfiguration
 │   ├── db/
-│   │   ├── database.ts   # SQLite setup & seed (users)
-│   │   └── database-events.ts # Events databas setup & seed
+│   │   ├── database.ts          # SQLite setup, schema & seed
+│   │   ├── database-events.ts   # Events seed-data
+│   │   └── database-blacklist.ts # Token blacklist (logout)
 │   ├── middleware/
-│   │   └── auth.ts       # JWT-verifiering
+│   │   └── auth.ts       # JWT-verifiering + blacklist-check
 │   ├── routes/
-│   │   ├── auth.ts       # Login & me endpoints
+│   │   ├── auth.ts       # Register, login, logout & me
 │   │   └── events.ts     # Events endpoints
 │   └── utils/
 │       └── validators.ts # Input-validering
@@ -136,13 +139,54 @@ Därför kör CI:n `npm audit --omit=dev` som bara auditerar produktions-depende
 - [x] Databas (SQLite)
 - [x] Autentisering (JWT + bcrypt)
 - [x] Events API-endpoints (CRUD + filtering)
+- [x] Användarregistrering med validering
+- [x] Logout med token blacklist
 - [ ] ACL (behörighetskontroll)
-- [ ] Användarregistrering
 - [ ] Event-skapande för inloggade användare
+
+## Säkerhet
+
+### Token Blacklist (Logout)
+
+JWT-tokens är stateless - servern kan normalt inte invalidera dem innan de går ut. För att möjliggöra riktig utloggning använder vi en **token blacklist**:
+
+1. Vid logout sparas token i `token_blacklist`-tabellen med utgångstid
+2. Auth-middleware kontrollerar blacklist **innan** JWT verifieras
+3. Utgångna tokens rensas automatiskt vid serverstart
+
+Detta ger säkrare sessionshantering, speciellt viktigt om en token komprometteras.
+
+### Rate Limiting
+
+Auth-endpoints skyddas mot brute-force:
+
+| Endpoint | Gräns per IP | Gräns per email | Fönster |
+|----------|-------------|-----------------|---------|
+| `/api/auth/register` | 5 req | - | 15 min |
+| `/api/auth/login` | 10 req | 5 req | 15 min |
+
+Login har dubbel rate limiting (IP + email) för att skydda mot distribuerade attacker.
+
+### Timing Attack Prevention
+
+Login-endpointen kör alltid `bcrypt.compare()`, även om användaren inte finns i databasen. Detta förhindrar att en angripare kan mäta svarstiden för att avgöra om en e-postadress är registrerad.
 
 ---
 
 ## Ändringslogg
+
+### 2026-02-08 - Register & Logout (Pål) - Issue #3, #4
+
+- Implementerat `POST /api/auth/register` - skapa konto med namn, e-post, lösenord
+  - Validering av namn (2-50 tecken), e-post (RFC-format), lösenord (8+ tecken, versaler, siffror, specialtecken)
+  - Auto-login: returnerar JWT direkt efter registrering
+  - Rate limiting: 5 försök per 15 minuter
+- Implementerat `POST /api/auth/logout` - invalidera token via blacklist
+  - Token sparas i `token_blacklist`-tabellen med utgångstid
+  - Auth-middleware kontrollerar blacklist innan JWT-verifiering
+  - Utgångna tokens rensas automatiskt vid serverstart
+- Fabriksfunktion för rate limiters (DRY)
+- Lagt till Newman API-tester (22 tester, 49 assertions)
 
 ### 2026-02-02 - Login med JWT (Pål) - Issue #9
 

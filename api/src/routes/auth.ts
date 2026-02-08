@@ -11,6 +11,7 @@ import {
 	getNameError,
 	getPasswordError,
 	isValidEmail,
+	sanitizeName,
 } from "../utils/validators.js"
 
 // TIMING ATTACK PREVENTION
@@ -86,8 +87,11 @@ router.post("/register", registerLimiter, (req, res) => {
 		return res.status(400).json({ message: "E-post, lösenord och namn krävs." })
 	}
 
+	// normalisera email (förhindrar dubbletter med olika casing)
+	const normalizedEmail = email.trim().toLowerCase()
+
 	// validera epostformat
-	const emailError = getEmailError(email)
+	const emailError = getEmailError(normalizedEmail)
 	if (emailError) {
 		return res.status(400).json({ message: emailError })
 	}
@@ -98,55 +102,60 @@ router.post("/register", registerLimiter, (req, res) => {
 		return res.status(400).json({ message: passwordError })
 	}
 
-	// validera namn
-	const nameError = getNameError(name)
+	// sanitera och validera namn
+	const sanitizedName = sanitizeName(name)
+	const nameError = getNameError(sanitizedName)
 	if (nameError) {
 		return res.status(400).json({ message: nameError })
 	}
 
-	// kolla om användaren redan finns
-	const existingUser = db
-		.prepare("SELECT id FROM users WHERE email = ?")
-		.get(email) as { id: number } | undefined
+	try {
+		// kolla om användaren redan finns
+		const existingUser = db
+			.prepare("SELECT id FROM users WHERE email = ?")
+			.get(normalizedEmail) as { id: number } | undefined
 
-	if (existingUser) {
-		return res
-			.status(409)
-			.json({ message: "E-postadressen är redan registrerad." })
-	}
+		if (existingUser) {
+			return res
+				.status(409)
+				.json({ message: "E-postadressen är redan registrerad." })
+		}
 
-	// hash lösenord
-	const passwordHash = bcrypt.hashSync(password, 12)
+		// hash lösenord
+		const passwordHash = bcrypt.hashSync(password, 12)
 
-	// spara användare i databasen
-	const result = db
-		.prepare(
-			"INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, 'user')"
+		// spara användare i databasen
+		const result = db
+			.prepare(
+				"INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, 'user')"
+			)
+			.run(normalizedEmail, passwordHash, sanitizedName)
+
+		if (result.changes === 0) {
+			return res.status(500).json({ message: "Kunde inte skapa användare." })
+		}
+		// hämta result.lastInsertRowid som är den nya användarens ID.
+		const newUserId = result.lastInsertRowid as number
+		// skapa jwt-token med id, email och role (för konsistens med /login)
+		const token = jwt.sign(
+			{ id: newUserId, email: normalizedEmail, role: "user" },
+			config.jwt.secret,
+			{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions
 		)
-		.run(email, passwordHash, name)
-
-	if (result.changes === 0) {
+		//returnera 201 med message, token, user (id, email, name, role)
+		res.status(201).json({
+			message: "Användare skapad. Du kan nu logga in.",
+			token,
+			user: {
+				id: newUserId,
+				email: normalizedEmail,
+				name: sanitizedName,
+				role: "user",
+			},
+		})
+	} catch (_error) {
 		return res.status(500).json({ message: "Kunde inte skapa användare." })
 	}
-	// hämta result.lastInsertRowid som är den nya användarens ID.
-	const newUserId = result.lastInsertRowid as number
-	// skapa jwt-token med id, email och role (för konsistens med /login)
-	const token = jwt.sign(
-		{ id: newUserId, email, role: "user" },
-		config.jwt.secret,
-		{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions
-	)
-	//returnera 201 med message, token, user (id, email, name, role)
-	res.status(201).json({
-		message: "Användare skapad. Du kan nu logga in.",
-		token,
-		user: {
-			id: newUserId,
-			email,
-			name,
-			role: "user",
-		},
-	})
 })
 
 // POST /api/auth/login (med dubbel rate limiting: IP + email)
@@ -157,8 +166,12 @@ router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {
 	if (!email || !password) {
 		return res.status(400).json({ message: "E-post och lösenord krävs." })
 	}
+
+	// normalisera email (matcha hur register sparar)
+	const normalizedEmail = email.trim().toLowerCase()
+
 	// validera epostformat
-	if (!isValidEmail(email)) {
+	if (!isValidEmail(normalizedEmail)) {
 		return res.status(400).json({ message: "Ogiltig e-postadress." })
 	}
 
@@ -167,7 +180,7 @@ router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {
 		.prepare(
 			"SELECT id, email, password_hash, name, role FROM users WHERE email = ?"
 		)
-		.get(email) as DbUser | undefined
+		.get(normalizedEmail) as DbUser | undefined
 
 	if (!user) {
 		// Kör bcrypt ändå för att förhindra timing attack (se DUMMY_HASH ovan)

@@ -33,6 +33,7 @@ export const isValidName = (name: string): boolean => {
 
 // Returnera felmeddelande för epost (använder samma logik som isValidEmail)
 export const getEmailError = (email: string): string | null => {
+	if (email.length > 254) return "E-postadressen är för lång"
 	if (!isValidEmail(email)) return "Ogiltig e-postadress"
 	return null
 }
@@ -40,6 +41,8 @@ export const getEmailError = (email: string): string | null => {
 // Returnera felmeddelande för lösenord (använder samma logik som isValidPassword)
 export const getPasswordError = (password: string): string | null => {
 	if (password.length < 8) return "Lösenord måste vara minst 8 tecken"
+	if (password.length > 128)
+		return "Lösenord får inte vara längre än 128 tecken"
 	if (!/[A-Z]/.test(password)) return "Lösenord måste innehålla stor bokstav"
 	if (!/[a-z]/.test(password)) return "Lösenord måste innehålla liten bokstav"
 	if (!/[0-9]/.test(password)) return "Lösenord måste innehålla en siffra"
@@ -49,9 +52,19 @@ export const getPasswordError = (password: string): string | null => {
 }
 
 // returnera felmeddelande för namn (använder samma logik som isValidName)
+// Strippar HTML-taggar och control characters för att förhindra XSS
 export const getNameError = (name: string): string | null => {
 	const trimmedName = name.trim()
 	if (trimmedName.length < 2) return "Namn måste vara minst 2 tecken"
 	if (trimmedName.length > 50) return "Namn får inte vara längre än 50 tecken"
+	if (/<[^>]*>/.test(trimmedName)) return "Namn får inte innehålla HTML"
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: medveten kontroll av osynliga tecken
+	if (/[\x00-\x1F\x7F]/.test(trimmedName))
+		return "Namn innehåller ogiltiga tecken"
 	return null
+}
+
+// Sanitera namn - trimma och strippa HTML-taggar
+export const sanitizeName = (name: string): string => {
+	return name.trim().replace(/<[^>]*>/g, "")
 }
