@@ -51,6 +51,199 @@ Servern startar på **http://localhost:3001**
 |-------|----------|------|-------------|
 | GET | `/api/health` | Nej | Hälsokontroll (för CI/CD) |
 
+## API-guide för frontend
+
+Alla skyddade endpoints kräver en `Authorization`-header med JWT-token:
+
+```
+Authorization: Bearer <token>
+```
+
+Token fås från `/api/auth/register` eller `/api/auth/login`.
+
+### Registrera konto
+
+```http
+POST /api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Anna Svensson",
+  "email": "anna@example.com",
+  "password": "MinSäkra123!"
+}
+```
+
+**Svar (201):**
+```json
+{
+  "message": "Användare skapad. Du kan nu logga in.",
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": 3,
+    "email": "anna@example.com",
+    "name": "Anna Svensson",
+    "role": "user"
+  }
+}
+```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 400 | Saknade fält, ogiltigt email-format, svagt lösenord, ogiltigt namn |
+| 409 | E-postadressen är redan registrerad |
+| 429 | Rate limit (max 5 försök per 15 min) |
+
+**Lösenordskrav:** 8-128 tecken, stor bokstav, liten bokstav, siffra, specialtecken.
+**Namnkrav:** 2-50 tecken, ingen HTML.
+
+### Logga in
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "email": "anna@example.com",
+  "password": "MinSäkra123!"
+}
+```
+
+**Svar (200):**
+```json
+{
+  "message": "Inloggning lyckades.",
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": {
+    "id": 3,
+    "email": "anna@example.com",
+    "name": "Anna Svensson",
+    "role": "user"
+  }
+}
+```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 400 | Saknade fält eller ogiltigt email-format |
+| 401 | Fel e-post eller lösenord |
+| 429 | Rate limit (10 per IP / 5 per email per 15 min) |
+
+### Logga ut
+
+```http
+POST /api/auth/logout
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "message": "Utloggad."
+}
+```
+
+Token blir ogiltig direkt efter logout. Frontend bör ta bort token från localStorage/state.
+
+### Hämta inloggad användare
+
+```http
+GET /api/auth/me
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "user": { "id": 3, "email": "anna@example.com", "role": "user" },
+  "message": "Användare är inloggad."
+}
+```
+
+**Fel (401):** Token saknas, är ogiltig, utgången, eller utloggad (blacklistad).
+
+### Hämta alla events
+
+```http
+GET /api/events
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "events": [
+    {
+      "id": "abc-123",
+      "description": "Lördagskonsert i parken",
+      "category": "music",
+      "starts_at": "2026-03-15T18:00:00",
+      "ends_at": "2026-03-15T21:00:00",
+      "city": "Stockholm",
+      "city_district": "Södermalm",
+      "created_at": "2026-02-01T10:00:00"
+    }
+  ],
+  "count": 1
+}
+```
+
+### Hämta event med ID
+
+```http
+GET /api/events/:id
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "event": { "id": "abc-123", "description": "...", "..." : "..." }
+}
+```
+
+**Fel:** 404 om event inte finns.
+
+### Filtrera events
+
+```http
+GET /api/events/filter/search?city=Stockholm&category=music&date_from=2026-03-01&date_to=2026-04-01
+Authorization: Bearer <token>
+```
+
+Alla query-parametrar är valfria. Kombinera fritt.
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "events": [],
+  "count": 0,
+  "filters": {
+    "city": "Stockholm",
+    "category": "music",
+    "date_from": "2026-03-01",
+    "date_to": "2026-04-01"
+  }
+}
+```
+
+### Typiskt frontend-flöde
+
+```
+1. Användaren registrerar sig  →  POST /api/auth/register
+2. Spara token i state/localStorage
+3. Alla API-anrop skickar token  →  Authorization: Bearer <token>
+4. Om 401-svar → token utgången, redirecta till login
+5. Användaren loggar ut  →  POST /api/auth/logout + ta bort token lokalt
+```
+
 ## npm scripts
 
 | Kommando | Beskrivning |
