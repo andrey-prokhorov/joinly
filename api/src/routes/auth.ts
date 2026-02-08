@@ -6,7 +6,12 @@ import { v4 as uuidv4 } from "uuid"
 import config from "../config.js"
 import db from "../db/database.js"
 import { type AuthRequest, authenticateToken } from "../middleware/auth.js"
-import { isValidEmail } from "../utils/validators.js"
+import {
+	getEmailError,
+	getNameError,
+	getPasswordError,
+	isValidEmail,
+} from "../utils/validators.js"
 
 // TIMING ATTACK PREVENTION
 // --------------------------
@@ -24,22 +29,28 @@ const uuid = uuidv4()
 
 // RATE LIMITING (Brute-force skydd)
 // ----------------------------------
-// Vi använder TVÅ rate limiters för bättre skydd:
-// 1. Per IP-adress - stoppar enkel brute-force
-// 2. Per email - stoppar distribuerade attacker (via proxies/botnets)
+// Funktion som skapar rate limiters med gemensam config.
+// Används för både login och register med olika gränser.
+// Login har även en separat email-baserad limiter (se nedan).
+const createRateLimiter = (max: number, message: string) =>
+	rateLimit({
+		windowMs: 15 * 60 * 1000,
+		max,
+		message: { message },
+		standardHeaders: true,
+		legacyHeaders: false,
+	})
 
-// Rate limiter per IP-adress
-const loginLimiterByIp = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minuter
-	max: 10, // max 10 försök per IP (lite högre för delade nätverk)
-	message: {
-		message: "För många inloggningsförsök. Försök igen om 15 minuter.",
-	},
-	standardHeaders: true,
-	legacyHeaders: false,
-})
+const loginLimiterByIp = createRateLimiter(
+	10,
+	"För många inloggningsförsök. Försök igen om 15 minuter."
+)
+const registerLimiter = createRateLimiter(
+	5,
+	"För många registreringsförsök. Försök igen om 15 minuter."
+)
 
-// Rate limiter per email-adress (skyddar mot distribuerade attacker)
+// Rate limiter per email-adress vid Login (skyddar mot distribuerade attacker)
 const loginLimiterByEmail = rateLimit({
 	windowMs: 15 * 60 * 1000, // 15 minuter
 	max: 5, // max 5 försök per email (striktare)
@@ -65,6 +76,78 @@ interface DbUser {
 	role: string
 	created_at: string
 }
+
+// POST /api/auth/register
+router.post("/register", registerLimiter, (req, res) => {
+	const { email, password, name } = req.body
+
+	// enkel validering
+	if (!email || !password || !name) {
+		return res.status(400).json({ message: "E-post, lösenord och namn krävs." })
+	}
+
+	// validera epostformat
+	const emailError = getEmailError(email)
+	if (emailError) {
+		return res.status(400).json({ message: emailError })
+	}
+
+	// validera lösenord
+	const passwordError = getPasswordError(password)
+	if (passwordError) {
+		return res.status(400).json({ message: passwordError })
+	}
+
+	// validera namn
+	const nameError = getNameError(name)
+	if (nameError) {
+		return res.status(400).json({ message: nameError })
+	}
+
+	// kolla om användaren redan finns
+	const existingUser = db
+		.prepare("SELECT id FROM users WHERE email = ?")
+		.get(email) as { id: number } | undefined
+
+	if (existingUser) {
+		return res
+			.status(409)
+			.json({ message: "E-postadressen är redan registrerad." })
+	}
+
+	// hash lösenord
+	const passwordHash = bcrypt.hashSync(password, 12)
+
+	// spara användare i databasen
+	const result = db
+		.prepare(
+			"INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, 'user')"
+		)
+		.run(email, passwordHash, name)
+
+	if (result.changes === 0) {
+		return res.status(500).json({ message: "Kunde inte skapa användare." })
+	}
+	// hämta result.lastInsertRowid som är den nya användarens ID.
+	const newUserId = result.lastInsertRowid as number
+	// skapa jwt-token med id, email och role (för konsistens med /login)
+	const token = jwt.sign(
+		{ id: newUserId, email, role: "user" },
+		config.jwt.secret,
+		{ expiresIn: config.jwt.expiresIn } as jwt.SignOptions
+	)
+	//returnera 201 med message, token, user (id, email, name, role)
+	res.status(201).json({
+		message: "Användare skapad. Du kan nu logga in.",
+		token,
+		user: {
+			id: newUserId,
+			email,
+			name,
+			role: "user",
+		},
+	})
+})
 
 // POST /api/auth/login (med dubbel rate limiting: IP + email)
 router.post("/login", loginLimiterByIp, loginLimiterByEmail, (req, res) => {

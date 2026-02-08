@@ -1,4 +1,4 @@
-// valideringsfunktioner för olika dataformat
+// Valideringsfunktioner för olika dataformat:
 
 // validera epost format
 // TLD (top-level domain) får bara innehålla bokstäver, inte siffror eller bindestreck
@@ -22,6 +22,21 @@ export const isValidPassword = (password: string): boolean => {
 	)
 }
 
+// validera namn - får inte vara tomt eller bara whitespace. Minst 2 tecken, max 50 tecken.
+// Trimma whitespace i början och slutet.
+export const isValidName = (name: string): boolean => {
+	const trimmedName = name.trim()
+	return trimmedName.length >= 2 && trimmedName.length <= 50
+}
+
+// Hantera felmeddelanden - returnera specifika felmeddelanden för varje validering, eller null om det är giltigt:
+
+// Returnera felmeddelande för epost (använder samma logik som isValidEmail)
+export const getEmailError = (email: string): string | null => {
+	if (!isValidEmail(email)) return "Ogiltig e-postadress"
+	return null
+}
+
 // Returnera felmeddelande för lösenord (använder samma logik som isValidPassword)
 export const getPasswordError = (password: string): string | null => {
 	if (password.length < 8) return "Lösenord måste vara minst 8 tecken"
@@ -30,5 +45,13 @@ export const getPasswordError = (password: string): string | null => {
 	if (!/[0-9]/.test(password)) return "Lösenord måste innehålla en siffra"
 	if (!SPECIAL_CHARS.test(password))
 		return "Lösenord måste innehålla specialtecken"
+	return null
+}
+
+// returnera felmeddelande för namn (använder samma logik som isValidName)
+export const getNameError = (name: string): string | null => {
+	const trimmedName = name.trim()
+	if (trimmedName.length < 2) return "Namn måste vara minst 2 tecken"
+	if (trimmedName.length > 50) return "Namn får inte vara längre än 50 tecken"
 	return null
 }

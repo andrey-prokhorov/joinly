@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Joinly API - Auth & Events Tests",
-		"description": "Tester för autentisering och events i Joinly API.\n\n## Auth Tester\n1. Health check\n2. Login OK\n3. Login fel lösenord\n4. Login saknar fält\n5. Me utan token\n6. Me med token\n7. Login icke-existerande email\n8. Login ogiltigt email-format\n9. Me malformad Authorization header\n\n## Events Tester\n10. Events - Get all (with token)\n11. Events - Get all (without token)\n12. Events - Get by ID (with token)\n13. Events - Get by ID (without token)\n14. Events - Filter search (with token)\n15. Events - Filter search (without token)\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"description": "Tester för autentisering och events i Joinly API.\n\n## Register Tester\n1. Health check\n2. Register OK (ny användare)\n3. Register - Dubblett-email\n4. Register - Dåligt lösenord\n5. Register - Saknade fält\n\n## Auth Tester\n6. Login OK\n7. Login fel lösenord\n8. Login saknar fält\n9. Me utan token\n10. Me med token\n11. Login icke-existerande email\n12. Login ogiltigt email-format\n13. Me malformad Authorization header\n\n## Events Tester\n14. Events - Get all (with token)\n15. Events - Get all (without token)\n16. Events - Get by ID (with token)\n17. Events - Get by ID (without token)\n18. Events - Filter search (with token)\n19. Events - Filter search (without token)\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -50,7 +50,183 @@
 			}
 		},
 		{
-			"name": "2. Login OK",
+			"name": "2. Register OK",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Registrering lyckas med 201",
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"// Test: Response innehåller token (auto-inloggning)",
+							"pm.test('Response has token', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.token).to.be.a('string');",
+							"    pm.expect(json.token.length).to.be.greaterThan(0);",
+							"});",
+							"",
+							"// Test: Response innehåller user-info",
+							"pm.test('Response has user info', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.user).to.have.property('id');",
+							"    pm.expect(json.user).to.have.property('email');",
+							"    pm.expect(json.user.email).to.eql('newman@test.com');",
+							"    pm.expect(json.user).to.have.property('name');",
+							"    pm.expect(json.user.name).to.eql('Newman Testare');",
+							"    pm.expect(json.user.role).to.eql('user');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"newman@test.com\",\n    \"password\": \"Test123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				}
+			}
+		},
+		{
+			"name": "3. Register - Dubblett-email",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Redan registrerad email ger 409",
+							"pm.test('Status code is 409', function () {",
+							"    pm.response.to.have.status(409);",
+							"});",
+							"",
+							"// Test: Felmeddelande om att email redan finns",
+							"pm.test('Response says email already registered', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('redan registrerad');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"newman@test.com\",\n    \"password\": \"Test123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				}
+			}
+		},
+		{
+			"name": "4. Register - Dåligt lösenord",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Svagt lösenord ger 400",
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Test: Felmeddelande om lösenordskrav",
+							"pm.test('Response has password error', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message.toLowerCase()).to.include('lösenord');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"annan@test.com\",\n    \"password\": \"kort\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				}
+			}
+		},
+		{
+			"name": "5. Register - Saknade fält",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Saknade fält ger 400",
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Test: Felmeddelande om att fält krävs",
+							"pm.test('Response has missing fields error', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('krävs');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				}
+			}
+		},
+		{
+			"name": "6. Login OK",
 			"event": [
 				{
 					"listen": "test",
@@ -103,7 +279,7 @@
 			}
 		},
 		{
-			"name": "3. Login - Fel lösenord",
+			"name": "7. Login - Fel lösenord",
 			"event": [
 				{
 					"listen": "test",
@@ -144,7 +320,7 @@
 			}
 		},
 		{
-			"name": "4. Login - Saknar fält",
+			"name": "8. Login - Saknar fält",
 			"event": [
 				{
 					"listen": "test",
@@ -185,7 +361,7 @@
 			}
 		},
 		{
-			"name": "5. Me - Utan token",
+			"name": "9. Me - Utan token",
 			"event": [
 				{
 					"listen": "test",
@@ -217,7 +393,7 @@
 			}
 		},
 		{
-			"name": "6. Me - Med token",
+			"name": "10. Me - Med token",
 			"event": [
 				{
 					"listen": "test",
@@ -256,7 +432,7 @@
 			}
 		},
 		{
-			"name": "7. Login - Icke-existerande email",
+			"name": "11. Login - Icke-existerande email",
 			"event": [
 				{
 					"listen": "test",
@@ -297,7 +473,7 @@
 			}
 		},
 		{
-			"name": "8. Login - Ogiltigt email-format",
+			"name": "12. Login - Ogiltigt email-format",
 			"event": [
 				{
 					"listen": "test",
@@ -338,7 +514,7 @@
 			}
 		},
 		{
-			"name": "9. Me - Malformad Authorization header",
+			"name": "13. Me - Malformad Authorization header",
 			"event": [
 				{
 					"listen": "test",
@@ -375,7 +551,7 @@
 			}
 		},
 		{
-			"name": "10. Events - Get all (with token)",
+			"name": "14. Events - Get all (with token)",
 			"event": [
 				{
 					"listen": "test",
@@ -419,7 +595,7 @@
 			}
 		},
 		{
-			"name": "11. Events - Get all (without token)",
+			"name": "15. Events - Get all (without token)",
 			"event": [
 				{
 					"listen": "test",
@@ -451,7 +627,7 @@
 			}
 		},
 		{
-			"name": "12. Events - Get by ID (with token)", 
+			"name": "16. Events - Get by ID (with token)", 
 			"event": [
 				{
 					"listen": "test",
@@ -500,7 +676,7 @@
 			}
 		},
 		{
-			"name": "13. Events - Get by ID (without token)",
+			"name": "17. Events - Get by ID (without token)",
 			"event": [
 				{
 					"listen": "test",
@@ -532,7 +708,7 @@
 			}
 		},
 		{
-			"name": "14. Events - Filter search (with token)",
+			"name": "18. Events - Filter search (with token)",
 			"event": [
 				{
 					"listen": "test",
@@ -584,7 +760,7 @@
 			}
 		},
 		{
-			"name": "15. Events - Filter search (without token)",
+			"name": "19. Events - Filter search (without token)",
 			"event": [
 				{
 					"listen": "test",
