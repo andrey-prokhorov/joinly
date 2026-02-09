@@ -20,7 +20,6 @@ const dbPath = path.join(__dirname, "../../data/joinly.db")
 const dataDir = path.dirname(dbPath)
 mkdirSync(dataDir, { recursive: true })
 
-// Funktion för att resetta databasen (endast i development/test)
 export function resetDatabase(): void {
 	// Kontrollera om databas-fil finns
 	if (existsSync(dbPath)) {

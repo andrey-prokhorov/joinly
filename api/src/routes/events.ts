@@ -197,7 +197,7 @@ router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
 			start_time,
 			end_time,
 			city,
-			city_district || null,
+			city_district,
 			created_at
 		)
 
@@ -349,9 +349,12 @@ router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 				event: updatedEvent,
 			})
 		} else {
-			res.status(500).json({
-				success: false,
-				message: "Misslyckades att uppdatera event.",
+			// Inga rader ändrades; i SQLite kan detta innebära att värdena var oförändrade.
+			// Eftersom vi redan har verifierat att eventet existerar, betraktar vi detta som en lyckad, idempotent uppdatering.
+			res.json({
+				success: true,
+				message: "Inga ändringar gjordes på eventet.",
+				event: existingEvent,
 			})
 		}
 	} catch (error) {
