@@ -1,6 +1,6 @@
 // Gemensam databasanslutning för hela applikationen
 
-import { mkdirSync } from "node:fs"
+import { existsSync, mkdirSync, unlinkSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import Database, { type Database as DatabaseType } from "better-sqlite3"
@@ -19,6 +19,38 @@ const dbPath = path.join(__dirname, "../../data/joinly.db")
 // Skapa data-mappen om den inte finns (behövs i CI och vid första körning)
 const dataDir = path.dirname(dbPath)
 mkdirSync(dataDir, { recursive: true })
+
+export function resetDatabase(): void {
+	// Kontrollera om databas-fil finns
+	if (existsSync(dbPath)) {
+		try {
+			unlinkSync(dbPath)
+			console.log("🗑️  Database file removed:", dbPath)
+		} catch (error) {
+			console.error("❌ Failed to remove database file:", error)
+			throw new Error("Could not reset database")
+		}
+	} else {
+		console.log("ℹ️  Database file does not exist, nothing to reset")
+	}
+}
+
+// Kontrollera om reset är begärt
+function shouldResetDatabase(): boolean {
+	if (
+		process.argv.includes("--reset-db") ||
+		process.argv.includes("--db-reset")
+	) {
+		return true
+	}
+
+	return false
+}
+
+// Hantera database reset om begärt
+if (shouldResetDatabase()) {
+	resetDatabase()
+}
 
 // Skapa en enda delad databasanslutning
 const db: DatabaseType = new Database(dbPath)
