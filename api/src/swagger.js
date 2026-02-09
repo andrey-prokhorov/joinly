@@ -1,5 +1,4 @@
 import swaggerJSDoc from "swagger-jsdoc"
-import { config } from "./config.js"
 
 export function createOpenApiSpec() {
 	return swaggerJSDoc({
@@ -9,7 +8,6 @@ export function createOpenApiSpec() {
 				title: "Joinly API",
 				version: "1.0.0",
 			},
-			servers: [{ url: `http://localhost:${config.server.port}` }],
 			components: {
 				securitySchemes: {
 					bearerAuth: {

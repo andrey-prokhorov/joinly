@@ -75,7 +75,7 @@ app.use(requestLogger) // Logga alla requests
 // Använda routes
 app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
-app.use("/", swaggerUi.serve, swaggerUi.setup(openApiSpec))
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
 
 // Health endpoint - användbart för CI/CD och monitoring
 app.get("/api/health", (_req, res) => {
@@ -86,10 +86,10 @@ app.get("/api/health", (_req, res) => {
 	})
 })
 
-// Hello World endpoint (kan tas bort senare)
-app.get("/api/hello", (_req, res) => {
+app.get("/", (_req, res) => {
 	res.json({
-		message: "Välkommen till Joinly API!",
+		message:
+			"Välkommen till Joinly API! Se swagger-dokumentationen på /swagger",
 	})
 })
 
