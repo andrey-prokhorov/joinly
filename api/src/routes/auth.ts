@@ -77,6 +77,79 @@ interface DbUser {
 	created_at: string
 }
 
+/**
+ * @openapi
+ * /api/auth/register:
+ *   post:
+ *     summary: Register new user
+ *     description: Create a new user account with email, password, and name
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - name
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "user@example.com"
+ *                 description: User's email address (will be normalized to lowercase)
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 example: "mySecurePassword123"
+ *                 description: User's password (must meet security requirements)
+ *               name:
+ *                 type: string
+ *                 example: "John Doe"
+ *                 description: User's display name
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Användare skapad. Du kan nu logga in."
+ *                 token:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Bad request - Invalid input data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "E-post, lösenord och namn krävs."
+ *       409:
+ *         description: Conflict - Email already registered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "E-postadressen är redan registrerad."
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
+ *       500:
+ *         description: Internal server error
+ */
 // POST /api/auth/register
 router.post("/register", registerLimiter, async (req, res) => {
 	const { email, password, name } = req.body
@@ -166,6 +239,74 @@ router.post("/register", registerLimiter, async (req, res) => {
 	}
 })
 
+/**
+ * @openapi
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     description: Authenticate user with email and password
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "user@example.com"
+ *                 description: User's email address
+ *               password:
+ *                 type: string
+ *                 example: "mySecurePassword123"
+ *                 description: User's password
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Inloggning lyckades."
+ *                 token:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *                   description: JWT token for authentication
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Bad request - Missing or invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "E-post och lösenord krävs."
+ *       401:
+ *         description: Unauthorized - Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Ogiltig e-post eller lösenord."
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
+ *       500:
+ *         description: Internal server error
+ */
 // POST /api/auth/login (med dubbel rate limiting: IP + email)
 router.post(
 	"/login",
@@ -239,14 +380,86 @@ router.post(
 	}
 )
 
+/**
+ * @openapi
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current user
+ *     description: Get information about the currently authenticated user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *                 message:
+ *                   type: string
+ *                   example: "Användare är inloggad."
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Ogiltig eller saknad token."
+ */
 // GET /api/auth/me - returnera inloggad användare
 router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
 	// authenticateToken har redan verifierat token och lagt user på req
 	// Om vi kommer hit är användaren inloggad
 	res.json({ user: req.user, message: "Användare är inloggad." })
 })
-
-// POST /api/auth/logout - invalidera token (lägg i blacklist)
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user
+ *     description: Invalidate the current JWT token by adding it to the blacklist
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully logged out
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Utloggad."
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Ogiltig eller saknad token."
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Kunde inte logga ut. Försök igen."
+ */ // POST /api/auth/logout - invalidera token (lägg i blacklist)
 router.post("/logout", authenticateToken, (req: AuthRequest, res: Response) => {
 	// Hämta token från Authorization header
 	// authenticateToken middleware garanterar att authHeader finns och token är giltig

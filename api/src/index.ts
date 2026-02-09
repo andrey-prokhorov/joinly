@@ -2,10 +2,12 @@ import cors from "cors"
 import type { NextFunction, Request, Response } from "express"
 import express from "express"
 import helmet from "helmet"
+import swaggerUi from "swagger-ui-express"
 import config from "./config.js"
 import { initDatabase, seedData } from "./db/database.js"
 import authRoutes from "./routes/auth.js"
 import eventRoutes from "./routes/events.js"
+import { createOpenApiSpec } from "./swagger.js"
 
 const app = express()
 
@@ -56,6 +58,7 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 }
 
 const isProduction = process.env.NODE_ENV === "production"
+const openApiSpec = createOpenApiSpec()
 
 initDatabase()
 
@@ -72,6 +75,7 @@ app.use(requestLogger) // Logga alla requests
 // Använda routes
 app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
 
 // Health endpoint - användbart för CI/CD och monitoring
 app.get("/api/health", (_req, res) => {
@@ -82,10 +86,10 @@ app.get("/api/health", (_req, res) => {
 	})
 })
 
-// Hello World endpoint (kan tas bort senare)
-app.get("/api/hello", (_req, res) => {
+app.get("/", (_req, res) => {
 	res.json({
-		message: "Välkommen till Joinly API!",
+		message:
+			"Välkommen till Joinly API! Se swagger-dokumentationen på /swagger",
 	})
 })
 
