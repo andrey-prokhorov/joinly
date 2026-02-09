@@ -186,11 +186,11 @@ Authorization: Bearer <token>
       "title": "Lördagskonsert i parken",
       "description": "En fantastisk utomhuskonsert",
       "category": "music",
-      "start_time": "2026-03-15T18:00:00",
-      "end_time": "2026-03-15T21:00:00",
+      "start_time": "2026-03-15T18:00:00Z",
+      "end_time": "2026-03-15T21:00:00Z",
       "city": "Stockholm",
       "city_district": "Södermalm",
-      "created_at": "2026-02-01T10:00:00"
+      "created_at": "2026-02-01T10:00:00Z"
     }
   ],
   "count": 1
@@ -225,8 +225,8 @@ Content-Type: application/json
   "title": "Konsert i parken",
   "description": "En fantastisk utomhuskonsert",
   "category": "music",
-  "start_time": "2026-06-15T18:00:00",
-  "end_time": "2026-06-15T21:00:00",
+  "start_time": "2026-06-15T18:00:00Z",
+  "end_time": "2026-06-15T21:00:00Z",
   "city": "Stockholm",
   "city_district": "Södermalm"
 }
@@ -242,11 +242,11 @@ Content-Type: application/json
     "title": "Konsert i parken",
     "description": "En fantastisk utomhuskonsert",
     "category": "music",
-    "start_time": "2026-06-15T18:00:00",
-    "end_time": "2026-06-15T21:00:00",
+    "start_time": "2026-06-15T18:00:00Z",
+    "end_time": "2026-06-15T21:00:00Z",
     "city": "Stockholm",
     "city_district": "Södermalm",
-    "created_at": "2026-02-08T10:00:00"
+    "created_at": "2026-02-08T10:00:00Z"
   }
 }
 ```
@@ -286,11 +286,11 @@ Alla fält är valfria - skicka bara det du vill uppdatera.
     "title": "Uppdaterad konsert",
     "description": "Uppdaterad beskrivning", 
     "category": "culture",
-    "start_time": "2026-06-15T18:00:00",
-    "end_time": "2026-06-15T21:00:00",
+    "start_time": "2026-06-15T18:00:00Z",
+    "end_time": "2026-06-15T21:00:00Z",
     "city": "Stockholm",
     "city_district": "Södermalm",
-    "created_at": "2026-02-08T10:00:00"
+    "created_at": "2026-02-08T10:00:00Z"
   }
 }
 ```
@@ -322,11 +322,11 @@ Authorization: Bearer <token>
     "title": "Konsert i parken",
     "description": "En fantastisk utomhuskonsert",
     "category": "music",
-    "start_time": "2026-06-15T18:00:00",
-    "end_time": "2026-06-15T21:00:00",
+    "start_time": "2026-06-15T18:00:00Z",
+    "end_time": "2026-06-15T21:00:00Z",
     "city": "Stockholm",
     "city_district": "Södermalm",
-    "created_at": "2026-02-08T10:00:00"
+    "created_at": "2026-02-08T10:00:00Z"
   }
 }
 ```
@@ -341,7 +341,7 @@ Authorization: Bearer <token>
 ### Filtrera events
 
 ```http
-GET /api/events/filter/search?city=Stockholm&category=music&date_from=2026-03-01&date_to=2026-04-01
+GET /api/events/filter/search?city=Stockholm&category=music&date_from=2026-03-01T00:00:00Z&date_to=2026-04-01T23:59:59Z
 Authorization: Bearer <token>
 ```
 
@@ -356,8 +356,8 @@ Alla query-parametrar är valfria. Kombinera fritt.
   "filters": {
     "city": "Stockholm",
     "category": "music",
-    "date_from": "2026-03-01",
-    "date_to": "2026-04-01"
+    "date_from": "2026-03-01T00:00:00Z",
+    "date_to": "2026-04-01T23:59:59Z"
   }
 }
 ```

@@ -8,14 +8,15 @@ export function createEventsTable(db: DatabaseType): void {
 	db.exec(`
     CREATE TABLE IF NOT EXISTS events (
       id TEXT PRIMARY KEY,
-	  title TEXT, 
-      description TEXT,                   
-      category TEXT,
-      start_time DATETIME,                 
-      end_time DATETIME,
-      city TEXT,
+	  title TEXT NOT NULL, 
+      description TEXT NOT NULL,                   
+      category TEXT NOT NULL,
+      start_time DATETIME NOT NULL,                 
+      end_time DATETIME NOT NULL,
+      city TEXT NOT NULL,
       city_district TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      CHECK (start_time < end_time)
     )
   `)
 	console.log("Events table created/verified")

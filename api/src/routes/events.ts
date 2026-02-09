@@ -284,7 +284,7 @@ router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 			if (Number.isNaN(startDate.getTime())) {
 				return res.status(400).json({
 					success: false,
-					message: "Ogiltigt startdatum format.",
+					message: "Ogiltigt startdatumformat.",
 				})
 			}
 			updates.push("start_time = ?")
@@ -296,7 +296,7 @@ router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 			if (Number.isNaN(endDate.getTime())) {
 				return res.status(400).json({
 					success: false,
-					message: "Ogiltigt slutdatum format.",
+					message: "Ogiltigt slutdatumformat.",
 				})
 			}
 			updates.push("end_time = ?")
