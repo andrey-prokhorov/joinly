@@ -16,7 +16,7 @@ export function createEventsTable(db: DatabaseType): void {
       city TEXT NOT NULL,
       city_district TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      CHECK (start_time < end_time)
+      CHECK (julianday(start_time) < julianday(end_time))
     )
   `)
 	console.log("Events table created/verified")
