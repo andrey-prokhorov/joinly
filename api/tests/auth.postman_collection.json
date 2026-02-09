@@ -845,6 +845,13 @@
 							"    pm.collectionVariables.set('testEventId', json.event.id);",
 							"});",
 							"",
+							"// Test: Response innehåller creator_user_id",
+							"pm.test('Response has creator_user_id', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.event.creator_user_id).to.be.a('string');",
+							"    pm.expect(json.event.creator_user_id).to.eql('1');",
+							"});",
+							"",
 							"// Test: Response innehåller framgångsmeddelande",
 							"pm.test('Response has success message', function () {",
 							"    const json = pm.response.json();",
@@ -1031,8 +1038,9 @@
 							"pm.test('Response has updated event', function () {",
 							"    const json = pm.response.json();",
 							"    pm.expect(json.event).to.be.an('object');",
-							"    pm.expect(json.event.description).to.eql('Newman Test Event - Updated');",
+							"    pm.expect(json.event.description).to.eql('Newman Test Event Description - Updated');",
 							"    pm.expect(json.event.category).to.eql('sport');",
+							"    pm.expect(json.event.creator_user_id).to.be.a('string');",
 							"});",
 							"",
 							"// Test: Response innehåller framgångsmeddelande",
@@ -1059,7 +1067,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"description\": \"Newman Test Event - Updated\",\n    \"category\": \"sport\"\n}"
+					"raw": "{\n    \"description\": \"Newman Test Event Description - Updated\",\n    \"category\": \"sport\"\n}"
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
