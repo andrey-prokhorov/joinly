@@ -18,7 +18,8 @@
 		"format:fix": "npm run format && npm run lint:fix",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"test:api": "newman run tests/auth.postman_collection.json"
+		"test:api": "newman run tests/auth.postman_collection.json",
+		"openapi:gen": "node scripts/generate-openapi.js"
 	},
 	"dependencies": {
 		"bcryptjs": "^3.0.3",
@@ -29,6 +30,8 @@
 		"express-rate-limit": "^8.2.1",
 		"helmet": "^8.0.0",
 		"jsonwebtoken": "^9.0.3",
+		"swagger-jsdoc": "^6.2.8",
+		"swagger-ui-express": "^5.0.1",
 		"uuid": "^13.0.0"
 	},
 	"devDependencies": {
@@ -39,9 +42,11 @@
 		"@types/express": "^5.0.0",
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/node": "^22.10.7",
+		"@types/swagger-ui-express": "^4.1.8",
 		"newman": "^6.2.2",
 		"tsx": "^4.19.2",
 		"typescript": "^5.7.3",
-		"vitest": "^3.0.5"
+		"vitest": "^3.0.5",
+		"yaml": "^2.8.2"
 	}
 }

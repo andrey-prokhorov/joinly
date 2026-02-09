@@ -17,6 +17,38 @@ interface DbEvent {
 	created_at: string
 }
 
+/**
+ * @openapi
+ * /api/events:
+ *   get:
+ *     summary: Get all events
+ *     description: Retrieve all events ordered by start time
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Event'
+ *                 count:
+ *                   type: number
+ *                   example: 5
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
+ */
 // GET /api/events - hämta alla events
 router.get("/", authenticateToken, (_req: AuthRequest, res: Response) => {
 	try {
@@ -38,6 +70,44 @@ router.get("/", authenticateToken, (_req: AuthRequest, res: Response) => {
 	}
 })
 
+/**
+ * @openapi
+ * /api/events/{id}:
+ *   get:
+ *     summary: Get event by ID
+ *     description: Retrieve a specific event by its ID
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID (UUID)
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved event
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 event:
+ *                   $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Event ID is required
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
 // GET /api/events/:id - hämta event med specifikt id
 router.get("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 	const { id } = req.params
@@ -74,6 +144,76 @@ router.get("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 	}
 })
 
+/**
+ * @openapi
+ * /api/events/filter/search:
+ *   get:
+ *     summary: Filter events
+ *     description: Search and filter events by various criteria
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filter by city (case-insensitive)
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by category (case-insensitive)
+ *       - in: query
+ *         name: date_from
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter events starting from this date
+ *       - in: query
+ *         name: date_to
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter events ending before this date
+ *     responses:
+ *       200:
+ *         description: Successfully filtered events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 events:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Event'
+ *                 count:
+ *                   type: number
+ *                   example: 3
+ *                 filters:
+ *                   type: object
+ *                   properties:
+ *                     city:
+ *                       type: string
+ *                       nullable: true
+ *                     category:
+ *                       type: string
+ *                       nullable: true
+ *                     date_from:
+ *                       type: string
+ *                       nullable: true
+ *                     date_to:
+ *                       type: string
+ *                       nullable: true
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
+ */
 // GET /api/events/filter - hämta events med filter
 router.get(
 	"/filter/search",
@@ -134,6 +274,76 @@ router.get(
 	}
 )
 
+/**
+ * @openapi
+ * /api/events:
+ *   post:
+ *     summary: Create new event
+ *     description: Create a new event with required information
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - category
+ *               - start_time
+ *               - end_time
+ *               - city
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "Summer Music Festival"
+ *               description:
+ *                 type: string
+ *                 example: "A great music festival with local artists"
+ *               category:
+ *                 type: string
+ *                 example: "music"
+ *               start_time:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2024-07-15T18:00:00Z"
+ *               end_time:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2024-07-15T23:00:00Z"
+ *               city:
+ *                 type: string
+ *                 example: "Stockholm"
+ *               city_district:
+ *                 type: string
+ *                 example: "Södermalm"
+ *                 nullable: true
+ *     responses:
+ *       201:
+ *         description: Event created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Event skapat framgångsrikt."
+ *                 event:
+ *                   $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Missing required fields or invalid data
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Internal server error
+ */
 // POST /api/events - skapa nytt event
 router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
 	const {
@@ -227,6 +437,78 @@ router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
 	}
 })
 
+/**
+ * @openapi
+ * /api/events/{id}:
+ *   put:
+ *     summary: Update event
+ *     description: Update an existing event by ID (partial updates allowed)
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID (UUID)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "Updated Summer Music Festival"
+ *               description:
+ *                 type: string
+ *                 example: "Updated description for the music festival"
+ *               category:
+ *                 type: string
+ *                 example: "music"
+ *               start_time:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2024-07-15T19:00:00Z"
+ *               end_time:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2024-07-16T01:00:00Z"
+ *               city:
+ *                 type: string
+ *                 example: "Göteborg"
+ *               city_district:
+ *                 type: string
+ *                 example: "Centrum"
+ *                 nullable: true
+ *     responses:
+ *       200:
+ *         description: Event updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Event uppdaterat framgångsrikt."
+ *                 event:
+ *                   $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Invalid data or no fields to update
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
 // PUT /api/events/:id - uppdatera event
 router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 	const { id } = req.params
@@ -366,6 +648,47 @@ router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 	}
 })
 
+/**
+ * @openapi
+ * /api/events/{id}:
+ *   delete:
+ *     summary: Delete event
+ *     description: Delete an existing event by ID
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID (UUID)
+ *     responses:
+ *       200:
+ *         description: Event deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Event borttaget framgångsrikt."
+ *                 deletedEvent:
+ *                   $ref: '#/components/schemas/Event'
+ *       400:
+ *         description: Bad request - Event ID is required
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
 // DELETE /api/events/:id - ta bort event
 router.delete("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 	const { id } = req.params
