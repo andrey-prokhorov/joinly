@@ -153,3 +153,6 @@ jobs:
 
       - name: Run Newman tests
         run: npm run test:api
+
+      - name: Generate Swagger docs
+        run: npm run openapi:gen        
