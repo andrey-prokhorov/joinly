@@ -377,8 +377,10 @@ Alla query-parametrar är valfria. Kombinera fritt.
 | Kommando | Beskrivning |
 |----------|-------------|
 | `npm run dev` | Starta med hot reload |
+| `npm run dev:reset` | Starta med hot reload + återställ databas vid varje omstart |
 | `npm run build` | Kompilera TypeScript |
 | `npm run start` | Kör produktionsbygge |
+| `npm run start:reset` | Kör produktionsbygge + återställ databas vid start |
 | `npm run lint` | Kontrollera kod med Biome |
 | `npm run format` | Formatera kod |
 | `npm test` | Kör unit-tester (Vitest) |
