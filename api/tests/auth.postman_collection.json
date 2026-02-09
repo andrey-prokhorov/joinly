@@ -837,7 +837,8 @@
 							"    const json = pm.response.json();",
 							"    pm.expect(json.event).to.be.an('object');",
 							"    pm.expect(json.event.id).to.be.a('string');",
-							"    pm.expect(json.event.description).to.eql('Newman Test Event');",
+							"    pm.expect(json.event.title).to.eql('Newman Test Event Title');",
+							"    pm.expect(json.event.description).to.eql('Newman Test Event Description');",
 							"    pm.expect(json.event.city).to.eql('Stockholm');",
 							"    ",
 							"    // Spara event ID för uppdatering och borttagning",
@@ -868,7 +869,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"title\": \"Newman Test Event Title\",\n    \"description\": \"Newman Test Event\",\n    \"category\": \"test\",\n    \"start_time\": \"2026-06-01T10:00:00\",\n    \"end_time\": \"2026-06-01T12:00:00\",\n    \"city\": \"Stockholm\",\n    \"city_district\": \"Centrum\"\n}"
+					"raw": "{\n    \"title\": \"Newman Test Event Title\",\n    \"description\": \"Newman Test Event Description\",\n    \"category\": \"test\",\n    \"start_time\": \"2026-06-01T10:00:00\",\n    \"end_time\": \"2026-06-01T12:00:00\",\n    \"city\": \"Stockholm\",\n    \"city_district\": \"Centrum\"\n}"
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
