@@ -19,7 +19,7 @@ import db from "../db/database.js"
 // Payload som finns inuti JWT-token (samma som vi skapade i login)
 // OBS: använder "id" (inte "userId") för att matcha user-objektet från login
 interface JwtPayload {
-	id: number
+	id: string
 	email: string
 	role: string
 }

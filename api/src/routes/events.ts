@@ -400,6 +400,15 @@ router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
 			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`)
 
+		const creatorUserId = req.user?.id
+
+		if (!creatorUserId) {
+			return res.status(401).json({
+				success: false,
+				message: "Oauktoriserad användare.",
+			})
+		}
+
 		const result = insertEvent.run(
 			id,
 			title,
@@ -409,7 +418,7 @@ router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
 			end_time,
 			city,
 			city_district,
-			String(req.user?.id),
+			String(creatorUserId),
 			created_at
 		)
 
@@ -547,7 +556,7 @@ router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 		}
 
 		// Kontrollera att användaren är skaparen av eventet
-		if (existingEvent.creator_user_id !== String(req.user?.id)) {
+		if (existingEvent.creator_user_id !== req.user?.id) {
 			return res.status(403).json({
 				success: false,
 				message:
@@ -729,7 +738,7 @@ router.delete("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 		}
 
 		// Kontrollera att användaren är skaparen av eventet
-		if (existingEvent.creator_user_id !== String(req.user?.id)) {
+		if (existingEvent.creator_user_id !== req.user?.id) {
 			return res.status(403).json({
 				success: false,
 				message:
