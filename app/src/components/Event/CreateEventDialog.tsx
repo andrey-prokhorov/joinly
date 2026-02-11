@@ -14,8 +14,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close"
 import { useMemo, useState } from "react"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
-import { DatePicker } from "@mui/x-date-pickers/DatePicker"
-import { TimePicker } from "@mui/x-date-pickers/TimePicker"
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import dayjs, { Dayjs } from "dayjs"
 import { EventType, type EventFormData } from "@/types/event"
@@ -29,11 +28,13 @@ type Props = {
 const emptyForm: EventFormData = {
     id:"",
     title: "",
-    location: "",
-    type: "",
-    date: "",
+    description: "",
+    category: "",
     startTime: "",
     endTime: "",
+    city: "",
+    cityDistrict: "",
+    createdAt: ""
 }
 
 export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
@@ -42,7 +43,6 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
     const [startTimeValue, setStartTimetValue] = useState<Dayjs | null>(null)
     const [endTimeValue, setEndTimeValue] = useState<Dayjs | null>(null)
 
-    const timeError: boolean =
     startTimeValue !== null &&
     endTimeValue !== null &&
     !endTimeValue.isAfter(startTimeValue)
@@ -50,11 +50,11 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
     const canCreate = useMemo(() => {
         return (
             form.title.trim().length > 0 &&
-            form.location.trim().length > 0 &&
-            form.type !== "" &&
-            form.date !== "" &&
-            form.startTime.trim().length > 0 &&
-            form.endTime.trim().length > 0
+            form.category !== "" &&
+            form.startTime !== "" &&
+            form.endTime !== "" &&
+            form.city.trim().length > 0 &&
+            form.cityDistrict.trim().length > 0 
         )
     }, [form])
 
@@ -88,106 +88,114 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
 
             <DialogContent sx={{ pt: 3 }}>
                 <Stack spacing={2.25}>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                        <TextField
+                            label="Titel"
+                            placeholder="t.ex. Vasaloppet"
+                            value={form.title}
+                            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                            autoFocus
+                            fullWidth
+                        />
+
+                        <Select<string>
+                            labelId="activity-type-label"
+                            id="activity-type"
+                            value={form.category ?? ""}
+                            displayEmpty
+                            renderValue={(v) => (v === "" ? "Aktivitetstyp" : v)}
+                            onChange={(e) =>
+                                setForm((p) => ({ ...p, category: e.target.value as string }))
+                            }
+                            >
+                                <MenuItem value="" disabled>
+                                    Aktivitetstyp
+                                </MenuItem>
+
+                                {Object.entries(EventType).map(([key, value]) => (
+                                    <MenuItem key={key} value={value}>
+                                        {value}
+                                    </MenuItem>
+                                ))}
+                        </Select>
+                    </Stack>
+
                     <TextField
-                        label="Aktivitets namn"
-                        placeholder="t.ex. Vasaloppet"
-                        value={form.title}
-                        onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+                        label="Beskrivning"
+                        placeholder="t.ex. längdskidåkning längs Gustav Vasas rutt år 1520"
+                        value={form.description}
+                        onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                         autoFocus
+                        multiline
+                        minRows={3}
                         fullWidth
                     />
-
-                    <TextField
-                        label="Stad"
-                        placeholder="t.ex. Stockholm"
-                        value={form.location}
-                        onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
-                        fullWidth
-                    />
-
-
-                    <Select<EventType | "">
-                        labelId="activity-type-label"
-                        id="activity-type"
-                        value={form.type ?? ""}
-                        displayEmpty
-                        renderValue={(v) => (v === "" ? "Aktivitetstyp" : String(v))}
-                        onChange={(e) =>
-                            setForm((p) => ({ ...p, type: e.target.value as EventType | "" }))
-                        }
-                    >
-                        <MenuItem value="" disabled>
-                            Aktivitetstyp
-                        </MenuItem>
-
-                        {Object.entries(EventType).map(([key, value]) => (
-                            <MenuItem key={key} value={value}>
-                            {value}
-                            </MenuItem>
-                        ))}
-                    </Select>
 
 
                     <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                        <TextField
+                            label="Stad"
+                            placeholder="t.ex. Sälen"
+                            value={form.city}
+                            onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))}
+                            fullWidth
+                        />
+
+                        <TextField
+                            label="stadsdel"
+                            placeholder="t.ex. Berga by"
+                            value={form.cityDistrict}
+                            onChange={(e) => setForm((p) => ({ ...p, cityDistrict: e.target.value }))}
+                            fullWidth
+                        />
+                    </Stack>
+
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                                label="Datum"
-                                format="YYYY/MM/DD"
-                                value={form.date === "" ? null : dayjs(form.date)}
+                            <DateTimePicker
+                                label="Starttid"
+                                ampm={false}
+                                format="YYYY/MM/DD HH:mm"
+                                value={form.startTime === "" ? null : dayjs(form.startTime)}
                                 onChange={(v) =>
-                                setForm((p) => ({ ...p, date: v ? v.toDate() : "" }))
+                                    setForm((p) => ({ ...p, startTime: v ? v.toDate() : "" }))
                                 }
                                 slotProps={{
-                                textField: {
+                                    textField: {
                                     fullWidth: true,
                                     InputLabelProps: { shrink: true },
-                                },
+                                    },
                                 }}
                             />
-                        </LocalizationProvider>
 
-
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-
-                        <TimePicker
-                            label="Tid start"
-                            ampm={false}
-                            value={startTimeValue}
-                            onChange={(v) => {
-                            setStartTimetValue(v)
-                            setForm((p) => ({ ...p, startTime: v ? dayjs(v).format("HH:mm") : "" }))
-
-                                if (v && endTimeValue && !endTimeValue.isAfter(v)) {
-                                    setEndTimeValue(null)
-                                    setForm((p) => ({ ...p, endTime: "" }))
+                            <DateTimePicker
+                                label="Sluttid"
+                                ampm={false}
+                                format="YYYY/MM/DD HH:mm"
+                                value={form.endTime === "" ? null : dayjs(form.endTime)}
+                                onChange={(v) =>
+                                    setForm((p) => ({ ...p, endTime: v ? v.toDate() : "" }))
                                 }
-                            }}
-                            slotProps={{
-                                textField: {
-                                fullWidth: true,
-                                InputLabelProps: { shrink: true },
-                                },
-                            }}
-                        />
-
-                        <TimePicker
-                            label="Tid slut"
-                            ampm={false}
-                            value={endTimeValue}
-                            onChange={(v) => {
-                                setEndTimeValue(v)
-                                setForm((p) => ({ ...p, endTime: v ? dayjs(v).format("HH:mm") : "" }))
-                            }}
-                            minTime={startTimeValue ? startTimeValue.add(5, "minute") : undefined}
-                            slotProps={{
-                                textField: {
+                                minDateTime={
+                                    form.startTime === "" ? undefined : dayjs(form.startTime).add(5, "minute")
+                                }
+                                slotProps={{
+                                    textField: {
                                     fullWidth: true,
                                     InputLabelProps: { shrink: true },
-                                    error: timeError,
-                                    helperText: timeError ? "Sluttid måste vara efter starttid" : " ",
-                                },
-                            }}
-                        />
+                                    error:
+                                        form.startTime !== "" &&
+                                        form.endTime !== "" &&
+                                        !dayjs(form.endTime).isAfter(dayjs(form.startTime)),
+                                    helperText:
+                                        form.startTime !== "" &&
+                                        form.endTime !== "" &&
+                                        !dayjs(form.endTime).isAfter(dayjs(form.startTime))
+                                        ? "Sluttid måste vara minst 5 min efter starttid"
+                                        : " ",
+                                    },
+                                }}
+                            />
                         </LocalizationProvider>
                     </Stack>
                 </Stack>

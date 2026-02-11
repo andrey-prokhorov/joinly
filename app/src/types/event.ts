@@ -6,11 +6,13 @@ export enum EventType {
 }
 
 export interface EventFormData {
-    id:number|""
+    id:string
     title: string
-    location: string
-    type: EventType|""
-    date: Date|""
-    startTime: string
-    endTime: string
+    description: string
+    category: string
+    startTime: Date|""
+    endTime: Date|""
+    city: string
+    cityDistrict: string
+    createdAt: Date|""
 }
