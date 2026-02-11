@@ -66,8 +66,9 @@ export function createOpenApiSpec() {
 							},
 							creator_user_id: {
 								type: "string",
-								example: "1",
-								description: "ID of the user who created the event",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description:
+									"ID of the user who created the event (stored as string)",
 							},
 							created_at: {
 								type: "string",
@@ -92,8 +93,9 @@ export function createOpenApiSpec() {
 						type: "object",
 						properties: {
 							id: {
-								type: "number",
-								example: 1,
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
 								description: "Unique identifier for the user",
 							},
 							email: {
