@@ -64,6 +64,12 @@ export function createOpenApiSpec() {
 								example: "Södermalm",
 								description: "City district (optional)",
 							},
+							creator_user_id: {
+								type: "string",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description:
+									"ID of the user who created the event (stored as string)",
+							},
 							created_at: {
 								type: "string",
 								format: "date-time",
@@ -79,6 +85,7 @@ export function createOpenApiSpec() {
 							"start_time",
 							"end_time",
 							"city",
+							"creator_user_id",
 							"created_at",
 						],
 					},
@@ -86,8 +93,9 @@ export function createOpenApiSpec() {
 						type: "object",
 						properties: {
 							id: {
-								type: "number",
-								example: 1,
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
 								description: "Unique identifier for the user",
 							},
 							email: {

@@ -1,0 +1,47 @@
+{
+	"info": {
+		"name": "Joinly API - Users Management Tests",
+		"description": "Tests for user management endpoints (when implemented).\n\n## Potential Tests\n- Get user profile\n- Update user profile \n- Delete user account\n- Admin: List all users\n- Admin: Update user roles\n- Admin: Disable/enable users\n\n## Usage\n```bash\nnewman run tests/users.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```\n\nNote: This collection is currently empty as user management endpoints are not yet implemented.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Placeholder - Users endpoints not yet implemented",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/health",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "health"]
+				}
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Users endpoints not yet implemented', function () {",
+							"    console.log('This is a placeholder for future user management tests');",
+							"    pm.expect(true).to.be.true;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			]
+		}
+	]
+}
