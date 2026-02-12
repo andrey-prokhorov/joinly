@@ -21,4 +21,4 @@
 - This is a school project (DevSecOps course) using TypeScript, Express 5, SQLite
 - We use Biome for linting/formatting - do not suggest ESLint/Prettier rules
 - Swedish comments are intentional and part of our code style
-- Seed data with test credentials is expected in development mode
+- Seed data with test credentials in development-only code paths is expected; flag hardcoded credentials anywhere else
