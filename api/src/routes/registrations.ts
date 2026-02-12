@@ -140,11 +140,8 @@ router.post(
 			} catch (err) {
 				const sqliteError = err as { code?: string; message?: string }
 				const isUniqueConstraint =
-					sqliteError?.code === "SQLITE_CONSTRAINT" ||
 					sqliteError?.code === "SQLITE_CONSTRAINT_UNIQUE" ||
-					(sqliteError?.message ?? "").includes(
-						"UNIQUE constraint failed: event_registrations.event_id, event_registrations.user_id"
-					)
+					(sqliteError?.message ?? "").includes("UNIQUE constraint failed")
 
 				if (isUniqueConstraint) {
 					res.status(409).json({

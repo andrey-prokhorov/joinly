@@ -155,9 +155,9 @@ export function createOpenApiSpec() {
 							},
 							created_at: {
 								type: "string",
-								format: "date-time",
-								example: "2026-02-12T10:00:00Z",
-								description: "When the registration was created",
+								example: "2026-02-12 10:00:00",
+								description:
+									"When the registration was created (SQLite CURRENT_TIMESTAMP)",
 							},
 						},
 						required: ["id", "event_id", "user_id", "created_at"],
