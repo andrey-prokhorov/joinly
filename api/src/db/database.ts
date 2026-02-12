@@ -60,6 +60,10 @@ db.pragma("foreign_keys = ON")
 
 // Importera table creation functions
 import { createEventsTable, seedEvents } from "./database-events.js"
+import {
+	createRegistrationsTable,
+	seedRegistrations,
+} from "./database-registrations.js"
 import { createUsersTable, seedUsers } from "./database-users.js"
 
 // Funktion för att initiera alla tabeller
@@ -71,6 +75,9 @@ export function initDatabase(): void {
 
 	// Skapa events-tabell
 	createEventsTable(db)
+
+	// Skapa event registrations-tabell
+	createRegistrationsTable(db)
 
 	// Rensa utgångna tokens från blacklist (körs alltid, även i production)
 	cleanExpiredTokens(db)
@@ -88,6 +95,7 @@ export function seedData(): void {
 	}
 	seedUsers(db)
 	seedEvents(db)
+	seedRegistrations(db)
 }
 
 // Re-exportera seed functions för extern användning
