@@ -14,7 +14,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 // databasfilen:
-const dbPath = path.join(__dirname, "../../data/joinly.db")
+const dbPath = path.join(__dirname, "../../data/joinly_p.db")
 
 // Skapa data-mappen om den inte finns (behövs i CI och vid första körning)
 const dataDir = path.dirname(dbPath)
