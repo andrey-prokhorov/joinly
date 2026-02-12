@@ -27,7 +27,6 @@ export const useAuth = (): UseAuthReturn => {
             const response = await apiService.getMe()
             if (response.ok) {
                 const data = await response.json()
-                console.log("Auth response:", data) // Debug log
                 setUser(data.user)
             } else {
                 setUser(null)

@@ -26,7 +26,7 @@ export const RegisterPage = () => {
         setError("")
         setSuccess("")
 
-        if (!email || !password || !confirmPassword) {
+        if (!email || !name || !password || !confirmPassword) {
             setError("Alla fält är obligatoriska")
             return
         }
