@@ -1,4 +1,4 @@
-import { Stack, Typography } from "@mui/material"
+import { Stack, Typography, Link } from "@mui/material"
 import { InfoBox } from "../../components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 
@@ -21,5 +21,21 @@ export const StartPage = () => (
 				</Typography>
 			</Stack>
 		</InfoBox>
+		<Typography variant="body2">
+			Logga in eller registrera dig för att komma igång!{" "}
+			<Link
+				href="/login"
+				sx={{
+					color: "primary.main",
+					textDecoration: "none",
+					fontWeight: 600,
+					"&:hover": {
+						textDecoration: "underline",
+					},
+				}}
+			>
+				Logga in här
+			</Link>
+		</Typography>
 	</PageLayout>
 )
