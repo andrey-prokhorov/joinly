@@ -416,12 +416,14 @@ router.post(
 router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
 	// authenticateToken har redan verifierat token och lagt user på req
 	// Om vi kommer hit är användaren inloggad
-	const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user?.id) as DbUser | undefined;
-	
-if (!user) {
-return res.status(401).json({ message: "Ogiltig eller saknad token." });
-}
-return 	res.json({ user: user, message: "Användare är inloggad." });
+	const user = db
+		.prepare("SELECT * FROM users WHERE id = ?")
+		.get(req.user?.id) as DbUser | undefined
+
+	if (!user) {
+		return res.status(401).json({ message: "Ogiltig eller saknad token." })
+	}
+	return res.json({ user: user, message: "Användare är inloggad." })
 })
 /**
  * @openapi
