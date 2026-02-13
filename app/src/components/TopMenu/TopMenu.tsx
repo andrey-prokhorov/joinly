@@ -1,4 +1,5 @@
 import { AppBar, Box, Stack, Toolbar, Typography, Button } from "@mui/material"
+import { Link } from "@tanstack/react-router"
 import { Logo } from "../Logo/Logo"
 import { MenuButton } from "./MenuButton"
 import { useAuth } from "../../useAuth"
@@ -32,13 +33,13 @@ export const TopMenu = () => {
                     </Box>
                     {isAuthenticated && user ? (
                         <Stack direction="row" alignItems="center" spacing={2}>
-                            <Typography variant="body2" sx={{ color: "primary.main" }}>
+                            <Typography variant="body2" sx={{ color: "primary.main", fontWeight: 500 }}>
                                 Inloggad som: <strong>{user.name}</strong>
                             </Typography>
                             <Button
                                 onClick={() => logout()}
                                 sx={{
-                                    color: "black",
+                                    color: "primary.main",
                                     fontWeight: 600,
                                     textTransform: "none",
                                     fontSize: "1rem",
@@ -55,10 +56,11 @@ export const TopMenu = () => {
                         </Stack>
                     ) : (
                         <Button
-                            href="/login"
+                            to="/login"
+                            LinkComponent={Link}
                             variant="text"
                             sx={{
-                                color: "black",
+                                color: "primary.main",
                                 fontWeight: 600,
                                 textTransform: "none",
                                 fontSize: "1rem",

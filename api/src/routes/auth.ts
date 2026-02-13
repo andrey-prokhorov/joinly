@@ -417,7 +417,7 @@ router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
 	// authenticateToken har redan verifierat token och lagt user på req
 	// Om vi kommer hit är användaren inloggad
 	const user = db
-		.prepare("SELECT * FROM users WHERE id = ?")
+		.prepare("SELECT id, email, name, role FROM users WHERE id = ?")
 		.get(req.user?.id) as DbUser | undefined
 
 	if (!user) {

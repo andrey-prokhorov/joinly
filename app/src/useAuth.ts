@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { apiService } from "@/api"
+import { useNavigate } from "@tanstack/react-router"
 
 interface User {
     id: string
@@ -21,6 +22,7 @@ interface UseAuthReturn {
 export const useAuth = (): UseAuthReturn => {
     const [user, setUser] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(true)
+    const navigate = useNavigate();
 
     const checkAuth = async () => {
         try {
@@ -46,11 +48,11 @@ export const useAuth = (): UseAuthReturn => {
             await apiService.logout()
             setUser(null)
             apiService.clearToken()
-            window.location.href = "/start"
+            navigate({ to: "/start" });
         } catch (error) {
             console.error("Logout failed:", error)
             apiService.clearToken()
-            window.location.href = "/start"
+            navigate
         }
     }
 

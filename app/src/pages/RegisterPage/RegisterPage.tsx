@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
-import { Stack, TextField, Button, Typography, Box, Link } from "@mui/material"
+import { Stack, TextField, Button, Typography, Box } from "@mui/material"
+import { Link } from "@tanstack/react-router"
 import { InfoBox } from "../../components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 import { apiService } from "@/api"
@@ -131,9 +132,9 @@ export const RegisterPage = () => {
                         placeholder="Din e-postadress"
                     />
 
-                                <TextField
+                    <TextField
                         label="Namn"
-                        type="Text"
+                        type="text"
                         variant="outlined"
                         fullWidth
                         value={name}
@@ -141,7 +142,6 @@ export const RegisterPage = () => {
                         disabled={isLoading}
                         placeholder="Ditt namn"
                     />
-
 
                     <TextField
                         label="Lösenord"
@@ -193,19 +193,21 @@ export const RegisterPage = () => {
                     <Box sx={{ textAlign: "center", mt: 2 }}>
                         <Typography variant="body2">
                             Har du redan ett konto?{" "}
-                            <Link
-                                href="/login"
+                            <Box
+                                component={Link}
+                                to="/login"
                                 sx={{
                                     color: "primary.main",
                                     textDecoration: "none",
                                     fontWeight: 600,
+                                    display: "inline",
                                     "&:hover": {
                                         textDecoration: "underline",
                                     },
                                 }}
                             >
                                 Logga in här
-                            </Link>
+                            </Box>
                         </Typography>
                     </Box>
                 </Stack>

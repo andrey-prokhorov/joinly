@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { Stack, TextField, Button, Typography, Box, Link } from "@mui/material"
+import { Stack, TextField, Button, Typography, Box } from "@mui/material"
+import { Link } from "@tanstack/react-router"
 import { InfoBox } from "../../components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 import { apiService } from "@/api"
@@ -43,7 +44,7 @@ export const LoginPage = () => {
         }
     }
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
             handleLogin()
         }
@@ -81,7 +82,7 @@ export const LoginPage = () => {
                         fullWidth
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        onKeyPress={handleKeyPress}
+                        onKeyDown={handleKeyDown}
                         disabled={isLoading}
                         placeholder="Ange din epostadress"
                     />
@@ -93,7 +94,7 @@ export const LoginPage = () => {
                         fullWidth
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        onKeyPress={handleKeyPress}
+                        onKeyDown={handleKeyDown}
                         disabled={isLoading}
                         placeholder="Ange ditt lösenord"
                     />
@@ -124,19 +125,21 @@ export const LoginPage = () => {
                     <Box sx={{ textAlign: "center", mt: 2 }}>
                         <Typography variant="body2">
                             Har du inget konto?{" "}
-                            <Link
-                                href="/register"
+                            <Box
+                                component={Link}
+                                to="/register"
                                 sx={{
                                     color: "primary.main",
                                     textDecoration: "none",
                                     fontWeight: 600,
+                                    display: "inline",
                                     "&:hover": {
                                         textDecoration: "underline",
                                     },
                                 }}
                             >
                                 Registrera dig här
-                            </Link>
+                            </Box>
                         </Typography>
                     </Box>
                 </Stack>
