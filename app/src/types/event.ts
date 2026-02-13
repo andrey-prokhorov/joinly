@@ -10,9 +10,9 @@ export interface EventFormData {
     title: string
     description: string
     category: string
-    startTime: Date|""
-    endTime: Date|""
+    start_time: Date|""
+    end_time: Date|""
     city: string
-    cityDistrict: string
-    createdAt: Date|""
+    city_district: string
+    created_at: Date|""
 }

@@ -30,11 +30,11 @@ const emptyForm: EventFormData = {
     title: "",
     description: "",
     category: "",
-    startTime: "",
-    endTime: "",
+    start_time: "",
+    end_time: "",
     city: "",
-    cityDistrict: "",
-    createdAt: ""
+    city_district: "",
+    created_at: ""
 }
 
 export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
@@ -50,11 +50,11 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
     const canCreate = useMemo(() => {
         return (
             form.title.trim().length > 0 &&
+            form.description.trim().length > 0 &&
             form.category !== "" &&
-            form.startTime !== "" &&
-            form.endTime !== "" &&
-            form.city.trim().length > 0 &&
-            form.cityDistrict.trim().length > 0 
+            form.start_time !== "" &&
+            form.end_time !== "" &&
+            form.city.trim().length > 0
         )
     }, [form])
 
@@ -142,10 +142,10 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
                         />
 
                         <TextField
-                            label="stadsdel"
+                            label="Stadsdel"
                             placeholder="t.ex. Berga by"
-                            value={form.cityDistrict}
-                            onChange={(e) => setForm((p) => ({ ...p, cityDistrict: e.target.value }))}
+                            value={form.city_district}
+                            onChange={(e) => setForm((p) => ({ ...p, city_district: e.target.value }))}
                             fullWidth
                         />
                     </Stack>
@@ -156,9 +156,9 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
                                 label="Starttid"
                                 ampm={false}
                                 format="YYYY/MM/DD HH:mm"
-                                value={form.startTime === "" ? null : dayjs(form.startTime)}
+                                value={form.start_time === "" ? null : dayjs(form.start_time)}
                                 onChange={(v) =>
-                                    setForm((p) => ({ ...p, startTime: v ? v.toDate() : "" }))
+                                    setForm((p) => ({ ...p, start_time: v ? v.toDate() : "" }))
                                 }
                                 slotProps={{
                                     textField: {
@@ -172,25 +172,25 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
                                 label="Sluttid"
                                 ampm={false}
                                 format="YYYY/MM/DD HH:mm"
-                                value={form.endTime === "" ? null : dayjs(form.endTime)}
+                                value={form.end_time === "" ? null : dayjs(form.end_time)}
                                 onChange={(v) =>
-                                    setForm((p) => ({ ...p, endTime: v ? v.toDate() : "" }))
+                                    setForm((p) => ({ ...p, end_time: v ? v.toDate() : "" }))
                                 }
                                 minDateTime={
-                                    form.startTime === "" ? undefined : dayjs(form.startTime).add(5, "minute")
+                                    form.start_time === "" ? undefined : dayjs(form.start_time).add(5, "minute")
                                 }
                                 slotProps={{
                                     textField: {
                                     fullWidth: true,
                                     InputLabelProps: { shrink: true },
                                     error:
-                                        form.startTime !== "" &&
-                                        form.endTime !== "" &&
-                                        !dayjs(form.endTime).isAfter(dayjs(form.startTime)),
+                                        form.start_time !== "" &&
+                                        form.end_time !== "" &&
+                                        !dayjs(form.end_time).isAfter(dayjs(form.start_time)),
                                     helperText:
-                                        form.startTime !== "" &&
-                                        form.endTime !== "" &&
-                                        !dayjs(form.endTime).isAfter(dayjs(form.startTime))
+                                        form.start_time !== "" &&
+                                        form.end_time !== "" &&
+                                        !dayjs(form.end_time).isAfter(dayjs(form.start_time))
                                         ? "Sluttid måste vara minst 5 min efter starttid"
                                         : " ",
                                     },
