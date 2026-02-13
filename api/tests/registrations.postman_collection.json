@@ -1,0 +1,500 @@
+{
+	"info": {
+		"name": "Joinly API - Event Registration Tests",
+		"description": "Event registration/unregistration tests for Joinly API.\n\n## Test Sequence\n1. Setup - Login\n2. Setup - Create future event\n3. Register for event (201)\n4. Register again - duplicate (409)\n5. Unregister from event (200)\n6. Unregister again - not registered (404)\n7. Register without token (401)\n8. Register for non-existent event (404)\n9. Register with invalid event ID (400)\n10. Register for past event (400)\n11. Unregister from non-existent event (404)\n12. Cleanup - Delete test event",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "authToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testEventId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "seedEventId",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Setup - Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Response has token', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.token).to.be.a('string');",
+							"    pm.collectionVariables.set('authToken', json.token);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/login",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "login"]
+				}
+			}
+		},
+		{
+			"name": "Setup - Create future event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test('Response has event with id', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.true;",
+							"    pm.expect(json.event.id).to.be.a('string');",
+							"    pm.collectionVariables.set('testEventId', json.event.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Newman Registration Test Event\",\n    \"description\": \"Event created by Newman for testing event registration\",\n    \"category\": \"Test\",\n    \"start_time\": \"2027-06-01T09:00:00\",\n    \"end_time\": \"2027-06-01T17:00:00\",\n    \"city\": \"Stockholm\",\n    \"city_district\": \"Södermalm\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "Setup - Get seed event ID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Find seed event with past date', function () {",
+							"    const json = pm.response.json();",
+							"    const pastEvent = json.events.find(e => new Date(e.end_time) < new Date());",
+							"    pm.expect(pastEvent).to.not.be.undefined;",
+							"    pm.collectionVariables.set('seedEventId', pastEvent.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "Register for event (201)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test('Registration successful', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.true;",
+							"    pm.expect(json.message).to.eql('Registrering genomförd.');",
+							"    pm.expect(json.registration).to.be.an('object');",
+							"    pm.expect(json.registration.event_id).to.eql(pm.collectionVariables.get('testEventId'));",
+							"    pm.expect(json.registration.user_id).to.be.a('string');",
+							"    pm.expect(json.registration.created_at).to.be.a('string');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{testEventId}}", "register"]
+				}
+			}
+		},
+		{
+			"name": "Register again - duplicate (409)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 409', function () {",
+							"    pm.response.to.have.status(409);",
+							"});",
+							"",
+							"pm.test('Already registered message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.false;",
+							"    pm.expect(json.message).to.eql('Du är redan registrerad för detta event.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{testEventId}}", "register"]
+				}
+			}
+		},
+		{
+			"name": "Unregister from event (200)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('Unregistration successful', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.true;",
+							"    pm.expect(json.message).to.eql('Avregistrering genomförd.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{testEventId}}", "register"]
+				}
+			}
+		},
+		{
+			"name": "Unregister again - not registered (404)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test('Not registered message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.false;",
+							"    pm.expect(json.message).to.eql('Du är inte registrerad för detta event.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{testEventId}}", "register"]
+				}
+			}
+		},
+		{
+			"name": "Register without token (401)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{testEventId}}", "register"]
+				}
+			}
+		},
+		{
+			"name": "Register for non-existent event (404)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test('Event not found message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.false;",
+							"    pm.expect(json.message).to.eql('Event med detta ID hittades inte.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/00000000-0000-0000-0000-000000000000/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "00000000-0000-0000-0000-000000000000", "register"]
+				}
+			}
+		},
+		{
+			"name": "Register with invalid event ID (400)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test('Invalid ID message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.false;",
+							"    pm.expect(json.message).to.eql('Ogiltigt event-ID format.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/not-a-valid-uuid/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "not-a-valid-uuid", "register"]
+				}
+			}
+		},
+		{
+			"name": "Register for past event (400)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"pm.test('Event ended message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.false;",
+							"    pm.expect(json.message).to.eql('Eventet har redan avslutats.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{seedEventId}}/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{seedEventId}}", "register"]
+				}
+			}
+		},
+		{
+			"name": "Unregister from non-existent event (404)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"pm.test('Event not found message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.false;",
+							"    pm.expect(json.message).to.eql('Event med detta ID hittades inte.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/00000000-0000-0000-0000-000000000000/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "00000000-0000-0000-0000-000000000000", "register"]
+				}
+			}
+		},
+		{
+			"name": "Cleanup - Delete test event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{testEventId}}"]
+				}
+			}
+		}
+	]
+}
