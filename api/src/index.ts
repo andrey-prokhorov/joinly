@@ -67,9 +67,20 @@ if (!isProduction) {
 	seedData()
 }
 
+// CORS configuration
+const corsOptions = {
+	origin: [
+		"http://localhost:3000",
+		"https://joinly-frontend-production.up.railway.app",
+	],
+	credentials: true,
+	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+}
+
 // Middleware-kedja (ordningen är viktig!)
 app.use(helmet()) // Security headers
-app.use(cors()) // Cross-origin requests
+app.use(cors(corsOptions)) // Cross-origin requests with configuration
 app.use(express.json()) // Parse JSON body
 app.use(requestLogger) // Logga alla requests
 
