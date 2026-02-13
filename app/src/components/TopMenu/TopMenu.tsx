@@ -56,8 +56,8 @@ export const TopMenu = () => {
                         </Stack>
                     ) : (
                         <Button
+                            component={Link}
                             to="/login"
-                            LinkComponent={Link}
                             variant="text"
                             sx={{
                                 color: "primary.main",

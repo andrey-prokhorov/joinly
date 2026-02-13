@@ -25,6 +25,8 @@ export const useAuth = (): UseAuthReturn => {
     const navigate = useNavigate();
 
     const checkAuth = async () => {
+        setIsLoading(true)
+
         try {
             const response = await apiService.getMe()
             if (response.ok) {
@@ -52,7 +54,7 @@ export const useAuth = (): UseAuthReturn => {
         } catch (error) {
             console.error("Logout failed:", error)
             apiService.clearToken()
-            navigate
+            navigate({ to: "/start" });
         }
     }
 
