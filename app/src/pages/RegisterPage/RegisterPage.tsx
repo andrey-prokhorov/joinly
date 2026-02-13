@@ -1,10 +1,12 @@
 import { useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { Stack, TextField, Button, Typography, Box, Link } from "@mui/material"
 import { InfoBox } from "../../components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 import { apiService } from "@/api"
 
 export const RegisterPage = () => {
+    const navigate = useNavigate()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [name, setName] = useState("")
@@ -62,7 +64,7 @@ export const RegisterPage = () => {
             // Store the JWT token
             apiService.setToken(data.token)
             setTimeout(() => {
-                window.location.href = "/events"
+                navigate({ to: "/events" })
             }, 1500)
         } catch (err) {
             setError("Ett fel uppstod vid registreringen")

@@ -3,8 +3,11 @@ import { Stack, TextField, Button, Typography, Box, Link } from "@mui/material"
 import { InfoBox } from "../../components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 import { apiService } from "@/api"
+import { useNavigate } from "@tanstack/react-router"
+
 
 export const LoginPage = () => {
+    const navigate = useNavigate()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isLoading, setIsLoading] = useState(false)
@@ -31,7 +34,7 @@ export const LoginPage = () => {
             const data = await response.json()
             // Store the JWT token
             apiService.setToken(data.token)
-            window.location.href = "/events"
+            navigate({ to: "/events" })
         } catch (err) {
             setError("Ett fel uppstod vid inloggning")
             console.error(err)
