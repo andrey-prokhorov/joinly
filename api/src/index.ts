@@ -7,6 +7,7 @@ import config from "./config.js"
 import { initDatabase, seedData } from "./db/database.js"
 import authRoutes from "./routes/auth.js"
 import eventRoutes from "./routes/events.js"
+import registrationRoutes from "./routes/registrations.js"
 import { createOpenApiSpec } from "./swagger.js"
 
 const app = express()
@@ -66,15 +67,27 @@ if (!isProduction) {
 	seedData()
 }
 
+// CORS configuration
+const corsOptions = {
+	origin: [
+		"http://localhost:3000",
+		"https://joinly-frontend-production.up.railway.app",
+	],
+	credentials: true,
+	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+	allowedHeaders: ["Content-Type", "Authorization"],
+}
+
 // Middleware-kedja (ordningen är viktig!)
 app.use(helmet()) // Security headers
-app.use(cors()) // Cross-origin requests
+app.use(cors(corsOptions)) // Cross-origin requests with configuration
 app.use(express.json()) // Parse JSON body
 app.use(requestLogger) // Logga alla requests
 
 // Använda routes
 app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
+app.use("/api/events", registrationRoutes)
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
 
 // Health endpoint - användbart för CI/CD och monitoring
@@ -100,4 +113,5 @@ app.listen(PORT, () => {
 	console.log(`Joinly API körs på http://localhost:${PORT}`)
 	console.log(`Environment: ${config.server.nodeEnv}`)
 	console.log(`Health check: http://localhost:${PORT}/api/health`)
+	console.log(`Swagger docs: http://localhost:${PORT}/swagger`)
 })

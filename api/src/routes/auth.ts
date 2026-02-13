@@ -69,7 +69,7 @@ const router = Router()
 
 // typ för User från databasen
 interface DbUser {
-	id: number
+	id: string
 	email: string
 	password_hash: string
 	name: string | null
@@ -206,17 +206,16 @@ router.post("/register", registerLimiter, async (req, res) => {
 		const passwordHash = await bcrypt.hash(password, 12)
 
 		// spara användare i databasen
+		const newUserId = uuidv4()
 		const result = db
 			.prepare(
-				"INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, 'user')"
+				"INSERT INTO users (id, email, password_hash, name, role) VALUES (?, ?, ?, ?, 'user')"
 			)
-			.run(normalizedEmail, passwordHash, sanitizedName)
+			.run(newUserId, normalizedEmail, passwordHash, sanitizedName)
 
 		if (result.changes === 0) {
 			return res.status(500).json({ message: "Kunde inte skapa användare." })
 		}
-		// hämta result.lastInsertRowid som är den nya användarens ID.
-		const newUserId = result.lastInsertRowid as number
 		// skapa jwt-token med id, email och role (för konsistens med /login)
 		const token = jwt.sign(
 			{ id: newUserId, email: normalizedEmail, role: "user" },
@@ -417,7 +416,14 @@ router.post(
 router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
 	// authenticateToken har redan verifierat token och lagt user på req
 	// Om vi kommer hit är användaren inloggad
-	res.json({ user: req.user, message: "Användare är inloggad." })
+	const user = db
+		.prepare("SELECT id, email, name, role FROM users WHERE id = ?")
+		.get(req.user?.id) as DbUser | undefined
+
+	if (!user) {
+		return res.status(401).json({ message: "Ogiltig eller saknad token." })
+	}
+	return res.json({ user: user, message: "Användare är inloggad." })
 })
 /**
  * @openapi

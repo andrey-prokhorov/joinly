@@ -14,6 +14,7 @@ interface DbEvent {
 	end_time: string
 	city: string
 	city_district: string
+	creator_user_id: string
 	created_at: string
 }
 
@@ -395,9 +396,18 @@ router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
 		const created_at = new Date().toISOString()
 
 		const insertEvent = db.prepare(`
-			INSERT INTO events (id, title, description, category, start_time, end_time, city, city_district, created_at)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+			INSERT INTO events (id, title, description, category, start_time, end_time, city, city_district, creator_user_id, created_at)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`)
+
+		const creatorUserId = req.user?.id
+
+		if (!creatorUserId) {
+			return res.status(401).json({
+				success: false,
+				message: "Oauktoriserad användare.",
+			})
+		}
 
 		const result = insertEvent.run(
 			id,
@@ -408,6 +418,7 @@ router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
 			end_time,
 			city,
 			city_district,
+			String(creatorUserId),
 			created_at
 		)
 
@@ -504,6 +515,8 @@ router.post("/", authenticateToken, (req: AuthRequest, res: Response) => {
  *         description: Bad request - Invalid data or no fields to update
  *       401:
  *         description: Unauthorized - Invalid or missing token
+ *       403:
+ *         description: Forbidden - Only event creator can update
  *       404:
  *         description: Event not found
  *       500:
@@ -539,6 +552,15 @@ router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 			return res.status(404).json({
 				success: false,
 				message: "Event med detta ID hittades inte.",
+			})
+		}
+
+		// Kontrollera att användaren är skaparen av eventet
+		if (existingEvent.creator_user_id !== req.user?.id) {
+			return res.status(403).json({
+				success: false,
+				message:
+					"Du har inte behörighet att uppdatera detta event. Endast skaparen kan redigera.",
 			})
 		}
 
@@ -684,6 +706,8 @@ router.put("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
  *         description: Bad request - Event ID is required
  *       401:
  *         description: Unauthorized - Invalid or missing token
+ *       403:
+ *         description: Forbidden - Only event creator can delete
  *       404:
  *         description: Event not found
  *       500:
@@ -710,6 +734,15 @@ router.delete("/:id", authenticateToken, (req: AuthRequest, res: Response) => {
 			return res.status(404).json({
 				success: false,
 				message: "Event med detta ID hittades inte.",
+			})
+		}
+
+		// Kontrollera att användaren är skaparen av eventet
+		if (existingEvent.creator_user_id !== req.user?.id) {
+			return res.status(403).json({
+				success: false,
+				message:
+					"Du har inte behörighet att ta bort detta event. Endast skaparen kan ta bort.",
 			})
 		}
 

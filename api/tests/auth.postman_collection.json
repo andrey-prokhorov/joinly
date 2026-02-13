@@ -1,7 +1,7 @@
 {
 	"info": {
-		"name": "Joinly API - Auth & Events Tests",
-		"description": "Tester för autentisering och events i Joinly API.\n\n## Register Tester\n1. Health check\n2. Register OK (ny användare)\n3. Register - Dubblett-email\n4. Register - Dåligt lösenord\n5. Register - Saknade fält\n\n## Auth Tester\n6. Login OK\n7. Login fel lösenord\n8. Login saknar fält\n9. Me utan token\n10. Me med token\n11. Login icke-existerande email\n12. Login ogiltigt email-format\n13. Me malformad Authorization header\n\n## Events Read Tester\n14. Events - Get all (with token)\n15. Events - Get all (without token)\n16. Events - Get by ID (with token)\n17. Events - Get by ID (without token)\n18. Events - Filter search (with token)\n19. Events - Filter search (without token)\n\n## Events CRUD Tester\n20. Events - Create event (with token)\n21. Events - Create event (without token)\n22. Events - Create event with missing fields\n23. Events - Create event with invalid dates\n24. Events - Update event (with token)\n25. Events - Update event (without token)\n26. Events - Update non-existent event\n27. Events - Update with invalid dates\n28. Events - Delete event (with token)\n29. Events - Delete event (without token)\n30. Events - Delete non-existent event\n\n## Logout Tester\n31. Logout OK (invaliderar token)\n32. Me efter logout (ska ge 401)\n33. Logout utan token\n\n## Köra med Newman\n```bash\nnewman run auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"name": "Joinly API - Authentication Tests",
+		"description": "Authentication tests for Joinly API.\n\n## Register Tests\n1. Register OK (ny användare)\n2. Register - Dubblett-email\n3. Register - Dåligt lösenord\n4. Register - Saknade fält\n\n## Login Tests\n5. Login OK\n6. Login fel lösenord\n7. Login saknar fält\n8. Login icke-existerande email\n9. Login ogiltigt email-format\n\n## Profile Tests\n10. Me utan token\n11. Me med token\n12. Me malformad Authorization header\n\n## Logout Tests\n13. Logout OK (invaliderar token)\n14. Me efter logout (ska ge 401)\n15. Logout utan token\n\n## Usage\n```bash\nnewman run tests/auth.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -16,46 +16,14 @@
 			"type": "string"
 		},
 		{
-			"key": "testEventId",
+			"key": "registerEmail",
 			"value": "",
 			"type": "string"
 		}
 	],
 	"item": [
 		{
-			"name": "1. Health Check",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: API svarar med 200",
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"// Test: Response innehåller status OK",
-							"pm.test('Response has status ok', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.status).to.eql('ok');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/api/health",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "health"]
-				}
-			}
-		},
-		{
-			"name": "2. Register OK",
+			"name": "1. Register OK",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -120,7 +88,7 @@
 			}
 		},
 		{
-			"name": "3. Register - Dubblett-email",
+			"name": "2. Register - Dubblett-email",
 			"event": [
 				{
 					"listen": "test",
@@ -161,7 +129,7 @@
 			}
 		},
 		{
-			"name": "4. Register - Dåligt lösenord",
+			"name": "3. Register - Dåligt lösenord",
 			"event": [
 				{
 					"listen": "test",
@@ -202,7 +170,7 @@
 			}
 		},
 		{
-			"name": "5. Register - Saknade fält",
+			"name": "4. Register - Saknade fält",
 			"event": [
 				{
 					"listen": "test",
@@ -243,7 +211,7 @@
 			}
 		},
 		{
-			"name": "6. Login OK",
+			"name": "5. Login OK",
 			"event": [
 				{
 					"listen": "test",
@@ -296,7 +264,7 @@
 			}
 		},
 		{
-			"name": "7. Login - Fel lösenord",
+			"name": "6. Login - Fel lösenord",
 			"event": [
 				{
 					"listen": "test",
@@ -337,7 +305,7 @@
 			}
 		},
 		{
-			"name": "8. Login - Saknar fält",
+			"name": "7. Login - Saknar fält",
 			"event": [
 				{
 					"listen": "test",
@@ -378,78 +346,7 @@
 			}
 		},
 		{
-			"name": "9. Me - Utan token",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Utan token ger 401",
-							"pm.test('Status code is 401', function () {",
-							"    pm.response.to.have.status(401);",
-							"});",
-							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/api/auth/me",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "auth", "me"]
-				}
-			}
-		},
-		{
-			"name": "10. Me - Med token",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Med giltig token ger 200",
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"// Test: Response innehåller user-info",
-							"pm.test('Response has user info', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.user).to.have.property('id');",
-							"    pm.expect(json.user).to.have.property('email');",
-							"    pm.expect(json.user.email).to.eql('test@example.com');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/api/auth/me",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "auth", "me"]
-				}
-			}
-		},
-		{
-			"name": "11. Login - Icke-existerande email",
+			"name": "8. Login - Icke-existerande email",
 			"event": [
 				{
 					"listen": "test",
@@ -490,7 +387,7 @@
 			}
 		},
 		{
-			"name": "12. Login - Ogiltigt email-format",
+			"name": "9. Login - Ogiltigt email-format",
 			"event": [
 				{
 					"listen": "test",
@@ -531,7 +428,78 @@
 			}
 		},
 		{
-			"name": "13. Me - Malformad Authorization header",
+			"name": "10. Me - Utan token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Utan token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Response säger att token saknas",
+							"pm.test('Response says no token', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('token');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/me",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "me"]
+				}
+			}
+		},
+		{
+			"name": "11. Me - Med token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Med giltig token ger 200",
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Test: Response innehåller user-info",
+							"pm.test('Response has user info', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.user).to.have.property('id');",
+							"    pm.expect(json.user).to.have.property('email');",
+							"    pm.expect(json.user.email).to.eql('test@example.com');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/me",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "me"]
+				}
+			}
+		},
+		{
+			"name": "12. Me - Malformad Authorization header",
 			"event": [
 				{
 					"listen": "test",
@@ -568,757 +536,7 @@
 			}
 		},
 		{
-			"name": "14. Events - Get all (with token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Med giltig token ger 200",
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"// Test: Response har success: true",
-							"pm.test('Response has success true', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.success).to.eql(true);",
-							"});",
-							"",
-							"// Test: Response innehåller events array",
-							"pm.test('Response has events array', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.events).to.be.an('array');",
-							"    pm.expect(json.count).to.be.a('number');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
-				}
-			}
-		},
-		{
-			"name": "15. Events - Get all (without token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Utan token ger 401",
-							"pm.test('Status code is 401', function () {",
-							"    pm.response.to.have.status(401);",
-							"});",
-							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
-				}
-			}
-		},
-		{
-			"name": "16. Events - Get by ID (with token)", 
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Med giltig token ger antingen 200 (event finns) eller 404 (event finns inte)",
-							"pm.test('Status code is 200 or 404', function () {",
-							"    pm.expect([200, 404]).to.include(pm.response.code);",
-							"});",
-							"",
-							"// Test: Om 200, kontrollera att response har event",
-							"pm.test('If 200, response has event data', function () {",
-							"    if (pm.response.code === 200) {",
-							"        const json = pm.response.json();",
-							"        pm.expect(json.success).to.eql(true);",
-							"        pm.expect(json.event).to.be.an('object');",
-							"    }",
-							"});",
-							"",
-							"// Test: Om 404, kontrollera felmeddelande",
-							"pm.test('If 404, response has error message', function () {",
-							"    if (pm.response.code === 404) {",
-							"        const json = pm.response.json();",
-							"        pm.expect(json.success).to.eql(false);",
-							"        pm.expect(json.message).to.include('hittades inte');",
-							"    }",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
-				}
-			}
-		},
-		{
-			"name": "17. Events - Get by ID (without token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Utan token ger 401",
-							"pm.test('Status code is 401', function () {",
-							"    pm.response.to.have.status(401);",
-							"});",
-							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
-				}
-			}
-		},
-		{
-			"name": "18. Events - Filter search (with token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Med giltig token ger 200",
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"// Test: Response har success: true",
-							"pm.test('Response has success true', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.success).to.eql(true);",
-							"});",
-							"",
-							"// Test: Response innehåller events array och filters",
-							"pm.test('Response has events array and filters', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.events).to.be.an('array');",
-							"    pm.expect(json.count).to.be.a('number');",
-							"    pm.expect(json.filters).to.be.an('object');",
-							"    pm.expect(json.filters.city).to.eql('Stockholm');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "filter", "search"],
-					"query": [
-						{
-							"key": "city",
-							"value": "Stockholm"
-						}
-					]
-				}
-			}
-		},
-		{
-			"name": "19. Events - Filter search (without token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Utan token ger 401",
-							"pm.test('Status code is 401', function () {",
-							"    pm.response.to.have.status(401);",
-							"});",
-							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "filter", "search"],
-					"query": [
-						{
-							"key": "city",
-							"value": "Stockholm"
-						}
-					]
-				}
-			}
-		},
-		{
-			"name": "20. Events - Create event (with token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Create event lyckas med 201",
-							"pm.test('Status code is 201', function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"",
-							"// Test: Response har success: true",
-							"pm.test('Response has success true', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.success).to.eql(true);",
-							"});",
-							"",
-							"// Test: Response innehåller skapade eventet",
-							"pm.test('Response has created event', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.event).to.be.an('object');",
-							"    pm.expect(json.event.id).to.be.a('string');",
-							"    pm.expect(json.event.description).to.eql('Newman Test Event');",
-							"    pm.expect(json.event.city).to.eql('Stockholm');",
-							"    ",
-							"    // Spara event ID för uppdatering och borttagning",
-							"    pm.collectionVariables.set('testEventId', json.event.id);",
-							"});",
-							"",
-							"// Test: Response innehåller framgångsmeddelande",
-							"pm.test('Response has success message', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('framgångsrikt');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"title\": \"Newman Test Event Title\",\n    \"description\": \"Newman Test Event\",\n    \"category\": \"test\",\n    \"start_time\": \"2026-06-01T10:00:00\",\n    \"end_time\": \"2026-06-01T12:00:00\",\n    \"city\": \"Stockholm\",\n    \"city_district\": \"Centrum\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
-				}
-			}
-		},
-		{
-			"name": "21. Events - Create event (without token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Utan token ger 401",
-							"pm.test('Status code is 401', function () {",
-							"    pm.response.to.have.status(401);",
-							"});",
-							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"description\": \"Test Event\",\n    \"category\": \"test\",\n    \"start_time\": \"2026-06-01T10:00:00\",\n    \"end_time\": \"2026-06-01T12:00:00\",\n    \"city\": \"Stockholm\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
-				}
-			}
-		},
-		{
-			"name": "22. Events - Create event with missing fields",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Saknade fält ger 400",
-							"pm.test('Status code is 400', function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"",
-							"// Test: Felmeddelande om saknade fält",
-							"pm.test('Response mentions required fields', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('krävs');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"description\": \"Test Event\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
-				}
-			}
-		},
-		{
-			"name": "23. Events - Create event with invalid dates",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Ogiltiga datum ger 400",
-							"pm.test('Status code is 400', function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"",
-							"// Test: Felmeddelande om datumet",
-							"pm.test('Response mentions date error', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message.toLowerCase()).to.match(/(datum|tid)/);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"description\": \"Test Event\",\n    \"category\": \"test\",\n    \"start_time\": \"2026-06-01T12:00:00\",\n    \"end_time\": \"2026-06-01T10:00:00\",\n    \"city\": \"Stockholm\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
-				}
-			}
-		},
-		{
-			"name": "24. Events - Update event (with token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Uppdatering lyckas med 200",
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"// Test: Response har success: true",
-							"pm.test('Response has success true', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.success).to.eql(true);",
-							"});",
-							"",
-							"// Test: Response innehåller uppdaterade eventet",
-							"pm.test('Response has updated event', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.event).to.be.an('object');",
-							"    pm.expect(json.event.description).to.eql('Newman Test Event - Updated');",
-							"    pm.expect(json.event.category).to.eql('sport');",
-							"});",
-							"",
-							"// Test: Response innehåller framgångsmeddelande",
-							"pm.test('Response has success message', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('uppdaterat');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"description\": \"Newman Test Event - Updated\",\n    \"category\": \"sport\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
-				}
-			}
-		},
-		{
-			"name": "25. Events - Update event (without token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Utan token ger 401",
-							"pm.test('Status code is 401', function () {",
-							"    pm.response.to.have.status(401);",
-							"});",
-							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"description\": \"Updated Event\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
-				}
-			}
-		},
-		{
-			"name": "26. Events - Update non-existent event",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Icke-existerande event ger 404",
-							"pm.test('Status code is 404', function () {",
-							"    pm.response.to.have.status(404);",
-							"});",
-							"",
-							"// Test: Response säger att event inte finns",
-							"pm.test('Response says event not found', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('hittades inte');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"description\": \"Updated Event\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events/non-existent-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-id-123"]
-				}
-			}
-		},
-		{
-			"name": "27. Events - Update with invalid dates",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Ogiltiga datum ger 400",
-							"pm.test('Status code is 400', function () {",
-							"    pm.response.to.have.status(400);",
-							"});",
-							"",
-							"// Test: Felmeddelande om datum",
-							"pm.test('Response mentions date error', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message.toLowerCase()).to.match(/(datum|tid)/);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "PUT",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					},
-					{
-						"key": "Content-Type",
-						"value": "application/json"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"start_time\": \"2026-06-01T15:00:00\",\n    \"end_time\": \"2026-06-01T10:00:00\"\n}"
-				},
-				"url": {
-					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
-				}
-			}
-		},
-		{
-			"name": "28. Events - Delete event (with token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Borttagning lyckas med 200",
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"// Test: Response har success: true",
-							"pm.test('Response has success true', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.success).to.eql(true);",
-							"});",
-							"",
-							"// Test: Response innehåller borttagna eventet",
-							"pm.test('Response has deleted event', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.deletedEvent).to.be.an('object');",
-							"    pm.expect(json.deletedEvent.description).to.include('Newman Test Event');",
-							"});",
-							"",
-							"// Test: Response innehåller framgångsmeddelande",
-							"pm.test('Response has success message', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('borttaget');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
-				}
-			}
-		},
-		{
-			"name": "29. Events - Delete event (without token)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Utan token ger 401",
-							"pm.test('Status code is 401', function () {",
-							"    pm.response.to.have.status(401);",
-							"});",
-							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
-				}
-			}
-		},
-		{
-			"name": "30. Events - Delete non-existent event",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"// Test: Icke-existerande event ger 404",
-							"pm.test('Status code is 404', function () {",
-							"    pm.response.to.have.status(404);",
-							"});",
-							"",
-							"// Test: Response säger att event inte finns",
-							"pm.test('Response says event not found', function () {",
-							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('hittades inte');",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer {{authToken}}"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}/api/events/non-existent-id-456",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-id-456"]
-				}
-			}
-		},
-		{
-			"name": "31. Logout OK",
+			"name": "13. Logout OK",
 			"event": [
 				{
 					"listen": "test",
@@ -1355,7 +573,7 @@
 			}
 		},
 		{
-			"name": "32. Me efter logout (token blacklistad)",
+			"name": "14. Me efter logout (token blacklistad)",
 			"event": [
 				{
 					"listen": "test",
@@ -1392,7 +610,7 @@
 			}
 		},
 		{
-			"name": "33. Logout utan token",
+			"name": "15. Logout utan token",
 			"event": [
 				{
 					"listen": "test",

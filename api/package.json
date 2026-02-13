@@ -18,7 +18,11 @@
 		"format:fix": "npm run format && npm run lint:fix",
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"test:api": "newman run tests/auth.postman_collection.json",
+		"test:api": "newman run tests/auth.postman_collection.json && newman run tests/events.postman_collection.json && newman run tests/registrations.postman_collection.json && newman run tests/users.postman_collection.json",
+		"test:api:auth": "newman run tests/auth.postman_collection.json",
+		"test:api:events": "newman run tests/events.postman_collection.json",
+		"test:api:registrations": "newman run tests/registrations.postman_collection.json",
+		"test:api:users": "newman run tests/users.postman_collection.json",
 		"openapi:gen": "npm run build && node scripts/generate-openapi.js"
 	},
 	"dependencies": {

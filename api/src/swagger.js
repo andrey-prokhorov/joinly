@@ -64,6 +64,12 @@ export function createOpenApiSpec() {
 								example: "Södermalm",
 								description: "City district (optional)",
 							},
+							creator_user_id: {
+								type: "string",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description:
+									"ID of the user who created the event (stored as string)",
+							},
 							created_at: {
 								type: "string",
 								format: "date-time",
@@ -79,6 +85,7 @@ export function createOpenApiSpec() {
 							"start_time",
 							"end_time",
 							"city",
+							"creator_user_id",
 							"created_at",
 						],
 					},
@@ -86,8 +93,9 @@ export function createOpenApiSpec() {
 						type: "object",
 						properties: {
 							id: {
-								type: "number",
-								example: 1,
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
 								description: "Unique identifier for the user",
 							},
 							email: {
@@ -124,6 +132,35 @@ export function createOpenApiSpec() {
 							},
 						},
 						required: ["message"],
+					},
+					EventRegistration: {
+						type: "object",
+						properties: {
+							id: {
+								type: "integer",
+								example: 1,
+								description: "Registration ID",
+							},
+							event_id: {
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description: "ID of the event",
+							},
+							user_id: {
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description: "ID of the registered user",
+							},
+							created_at: {
+								type: "string",
+								example: "2026-02-12 10:00:00",
+								description:
+									"When the registration was created (SQLite CURRENT_TIMESTAMP)",
+							},
+						},
+						required: ["id", "event_id", "user_id", "created_at"],
 					},
 				},
 			},
