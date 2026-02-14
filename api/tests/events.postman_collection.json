@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Joinly API - Events Tests",
-		"description": "Events CRUD tests for Joinly API. Note: These tests depend on having a valid auth token from the auth collection.\n\n## Events Read Tests\n1. Events - Get all (with token)\n2. Events - Get all (without token)\n3. Events - Get by ID (with token)\n4. Events - Get by ID (without token)\n5. Events - Filter search (with token)\n6. Events - Filter search (without token)\n\n## Events CRUD Tests\n7. Events - Create event (with token)\n8. Events - Create event (without token)\n9. Events - Create event with missing fields\n10. Events - Create event with invalid dates\n11. Events - Update event (with token)\n12. Events - Update event (without token)\n13. Events - Update non-existent event\n14. Events - Update with invalid dates\n15. Events - Delete event (with token)\n16. Events - Delete event (without token)\n17. Events - Delete non-existent event\n\n## Usage\n```bash\n# Run auth first to get a token, then run events\nnewman run tests/auth_new.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\nnewman run tests/events.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"description": "Events CRUD tests for Joinly API. Registers a unique test user for auth.\n\n## Events Read Tests (GET endpoints are public)\n1. Events - Get all (with token)\n2. Events - Get all (without token - public)\n3. Events - Get by ID (with token)\n4. Events - Get by ID (without token - public)\n5. Events - Filter search (with token)\n6. Events - Filter search (without token - public)\n\n## Events CRUD Tests (require auth + ACL)\n7. Events - Create event (with token)\n8. Events - Create event (without token)\n9. Events - Create event with missing fields\n10. Events - Create event with invalid dates\n11. Events - Update event (with token)\n12. Events - Update event (without token)\n13. Events - Update non-existent event\n14. Events - Update with invalid dates\n15. Events - Delete event (with token)\n16. Events - Delete event (without token)\n17. Events - Delete non-existent event\n\n## Usage\n```bash\nnewman run tests/events.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -20,34 +20,35 @@
 			"key": "testEventId",
 			"value": "",
 			"type": "string"
-		}
-	],
-	"event": [
+		},
 		{
-			"listen": "prerequest",
-			"script": {
-				"exec": [
-					"// If no auth token is set, try to get one by logging in",
-					"const authToken = pm.collectionVariables.get('authToken');",
-					"if (!authToken) {",
-					"    console.log('No auth token found. You may need to run the auth collection first or set the authToken variable manually.');",
-					"}"
-				],
-				"type": "text/javascript"
-			}
+			"key": "registerEmail",
+			"value": "",
+			"type": "string"
 		}
 	],
 	"item": [
 		{
-			"name": "Setup - Login for Events Tests",
+			"name": "Setup - Register for Events Tests",
 			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generera unik email för denna testkörning",
+							"const uniqueEmail = 'newman-events-' + Date.now() + '@test.com';",
+							"pm.collectionVariables.set('registerEmail', uniqueEmail);"
+						],
+						"type": "text/javascript"
+					}
+				},
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test: Login lyckas med 200",
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
+							"// Test: Register lyckas med 201",
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
 							"});",
 							"",
 							"// Test: Response innehåller token",
@@ -74,12 +75,12 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123!\"\n}"
+					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"{{registerEmail}}\",\n    \"password\": \"Test123!\"\n}"
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/auth/login",
+					"raw": "{{baseUrl}}/api/auth/register",
 					"host": ["{{baseUrl}}"],
-					"path": ["api", "auth", "login"]
+					"path": ["api", "auth", "register"]
 				}
 			}
 		},
@@ -134,15 +135,15 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test: Utan token ger 401",
+							"// Test: Utan token ger 401 (events kräver inloggning - fysisk säkerhet)",
 							"pm.test('Status code is 401', function () {",
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -215,15 +216,15 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test: Utan token ger 401",
+							"// Test: Utan token ger 401 (events kräver inloggning - fysisk säkerhet)",
 							"pm.test('Status code is 401', function () {",
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -299,15 +300,15 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"// Test: Utan token ger 401",
+							"// Test: Utan token ger 401 (events kräver inloggning - fysisk säkerhet)",
 							"pm.test('Status code is 401', function () {",
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -415,10 +416,10 @@
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -606,10 +607,10 @@
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -787,10 +788,10 @@
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"

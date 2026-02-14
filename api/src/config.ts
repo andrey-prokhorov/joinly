@@ -13,6 +13,9 @@ interface Config {
 	acl: {
 		enabled: boolean
 	}
+	rateLimit: {
+		enabled: boolean
+	}
 	isProduction: () => boolean
 	isDevelopment: () => boolean
 	isTest: () => boolean
@@ -31,6 +34,9 @@ export const config: Config = {
 	},
 	acl: {
 		enabled: process.env.ACL_ENABLED !== "false",
+	},
+	rateLimit: {
+		enabled: process.env.RATE_LIMIT_ENABLED !== "false",
 	},
 
 	// Hjälpfunktioner

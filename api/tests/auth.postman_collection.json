@@ -237,7 +237,8 @@
 							"    const json = pm.response.json();",
 							"    pm.expect(json.user).to.have.property('id');",
 							"    pm.expect(json.user).to.have.property('email');",
-							"    pm.expect(json.user.email).to.eql('test@example.com');",
+							"    const expectedEmail = pm.collectionVariables.get('registerEmail');",
+							"    pm.expect(json.user.email).to.eql(expectedEmail);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -254,7 +255,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123!\"\n}"
+					"raw": "{\n    \"email\": \"{{registerEmail}}\",\n    \"password\": \"Test123!\"\n}"
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/auth/login",
@@ -439,10 +440,10 @@
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -476,7 +477,8 @@
 							"    const json = pm.response.json();",
 							"    pm.expect(json.user).to.have.property('id');",
 							"    pm.expect(json.user).to.have.property('email');",
-							"    pm.expect(json.user.email).to.eql('test@example.com');",
+							"    const expectedEmail = pm.collectionVariables.get('registerEmail');",
+							"    pm.expect(json.user.email).to.eql(expectedEmail);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -510,10 +512,10 @@
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Felmeddelande om token",
-							"pm.test('Response mentions token issue', function () {",
+							"// Test: Felmeddelande om autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message.toLowerCase()).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -584,10 +586,10 @@
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Felmeddelande om invaliderad token",
-							"pm.test('Response says token invalidated', function () {",
+							"// Test: Blacklistad token ger autentiseringsfel",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('invaliderats');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"
@@ -621,10 +623,10 @@
 							"    pm.response.to.have.status(401);",
 							"});",
 							"",
-							"// Test: Response säger att token saknas",
-							"pm.test('Response says no token', function () {",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.message).to.include('token');",
+							"    pm.expect(json.message).to.include('Autentisering');",
 							"});"
 						],
 						"type": "text/javascript"

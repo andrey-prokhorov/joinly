@@ -2,9 +2,14 @@ import cors from "cors"
 import type { NextFunction, Request, Response } from "express"
 import express from "express"
 import helmet from "helmet"
+import jwt from "jsonwebtoken"
 import swaggerUi from "swagger-ui-express"
 import config from "./config.js"
-import { initDatabase, seedData } from "./db/database.js"
+import db, { initDatabase, seedData } from "./db/database.js"
+// Importera config och databas
+import { createAclMiddleware } from "./middleware/acl.js"
+import type { AuthRequest } from "./middleware/auth.js"
+// Importera routes
 import authRoutes from "./routes/auth.js"
 import eventRoutes from "./routes/events.js"
 import registrationRoutes from "./routes/registrations.js"
@@ -83,6 +88,31 @@ app.use(helmet()) // Security headers
 app.use(cors(corsOptions)) // Cross-origin requests with configuration
 app.use(express.json()) // Parse JSON body
 app.use(requestLogger) // Logga alla requests
+// Optional token - sätter req.user om giltig JWT finns, annars fortsätter utan
+// Kollar även blacklist så att utloggade tokens inte ger access
+app.use("/api", (req: AuthRequest, _res, next) => {
+	const authHeader = req.headers.authorization
+	const token =
+		authHeader && /^Bearer\s+/i.test(authHeader)
+			? authHeader.replace(/^Bearer\s+/i, "").trim()
+			: undefined
+
+	if (token) {
+		try {
+			const blacklisted = db
+				.prepare("SELECT id FROM token_blacklist WHERE token = ?")
+				.get(token)
+			if (!blacklisted) {
+				req.user = jwt.verify(token, config.jwt.secret) as AuthRequest["user"]
+			}
+		} catch {
+			// Ogiltig token - fortsätt utan user
+		}
+	}
+	next()
+})
+// ACL-middleware - kollar access baserat på req.user och ACL-regler i databasen
+app.use("/api", createAclMiddleware())
 
 // Använda routes
 app.use("/api/auth", authRoutes)

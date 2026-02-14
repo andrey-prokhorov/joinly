@@ -1,11 +1,11 @@
 import bcrypt from "bcryptjs"
-import { type Response, Router } from "express"
+import { type NextFunction, type Request, type Response, Router } from "express"
 import rateLimit, { ipKeyGenerator } from "express-rate-limit"
 import jwt from "jsonwebtoken"
 import { v4 as uuidv4 } from "uuid"
 import config from "../config.js"
 import db from "../db/database.js"
-import { type AuthRequest, authenticateToken } from "../middleware/auth.js"
+import type { AuthRequest } from "../middleware/auth.js"
 import {
 	getEmailError,
 	getNameError,
@@ -29,17 +29,21 @@ const uuid = uuidv4()
 
 // RATE LIMITING (Brute-force skydd)
 // ----------------------------------
-// Funktion som skapar rate limiters med gemensam config.
-// Används för både login och register med olika gränser.
-// Login har även en separat email-baserad limiter (se nedan).
+// Kan stängas av via RATE_LIMIT_ENABLED=false (t.ex. vid testkörning i CI)
+// I produktion ska detta ALLTID vara aktiverat.
+const noopMiddleware = (_req: Request, _res: Response, next: NextFunction) =>
+	next()
+
 const createRateLimiter = (max: number, message: string) =>
-	rateLimit({
-		windowMs: 15 * 60 * 1000,
-		max,
-		message: { message },
-		standardHeaders: true,
-		legacyHeaders: false,
-	})
+	config.rateLimit.enabled
+		? rateLimit({
+				windowMs: 15 * 60 * 1000,
+				max,
+				message: { message },
+				standardHeaders: true,
+				legacyHeaders: false,
+			})
+		: noopMiddleware
 
 const loginLimiterByIp = createRateLimiter(
 	10,
@@ -51,19 +55,21 @@ const registerLimiter = createRateLimiter(
 )
 
 // Rate limiter per email-adress vid Login (skyddar mot distribuerade attacker)
-const loginLimiterByEmail = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minuter
-	max: 5, // max 5 försök per email (striktare)
-	message: {
-		message:
-			"För många inloggningsförsök för denna e-post. Försök igen om 15 minuter.",
-	},
-	keyGenerator: (req) =>
-		req.body?.email?.toLowerCase() || ipKeyGenerator(req?.ip || uuid),
-	standardHeaders: true,
-	legacyHeaders: false,
-	skip: (req) => !req.body?.email, // skippa om ingen email finns
-})
+const loginLimiterByEmail = config.rateLimit.enabled
+	? rateLimit({
+			windowMs: 15 * 60 * 1000,
+			max: 5,
+			message: {
+				message:
+					"För många inloggningsförsök för denna e-post. Försök igen om 15 minuter.",
+			},
+			keyGenerator: (req) =>
+				req.body?.email?.toLowerCase() || ipKeyGenerator(req?.ip || uuid),
+			standardHeaders: true,
+			legacyHeaders: false,
+			skip: (req) => !req.body?.email,
+		})
+	: noopMiddleware
 
 const router = Router()
 
@@ -413,8 +419,8 @@ router.post(
  *                   example: "Ogiltig eller saknad token."
  */
 // GET /api/auth/me - returnera inloggad användare
-router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
-	// authenticateToken har redan verifierat token och lagt user på req
+router.get("/me", (req: AuthRequest, res: Response) => {
+	// ACL-middleware kräver user/admin-roll för denna route
 	// Om vi kommer hit är användaren inloggad
 	const user = db
 		.prepare("SELECT id, email, name, role FROM users WHERE id = ?")
@@ -466,9 +472,9 @@ router.get("/me", authenticateToken, (req: AuthRequest, res: Response) => {
  *                   type: string
  *                   example: "Kunde inte logga ut. Försök igen."
  */ // POST /api/auth/logout - invalidera token (lägg i blacklist)
-router.post("/logout", authenticateToken, (req: AuthRequest, res: Response) => {
+router.post("/logout", (req: AuthRequest, res: Response) => {
 	// Hämta token från Authorization header
-	// authenticateToken middleware garanterar att authHeader finns och token är giltig
+	// ACL-middleware kräver user/admin-roll, så token är redan verifierad
 	const authHeader = req.headers.authorization ?? ""
 	const token = authHeader.replace(/^Bearer\s+/i, "").trim()
 

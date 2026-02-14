@@ -24,18 +24,34 @@
 			"key": "seedEventId",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "registerEmail",
+			"value": "",
+			"type": "string"
 		}
 	],
 	"item": [
 		{
-			"name": "Setup - Login",
+			"name": "Setup - Register",
 			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generera unik email för denna testkörning",
+							"const uniqueEmail = 'newman-reg-' + Date.now() + '@test.com';",
+							"pm.collectionVariables.set('registerEmail', uniqueEmail);"
+						],
+						"type": "text/javascript"
+					}
+				},
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test('Status code is 200', function () {",
-							"    pm.response.to.have.status(200);",
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
 							"});",
 							"",
 							"pm.test('Response has token', function () {",
@@ -58,12 +74,12 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"Test123!\"\n}"
+					"raw": "{\n    \"name\": \"Newman Testare\",\n    \"email\": \"{{registerEmail}}\",\n    \"password\": \"Test123!\"\n}"
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/auth/login",
+					"raw": "{{baseUrl}}/api/auth/register",
 					"host": ["{{baseUrl}}"],
-					"path": ["api", "auth", "login"]
+					"path": ["api", "auth", "register"]
 				}
 			}
 		},
