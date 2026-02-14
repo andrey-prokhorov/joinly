@@ -118,6 +118,10 @@ jobs:
     defaults:
       run:
         working-directory: api
+    env:
+      SEED_TESTUSER_1_PASSWORD: ${{ secrets.SEED_TESTUSER_1_PASSWORD }}
+      SEED_TESTUSER_2_PASSWORD: ${{ secrets.SEED_TESTUSER_2_PASSWORD }}
+      SEED_ADMIN_1_PASSWORD: ${{ secrets.SEED_ADMIN_1_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
