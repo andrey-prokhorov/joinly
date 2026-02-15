@@ -8,7 +8,7 @@ To run this application:
 npm install
 npm run dev
 
-Vite will use default settings from .env file. You can overwrite those by creating new file .env.local on you computer.
+Vite will use default settings from .env file. You can overwrite those by creating a new file .env.local on your computer.
 
 ```
 

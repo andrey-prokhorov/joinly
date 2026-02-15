@@ -1,7 +1,7 @@
 // src/services/api.ts
 
 class ApiService {
-	private baseUrl = import.meta.env.VITE_API_BASE_URL
+	private baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api"
 
 	private getToken(): string | null {
 		return localStorage.getItem("authToken")
