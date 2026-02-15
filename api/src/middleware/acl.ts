@@ -145,7 +145,12 @@ export function createAclMiddleware() {
 			if (!roleMatches(userRole, rule.userRoles)) continue
 
 			// Steg 4: Ägarskapskontroll (om regeln kräver det)
-			if (rule.fieldMatchingUserId && userId) {
+			if (rule.fieldMatchingUserId) {
+				// Regeln kräver ägarskapskontroll → utan userId kan vi inte verifiera ägarskap
+				if (!userId) {
+					// Prova nästa regel (t.ex. en admin-regel utan ägarskapskrav)
+					continue
+				}
 				const table = getTableFromRoute(rule.restApiRoute)
 				const resourceId = extractResourceId(path, rule.restApiRoute)
 

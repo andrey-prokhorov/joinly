@@ -478,7 +478,7 @@ router.post("/logout", (req: AuthRequest, res: Response) => {
 	const authHeader = req.headers.authorization ?? ""
 	const token = authHeader.replace(/^Bearer\s+/i, "").trim()
 
-	// Defensiv check - bör aldrig triggas tack vare authenticateToken middleware
+	// Defensiv check - bör aldrig triggas tack vare ACL-middleware (kräver user/admin-roll)
 	if (!token) {
 		return res.status(401).json({ message: "Ogiltig eller saknad token." })
 	}

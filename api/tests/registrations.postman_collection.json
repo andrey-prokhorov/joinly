@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Joinly API - Event Registration Tests",
-		"description": "Event registration/unregistration tests for Joinly API.\n\n## Test Sequence\n1. Setup - Login\n2. Setup - Create future event\n3. Register for event (201)\n4. Register again - duplicate (409)\n5. Unregister from event (200)\n6. Unregister again - not registered (404)\n7. Register without token (401)\n8. Register for non-existent event (404)\n9. Register with invalid event ID (400)\n10. Register for past event (400)\n11. Unregister from non-existent event (404)\n12. Cleanup - Delete test event",
+		"description": "Event registration/unregistration tests for Joinly API.\n\n## Test Sequence\n1. Setup - Register (unique test user)\n2. Setup - Create future event\n3. Register for event (201)\n4. Register again - duplicate (409)\n5. Unregister from event (200)\n6. Unregister again - not registered (404)\n7. Register without token (401)\n8. Register for non-existent event (404)\n9. Register with invalid event ID (400)\n10. Register for past event (400)\n11. Unregister from non-existent event (404)\n12. Cleanup - Delete test event",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
