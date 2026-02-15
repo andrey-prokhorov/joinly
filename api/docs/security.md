@@ -10,7 +10,7 @@ Behörigheter styrs via en `acl`-tabell i databasen med 21 regler. Varje request
 
 ### Flöde vid varje request
 
-1. **`optionalToken`** - extrahera JWT om den finns (sätter `req.user`)
+1. **Inline JWT-extraktion** - extrahera JWT om den finns (sätter `req.user`)
 2. **`createAclMiddleware()`** - hämta ACL-regler, matcha mot metod + route + roll
 3. Om `fieldMatchingUserId` finns i regeln → verifiera att användaren äger resursen
 4. Ingen matchande regel = **`403 Forbidden`** (secure by default)

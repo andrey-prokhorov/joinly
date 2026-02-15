@@ -153,7 +153,7 @@ cp .env.example .env
 | `SEED_TESTUSER_2_PASSWORD` | Ja | - | Lösenord för seed-testanvändare 2 |
 | `SEED_ADMIN_1_PASSWORD` | Ja | - | Lösenord för seed-admin |
 | `ACL_ENABLED` | Nej | `true` | Stäng av ACL med `false` (för felsökning) |
-| `RATE_LIMIT_ENABLED` | Nej | `true` | Stäng av rate limiting med `false` (för test/CI) |
+| `RATE_LIMIT_ENABLED` | Nej | `true` (kod) / `false` (.env.example) | Stäng av rate limiting med `false` (för test/CI) |
 
 > `.env` är gitignored och ska aldrig pushas!
 

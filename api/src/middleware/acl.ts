@@ -96,6 +96,7 @@ function verifyOwnership(
 	}
 
 	try {
+		// Double quotes = SQL identifiers (kolumnnamn/tabellnamn), inte strängliteraler
 		const resource = db
 			.prepare(`SELECT "${field}" FROM "${table}" WHERE id = ?`)
 			.get(resourceId) as Record<string, unknown> | undefined
