@@ -1,6 +1,6 @@
 # Joinly API
 
-Backend API för Joinly-appen.
+Backend API for the Joinly app - event management with authentication and role-based access control.
 
 ## Tech Stack
 
@@ -14,20 +14,101 @@ Backend API för Joinly-appen.
 | Biome | 2.2 | Linter & formatter |
 | Newman | 6.2 | API-tester |
 
-## Kom igång
+## Snabbstart
+
+### 1. Installera dependencies
 
 ```bash
-# 1. Gå till api-mappen
 cd api
-
-# 2. Installera dependencies
 npm install
+```
 
-# 3. Starta utvecklingsserver
+### 2. Konfigurera miljövariabler
+
+```bash
+cp .env.example .env
+```
+
+Öppna `.env` och fyll i:
+- **`JWT_SECRET`** - byt till en egen hemlig sträng (minst 32 tecken)
+- **`SEED_TESTUSER_1_PASSWORD`** - lösenord för testanvändare 1 (se lösenordskrav nedan)
+- **`SEED_TESTUSER_2_PASSWORD`** - lösenord för testanvändare 2
+- **`SEED_ADMIN_1_PASSWORD`** - lösenord för admin-testanvändare
+
+Lösenordskrav: 8+ tecken, stor bokstav, liten bokstav, siffra, specialtecken.
+
+> **OBS:** `.env` är gitignored och ska aldrig pushas. Be teamet om seed-lösenord separat.
+
+### 3. Starta servern
+
+```bash
+# Första gången (eller efter schema-ändringar): återställ databasen
+npm run dev:reset
+
+# Efteråt räcker vanlig start
 npm run dev
 ```
 
 Servern startar på **http://localhost:3001**
+
+### Vad gör `dev:reset`?
+
+`dev:reset` droppar alla tabeller och återskapar dem med seed-data. Använd detta:
+- Första gången du kör API:et
+- Efter att någon ändrat databasschema (nya tabeller/kolumner)
+- Om databasen hamnat i trasigt tillstånd
+
+Normal `dev` behåller befintlig data mellan omstarter.
+
+---
+
+## För dig som bygger frontend
+
+### Autentisering (JWT)
+
+Alla endpoints utom register, login och health kräver en JWT-token.
+
+**Flöde:**
+1. Användaren registrerar sig eller loggar in → API:et returnerar en `token`
+2. Spara token (t.ex. i localStorage eller state)
+3. Skicka token i alla API-anrop:
+   ```
+   Authorization: Bearer <token>
+   ```
+4. Om du får `401` → token saknas, är ogiltig, utgången eller utloggad. Redirecta till login.
+5. Vid logout → anropa `POST /api/auth/logout` + ta bort token lokalt
+
+### ACL (Access Control List)
+
+API:et använder rollbaserad åtkomstkontroll (ACL). Varje endpoint har en regel som avgör vem som får använda den.
+
+**Roller:**
+| Roll | Beskrivning |
+|------|-------------|
+| `*` | Alla (även ej inloggade) - bara register, login, health |
+| `user` | Vanlig inloggad användare |
+| `admin` | Administratör |
+
+**Vad detta innebär för frontend:**
+- Skicka alltid `Authorization: Bearer <token>` - utan det får du `401` på de flesta endpoints
+- Skapare av ett event kan uppdatera/ta bort det, admin kan uppdatera/ta bort alla
+- Om en användare försöker något den inte har behörighet till → `403 Forbidden`
+
+### Felhantering
+
+API:et returnerar alltid JSON. Vanliga statuskoder:
+
+| Status | Betydelse | Frontend-åtgärd |
+|--------|-----------|-----------------|
+| 200/201 | OK | Visa data |
+| 400 | Ogiltig request (saknade fält, dåligt format) | Visa felmeddelande för användaren |
+| 401 | Ej autentiserad (token saknas/ogiltig) | Redirecta till login |
+| 403 | Forbidden (saknar behörighet) | Visa "ingen behörighet"-meddelande |
+| 404 | Resursen finns inte | Visa "hittades inte" |
+| 409 | Konflikt (t.ex. email redan registrerad) | Visa specifikt felmeddelande |
+| 429 | Rate limit (för många försök) | Visa "försök igen senare" |
+
+---
 
 ## Tillgängliga endpoints
 
@@ -44,25 +125,25 @@ Servern startar på **http://localhost:3001**
 |-------|----------|------|-------------|
 | GET | `/api/events` | Ja | Hämta alla events (sorterat på startdatum) |
 | GET | `/api/events/:id` | Ja | Hämta specifikt event med ID |
-| GET | `/api/events/filter/search` | Ja | Hämta events med filter (city, category, date_from, date_to) |
+| GET | `/api/events/filter/search` | Ja | Filtrera events (city, category, date_from, date_to) |
 | POST | `/api/events` | Ja | Skapa nytt event |
-| PUT | `/api/events/:id` | Ja | Uppdatera event med ID |
-| DELETE | `/api/events/:id` | Ja | Ta bort event med ID |
+| PUT | `/api/events/:id` | Ja | Uppdatera event (skapare eller admin) |
+| DELETE | `/api/events/:id` | Ja | Ta bort event (skapare eller admin) |
+
+### Event-registreringar
+| Metod | Endpoint | Auth | Beskrivning |
+|-------|----------|------|-------------|
+| POST | `/api/events/:eventId/register` | Ja | Anmäl dig till event |
+| DELETE | `/api/events/:eventId/register` | Ja | Avanmäl dig från event |
 
 ### System
 | Metod | Endpoint | Auth | Beskrivning |
 |-------|----------|------|-------------|
 | GET | `/api/health` | Nej | Hälsokontroll (för CI/CD) |
 
-## API-guide för frontend
+---
 
-Alla skyddade endpoints kräver en `Authorization`-header med JWT-token:
-
-```
-Authorization: Bearer <token>
-```
-
-Token fås från `/api/auth/register` eller `/api/auth/login`.
+## API-guide med exempel
 
 ### Registrera konto
 
@@ -269,7 +350,7 @@ Content-Type: application/json
 
 {
   "title": "Uppdaterad konsert",
-  "description": "Uppdaterad beskrivning", 
+  "description": "Uppdaterad beskrivning",
   "category": "culture"
 }
 ```
@@ -284,7 +365,7 @@ Alla fält är valfria - skicka bara det du vill uppdatera.
   "event": {
     "id": "abc-123",
     "title": "Uppdaterad konsert",
-    "description": "Uppdaterad beskrivning", 
+    "description": "Uppdaterad beskrivning",
     "category": "culture",
     "start_time": "2026-06-15T18:00:00Z",
     "end_time": "2026-06-15T21:00:00Z",
@@ -362,25 +443,69 @@ Alla query-parametrar är valfria. Kombinera fritt.
 }
 ```
 
-### Typiskt frontend-flöde
+### Anmäl dig till event
 
+```http
+POST /api/events/:eventId/register
+Authorization: Bearer <token>
 ```
-1. Användaren registrerar sig  →  POST /api/auth/register
-2. Spara token i state/localStorage
-3. Alla API-anrop skickar token  →  Authorization: Bearer <token>
-4. Om 401-svar → token utgången, redirecta till login
-5. Användaren loggar ut  →  POST /api/auth/logout + ta bort token lokalt
+
+**Svar (201):**
+```json
+{
+  "success": true,
+  "message": "Anmälan lyckades.",
+  "registration": {
+    "event_id": "abc-123",
+    "user_id": 3
+  }
+}
 ```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 400 | Ogiltigt event-ID (inte UUID) |
+| 400 | Eventet har redan slutat |
+| 401 | Saknar eller ogiltig token |
+| 404 | Eventet finns inte |
+| 409 | Redan anmäld till detta event |
+
+### Avanmäl dig från event
+
+```http
+DELETE /api/events/:eventId/register
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "message": "Avanmälan lyckades."
+}
+```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 400 | Ogiltigt event-ID |
+| 401 | Saknar eller ogiltig token |
+| 404 | Eventet finns inte eller du är inte anmäld |
+
+---
 
 ## npm scripts
 
 | Kommando | Beskrivning |
 |----------|-------------|
 | `npm run dev` | Starta med hot reload |
-| `npm run dev:reset` | Starta med hot reload + återställ databas vid varje omstart |
+| `npm run dev:reset` | Starta med hot reload + återställ databas |
 | `npm run build` | Kompilera TypeScript |
 | `npm run start` | Kör produktionsbygge |
-| `npm run start:reset` | Kör produktionsbygge + återställ databas vid start |
+| `npm run start:reset` | Kör produktionsbygge + återställ databas |
 | `npm run lint` | Kontrollera kod med Biome |
 | `npm run format` | Formatera kod |
 | `npm test` | Kör unit-tester (Vitest) |
@@ -391,36 +516,90 @@ Alla query-parametrar är valfria. Kombinera fritt.
 ```
 api/
 ├── src/
-│   ├── index.ts          # Express server & routes
-│   ├── config.ts         # Konfiguration
+│   ├── index.ts                # Express server & middleware
+│   ├── config.ts               # Konfiguration (env-variabler)
 │   ├── db/
-│   │   ├── database.ts          # SQLite setup, schema & seed
-│   │   ├── database-events.ts   # Events seed-data
-│   │   └── database-blacklist.ts # Token blacklist (logout)
+│   │   ├── database.ts              # SQLite setup, schema & seed
+│   │   ├── database-users.ts        # Users-tabell & seed-data
+│   │   ├── database-events.ts       # Events-tabell & seed-data
+│   │   ├── database-registrations.ts # Event-registreringar
+│   │   ├── database-acl.ts          # ACL-regler (21 regler)
+│   │   └── database-blacklist.ts    # Token blacklist (logout)
 │   ├── middleware/
-│   │   └── auth.ts       # JWT-verifiering + blacklist-check
+│   │   ├── auth.ts             # JWT-verifiering + blacklist-check
+│   │   └── acl.ts              # Rollbaserad åtkomstkontroll
 │   ├── routes/
-│   │   ├── auth.ts       # Register, login, logout & me
-│   │   └── events.ts     # Events endpoints
+│   │   ├── auth.ts             # Register, login, logout & me
+│   │   ├── events.ts           # Events CRUD + filter
+│   │   └── registrations.ts    # Anmälan/avanmälan till events
 │   └── utils/
-│       └── validators.ts # Input-validering
-├── tests/
-│   └── auth.postman_collection.json  # Newman API-tester
+│       └── validators.ts       # Input-validering
+├── tests/                      # Newman API-tester
 ├── package.json
-├── tsconfig.json         # TypeScript config
-├── biome.json            # Linter config
-└── .env.example          # Mall för miljövariabler
+├── tsconfig.json
+├── biome.json
+└── .env.example                # Mall for miljövariabler
 ```
 
 ## Miljövariabler
 
-Kopiera `.env.example` till `.env` för lokala inställningar:
+Kopiera `.env.example` till `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-**OBS:** `.env` är gitignored och ska ALDRIG pushas!
+| Variabel | Krävs | Default | Beskrivning |
+|----------|-------|---------|-------------|
+| `NODE_ENV` | Nej | `development` | `development`, `production` eller `test` |
+| `PORT` | Nej | `3001` | Port som servern lyssnar på |
+| `JWT_SECRET` | Ja (prod) | dev-fallback | Hemlig nyckel för JWT-signering (minst 32 tecken) |
+| `JWT_EXPIRES_IN` | Nej | `24h` | Token-livslängd (t.ex. `1h`, `7d`) |
+| `SEED_TESTUSER_1_PASSWORD` | Ja | - | Lösenord för seed-testanvändare 1 |
+| `SEED_TESTUSER_2_PASSWORD` | Ja | - | Lösenord för seed-testanvändare 2 |
+| `SEED_ADMIN_1_PASSWORD` | Ja | - | Lösenord för seed-admin |
+| `ACL_ENABLED` | Nej | `true` | Stäng av ACL med `false` (för felsökning) |
+| `RATE_LIMIT_ENABLED` | Nej | `true` | Stäng av rate limiting med `false` (för test/CI) |
+
+> `.env` är gitignored och ska aldrig pushas!
+
+---
+
+## Deploy (produktion)
+
+### Miljövariabler som MÅSTE sättas
+
+```bash
+NODE_ENV=production
+JWT_SECRET=<en-lång-slumpmässig-sträng-minst-32-tecken>
+SEED_TESTUSER_1_PASSWORD=<lösenord-som-uppfyller-kraven>
+SEED_TESTUSER_2_PASSWORD=<lösenord-som-uppfyller-kraven>
+SEED_ADMIN_1_PASSWORD=<lösenord-som-uppfyller-kraven>
+ACL_ENABLED=true
+RATE_LIMIT_ENABLED=true
+```
+
+### Starta
+
+```bash
+npm run build
+node dist/index.js
+```
+
+Första körningen: använd `--reset-db` för att skapa tabeller och seed-data:
+
+```bash
+node dist/index.js --reset-db
+```
+
+### Säkerhetskontroller
+
+- `JWT_SECRET` **måste** bytas från default - servern vägrar starta i produktion med default-värdet
+- Rate limiting **ska** vara på (`true`) i produktion
+- ACL **ska** vara på (`true`) i produktion
+- Kör `npm audit --omit=dev` för att kontrollera produktionsberoenden
+
+---
 
 ## CI/CD
 
@@ -442,31 +621,21 @@ API:et har tre jobb i GitHub Actions (`.github/workflows/ci.yml`):
 ### Köra API-tester lokalt
 
 ```bash
-# 1. Starta servern (i en terminal)
-npm run dev
+# 1. Se till att RATE_LIMIT_ENABLED=false i .env (default i .env.example)
+# 2. Starta servern med ren databas (i en terminal)
+npm run dev:reset
 
-# 2. Kör tester (i en annan terminal)
+# 3. Kör tester (i en annan terminal)
 npm run test:api
 ```
+
+> Rate limiting måste vara avstängd vid testkörning, annars får du `429`-fel efter ett par test-samlingar.
 
 ### Om Newman och npm audit
 
 Newman (Postman's CLI-testverktyg) har kända sårbarheter i sina dependencies (`postman-runtime`, `lodash`, `node-forge`). Dessa påverkar **inte produktionskoden** eftersom Newman är en devDependency som bara körs vid testning.
 
 Därför kör CI:n `npm audit --omit=dev` som bara auditerar produktions-dependencies. Din faktiska API-kod har 0 kända sårbarheter.
-
-**Mer info:** https://github.com/postmanlabs/newman/issues (sök på "audit")
-
-## Planerade features
-
-- [x] Databas (SQLite)
-- [x] Autentisering (JWT + bcrypt)
-- [x] Events API-endpoints (CRUD + filtering)
-- [x] Användarregistrering med validering
-- [x] Logout med token blacklist
-- [x] Events CRUD operationer (skapa, uppdatera, ta bort)
-- [ ] ACL (behörighetskontroll)
-- [ ] Event-skapande för inloggade användare
 
 ## Säkerhet
 
@@ -479,6 +648,23 @@ JWT-tokens är stateless - servern kan normalt inte invalidera dem innan de går
 3. Utgångna tokens rensas automatiskt vid databasinitiering
 
 Detta ger säkrare sessionshantering, speciellt viktigt om en token komprometteras.
+
+### ACL (Access Control List)
+
+Behörigheter styrs via en `acl`-tabell i databasen med 21 regler. Varje request matchas mot dessa regler.
+
+**Flöde vid varje request:**
+1. `optionalToken` - extrahera JWT om den finns (sätter `req.user`)
+2. `createAclMiddleware()` - hämta ACL-regler, matcha mot metod + route + roll
+3. Om `fieldMatchingUserId` finns i regeln → verifiera att användaren äger resursen
+4. Ingen matchande regel = `403 Forbidden` (secure by default)
+
+**Regeltyper:**
+- `*` = alla (register, login, health)
+- `user,admin` = kräver inloggning
+- `fieldMatchingUserId: "creator_user_id"` = bara skaparen (eller admin) kan ändra/ta bort
+
+ACL kan stängas av med `ACL_ENABLED=false` i `.env` (för felsökning).
 
 ### Rate Limiting
 
@@ -498,6 +684,28 @@ Login-endpointen kör alltid `bcrypt.compare()`, även om användaren inte finns
 ---
 
 ## Ändringslogg
+
+### 2026-02-15 - ACL-middleware (Pål) - Epic #62, Issue #63
+
+- Implementerat databasdriven ACL med 21 regler i `acl`-tabellen
+- ACL-middleware ersätter alla hårdkodade behörighetskontroller
+- `optionalToken` ersätter `authenticateToken` - extraherar JWT utan att blockera
+- Ägarskapsverifiering via `fieldMatchingUserId` (skapare eller admin)
+- SQL injection-skydd med route-whitelist
+- ACL toggle via `ACL_ENABLED` i `.env`
+- Rate limit toggle via `RATE_LIMIT_ENABLED` i `.env` (för test/CI)
+- 3 seed-användare: testuser1 (user), testuser2 (user), admin1 (admin)
+- Seed-lösenord läses från miljövariabler (inte hårdkodade)
+- Newman-tester uppdaterade (103 assertions)
+
+### 2026-02-14 - Event-registrering (Pål) - PR #59
+
+- Implementerat `POST /api/events/:eventId/register` - anmäl till event
+- Implementerat `DELETE /api/events/:eventId/register` - avanmäl från event
+- UUID-validering av event-ID
+- Kontroll att event inte redan slutat
+- Skydd mot dubbelanmälan (409 Conflict)
+- Newman-tester för registreringar (24 assertions)
 
 ### 2026-02-08 - Register & Logout (Pål) - Issue #3, #4
 
