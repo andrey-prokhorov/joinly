@@ -10,6 +10,12 @@ interface Config {
 		secret: string
 		expiresIn: string
 	}
+	acl: {
+		enabled: boolean
+	}
+	rateLimit: {
+		enabled: boolean
+	}
 	isProduction: () => boolean
 	isDevelopment: () => boolean
 	isTest: () => boolean
@@ -25,6 +31,12 @@ export const config: Config = {
 	jwt: {
 		secret: process.env.JWT_SECRET || "dev-secret-change-in-production",
 		expiresIn: process.env.JWT_EXPIRES_IN || "24h",
+	},
+	acl: {
+		enabled: process.env.ACL_ENABLED !== "false",
+	},
+	rateLimit: {
+		enabled: process.env.RATE_LIMIT_ENABLED !== "false",
 	},
 
 	// Hjälpfunktioner

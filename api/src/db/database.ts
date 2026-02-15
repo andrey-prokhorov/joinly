@@ -58,6 +58,7 @@ const db: DatabaseType = new Database(dbPath)
 // aktivera foreign key-stöd
 db.pragma("foreign_keys = ON")
 
+import { createAclTable, seedAclRules } from "./database-acl.js"
 // Importera table creation functions
 import { createEventsTable, seedEvents } from "./database-events.js"
 import {
@@ -79,6 +80,9 @@ export function initDatabase(): void {
 	// Skapa event registrations-tabell
 	createRegistrationsTable(db)
 
+	// Skapa ACL-tabell
+	createAclTable(db)
+
 	// Rensa utgångna tokens från blacklist (körs alltid, även i production)
 	cleanExpiredTokens(db)
 
@@ -96,6 +100,7 @@ export function seedData(): void {
 	seedUsers(db)
 	seedEvents(db)
 	seedRegistrations(db)
+	seedAclRules(db)
 }
 
 // Re-exportera seed functions för extern användning
