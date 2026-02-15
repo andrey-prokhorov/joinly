@@ -7,6 +7,9 @@ To run this application:
 ```bash
 npm install
 npm run dev
+
+Vite will use default settings from .env file. You can overwrite those by creating new file .env.local on you computer.
+
 ```
 
 # Building For Production
@@ -16,6 +19,8 @@ To build this application for production:
 ```bash
 npm run build
 ```
+
+Vite build uses mode=production by default (i.e. settings from .env.production)
 
 ## Testing
 
