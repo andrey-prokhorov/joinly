@@ -73,22 +73,30 @@ export const EventsPage = () => {
 				List med aktiviteter
 			</Typography>
 			{/* loading och error */}
-			{loading && <Typography>Laddar...</Typography>}
+			{loading && (
+				<Typography role="status" aria-live="polite">
+					Laddar...
+				</Typography>
+			)}
 			{error && <Typography color="error">{error}</Typography>}
 
 			<InfoBox sx={{ justifyContent: "left" }}>
-				<List aria-label="aktiviteter">
-					{events.map((event) => (
-						<ListItem key={event.id} disablePadding>
-							<ListItemButton>
-								<ListItemText
-									primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
-									secondary={`${event.title} - ${event.city}${event.city_district ? `, (${event.city_district})` : ""}, ${event.category}`}
-								/>
-							</ListItemButton>
-						</ListItem>
-					))}
-				</List>
+				{!loading && !error && events.length === 0 ? (
+					<Typography>Inga aktiviteter tillgängliga</Typography>
+				) : (
+					<List aria-label="aktiviteter">
+						{events.map((event) => (
+							<ListItem key={event.id} disablePadding>
+								<ListItemButton>
+									<ListItemText
+										primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
+										secondary={`${event.title} - ${event.city}${event.city_district ? `, (${event.city_district})` : ""}, ${event.category}`}
+									/>
+								</ListItemButton>
+							</ListItem>
+						))}
+					</List>
+				)}
 			</InfoBox>
 		</PageLayout>
 	)
