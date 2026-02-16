@@ -27,7 +27,10 @@ class ApiService {
 				headers,
 				credentials: "include",
 			})
-
+			if (response.status === 401 && !endpoint.startsWith("/auth/")) {
+				this.clearToken()
+				window.location.href = "/start" // Redirect to login page
+			}
 			return response
 		} catch (error) {
 			console.error(`API Error at ${endpoint}:`, error)
