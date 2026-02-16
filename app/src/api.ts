@@ -27,7 +27,19 @@ class ApiService {
 				headers,
 				credentials: "include",
 			})
-
+			if (
+				response.status === 401 &&
+				endpoint !== "/auth/login" &&
+				endpoint !== "/auth/register" &&
+				endpoint !== "/auth/me"
+			) {
+				this.clearToken()
+				window.location.href = "/login?expired=true"
+			}
+			// Förbered 403-hantering - komponenter kollar response.status för att visa felmeddelande
+			if (response.status === 403) {
+				console.warn(`Åtkomst nekad: ${endpoint}`)
+			}
 			return response
 		} catch (error) {
 			console.error(`API Error at ${endpoint}:`, error)
@@ -123,6 +135,11 @@ class ApiService {
 	// Helper method to clear token
 	clearToken(): void {
 		localStorage.removeItem("authToken")
+	}
+
+	// Helper method to check if token exists
+	hasToken(): boolean {
+		return localStorage.getItem("authToken") !== null
 	}
 }
 
