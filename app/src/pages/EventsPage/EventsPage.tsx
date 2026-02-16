@@ -18,7 +18,7 @@ interface Event {
 // formattera datum SE:
 const formatDate = (dateString: string) => {
 	const date = new Date(dateString)
-	return date.toLocaleDateString("sv-SE", {
+	return date.toLocaleString("sv-SE", {
 		weekday: "short",
 		day: "numeric",
 		month: "short",
@@ -49,7 +49,9 @@ export const EventsPage = () => {
 				const response = await apiService.getEvents()
 				if (response.ok) {
 					const data = await response.json()
-					setEvents(data.events) // Anpassa beroende på hur API-respons ser ut
+					setEvents(data.events)
+				} else if (response.status === 403) {
+					setError("Du saknar behörighet att visa events")
 				} else {
 					setError("Kunde inte hämta events")
 				}

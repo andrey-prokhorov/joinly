@@ -27,7 +27,12 @@ class ApiService {
 				headers,
 				credentials: "include",
 			})
-			if (response.status === 401 && !endpoint.startsWith("/auth/")) {
+			if (
+				response.status === 401 &&
+				endpoint !== "/auth/login" &&
+				endpoint !== "/auth/register" &&
+				endpoint !== "/auth/me"
+			) {
 				this.clearToken()
 				window.location.href = "/login?expired=true"
 			}
