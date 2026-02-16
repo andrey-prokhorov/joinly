@@ -8,7 +8,7 @@ interface Event {
 	id: string
 	title: string
 	city: string
-	city_district: string
+	city_district: string | null
 	category: string
 	start_time: string
 	end_time: string
@@ -77,13 +77,13 @@ export const EventsPage = () => {
 			{error && <Typography color="error">{error}</Typography>}
 
 			<InfoBox sx={{ justifyContent: "left" }}>
-				<List aria-label="contacts">
+				<List aria-label="aktiviteter">
 					{events.map((event) => (
 						<ListItem key={event.id} disablePadding>
 							<ListItemButton>
 								<ListItemText
 									primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
-									secondary={`${event.title} - ${event.city}, (${event.city_district}), ${event.category}`}
+									secondary={`${event.title} - ${event.city}${event.city_district ? `, (${event.city_district})` : ""}, ${event.category}`}
 								/>
 							</ListItemButton>
 						</ListItem>

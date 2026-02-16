@@ -136,6 +136,11 @@ class ApiService {
 	clearToken(): void {
 		localStorage.removeItem("authToken")
 	}
+
+	// Helper method to check if token exists
+	hasToken(): boolean {
+		return localStorage.getItem("authToken") !== null
+	}
 }
 
 export const apiService = new ApiService()

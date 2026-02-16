@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
+import { apiService } from "@/api"
 import { EventsPage } from "@/pages/EventsPage/EventsPage"
 
 const Events = () => {
@@ -7,8 +8,7 @@ const Events = () => {
 
 export const Route = createFileRoute("/events")({
 	beforeLoad: () => {
-		const token = localStorage.getItem("authToken")
-		if (!token) {
+		if (!apiService.hasToken()) {
 			throw redirect({ to: "/login" })
 		}
 	},
