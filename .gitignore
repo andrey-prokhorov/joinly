@@ -1,6 +1,10 @@
-# Environment variables (secrets!)
+# Environment variables (secrets!) - ALDRIG committa .env-filer!
+# Använd .env.example som mall (committas), .env för lokala secrets (ignoreras)
+.env
 .env.local
 .env.*.local
+api/.env
+app/.env
 
 # SQLite database files
 *.db
