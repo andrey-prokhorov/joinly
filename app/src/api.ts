@@ -29,7 +29,11 @@ class ApiService {
 			})
 			if (response.status === 401 && !endpoint.startsWith("/auth/")) {
 				this.clearToken()
-				window.location.href = "/start" // Redirect to login page
+				window.location.href = "/login?expired=true"
+			}
+			// Förbered 403-hantering - komponenter kollar response.status för att visa felmeddelande
+			if (response.status === 403) {
+				console.warn(`Åtkomst nekad: ${endpoint}`)
 			}
 			return response
 		} catch (error) {

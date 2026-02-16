@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { EventsPage } from "@/pages/EventsPage/EventsPage"
 
 const Events = () => {
@@ -6,5 +6,11 @@ const Events = () => {
 }
 
 export const Route = createFileRoute("/events")({
+	beforeLoad: () => {
+		const token = localStorage.getItem("authToken")
+		if (!token) {
+			throw redirect({ to: "/login" })
+		}
+	},
 	component: Events,
 })
