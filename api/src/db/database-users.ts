@@ -30,17 +30,50 @@ export function seedUsers(db: DatabaseType): void {
 		return
 	}
 
-	// Hasha lösenordet (synkront för enkel setup)
-	// Salt rounds 12 = OWASP rekommendation (starkare än default 10)
-	const testPassword = "Test123!" // Uppfyller: 8+ tecken, stor, liten, siffra, special
-	const hashedPassword = bcrypt.hashSync(testPassword, 12)
-	const userId = uuidv4()
+	// Lösenord läses från env-variabler (aldrig hårdkodade i kod)
+	const testUser1Password = process.env.SEED_TESTUSER_1_PASSWORD
+	const testUser2Password = process.env.SEED_TESTUSER_2_PASSWORD
+	const admin1Password = process.env.SEED_ADMIN_1_PASSWORD
 
-	// Lägg till testanvändare
-	db.prepare(`
+	if (!testUser1Password || !testUser2Password || !admin1Password) {
+		console.warn(
+			"Seed: SEED_TESTUSER_1_PASSWORD, SEED_TESTUSER_2_PASSWORD och/eller SEED_ADMIN_1_PASSWORD saknas i .env, hoppar över seed"
+		)
+		return
+	}
+
+	// Salt rounds 12 = OWASP rekommendation (starkare än default 10)
+	const insert = db.prepare(`
     INSERT INTO users (id, email, password_hash, name, role)
     VALUES (?, ?, ?, ?, ?)
-  `).run(userId, "test@example.com", hashedPassword, "Test User", "user")
+  `)
 
-	console.log("Seed: Testanvändare skapad (test@example.com / Test123!)")
+	// Testanvändare 1 (user)
+	insert.run(
+		uuidv4(),
+		"test@example.com",
+		bcrypt.hashSync(testUser1Password, 12),
+		"Test User",
+		"user"
+	)
+
+	// Testanvändare 2 (user) - för att testa ägarskapskontroll
+	insert.run(
+		uuidv4(),
+		"user2@example.com",
+		bcrypt.hashSync(testUser2Password, 12),
+		"Test User 2",
+		"user"
+	)
+
+	// Admin-användare
+	insert.run(
+		uuidv4(),
+		"admin@example.com",
+		bcrypt.hashSync(admin1Password, 12),
+		"Admin User",
+		"admin"
+	)
+
+	console.log("Seed: 3 testanvändare skapade (user, user2, admin)")
 }
