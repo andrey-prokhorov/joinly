@@ -66,6 +66,7 @@ import {
 	seedRegistrations,
 } from "./database-registrations.js"
 import { createUsersTable, seedUsers } from "./database-users.js"
+import { createChatTable, seedChatMessages } from "./database-chat.js"
 
 // Funktion för att initiera alla tabeller
 export function initDatabase(): void {
@@ -80,6 +81,8 @@ export function initDatabase(): void {
 	// Skapa event registrations-tabell
 	createRegistrationsTable(db)
 
+	//skapa chat messages-tabell
+	createChatTable(db)
 	// Skapa ACL-tabell
 	createAclTable(db)
 
@@ -100,6 +103,7 @@ export function seedData(): void {
 	seedUsers(db)
 	seedEvents(db)
 	seedRegistrations(db)
+	seedChatMessages(db)
 	seedAclRules(db)
 }
 

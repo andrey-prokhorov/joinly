@@ -162,6 +162,35 @@ export function createOpenApiSpec() {
 						},
 						required: ["id", "event_id", "user_id", "created_at"],
 					},
+					ChatMessage: {
+						type: "object",
+						properties: {
+							id: {
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description: "Unique identifier for the chat message",
+							},
+							user_id: {
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description: "ID of the user who posted the message",
+							},
+							message: {
+								type: "string",
+								example: "This event looks great!",
+								description: "The chat message content",
+							},
+							created_at: {
+								type: "string",
+								format: "date-time",
+								example: "2024-07-15T18:00:00Z",
+								description: "When the message was created",
+							},
+						},
+						required: ["id", "user_id", "message", "created_at"],
+					},
 				},
 			},
 		},
