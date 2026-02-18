@@ -7,6 +7,7 @@ export enum EventType {
 
 export interface EventFormData {
     id:string
+    creator_user_id:string
     title: string
     description: string
     category: string

@@ -27,6 +27,7 @@ type Props = {
 
 const emptyForm: EventFormData = {
     id:"",
+    creator_user_id:"",
     title: "",
     description: "",
     category: "",
@@ -125,7 +126,6 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
                         placeholder="t.ex. längdskidåkning längs Gustav Vasas rutt år 1520"
                         value={form.description}
                         onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                        autoFocus
                         multiline
                         minRows={3}
                         fullWidth

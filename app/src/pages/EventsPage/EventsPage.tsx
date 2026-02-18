@@ -3,6 +3,7 @@ import { InfoBox } from "@/components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 import { CreateEventDialog } from "../../components/Event/CreateEventDialog"
 import { useState } from "react"
+import { createEvent } from "../../hooks/events/UseCreatEvent"
 
 export const EventsPage = () => {
   const [open, setOpen] = useState(false)
@@ -44,11 +45,17 @@ export const EventsPage = () => {
       <CreateEventDialog
         open={open}
         onClose={() => setOpen(false)}
-        onCreate={(data) => {
-          // TODO: add to list later
-          console.log("created event", data)
+        onCreate={async (data) => {
+          try {
+            const result = await createEvent(data)
+            console.log(result)
+            setOpen(false)
+          } catch (err) {
+            console.error(err)
+          }
         }}
       />
+
     </PageLayout>
   )
 }
