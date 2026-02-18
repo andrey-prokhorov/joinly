@@ -38,9 +38,8 @@ const getDuration = (start: string, end: string) => {
 	return `${hours} h ${minutes} min`
 }
 
-export const EventsPage = () => {
+export const MyEventsPage = () => {
 	const navigate = useNavigate()
-	// logik här för att hämta aktiviteter från backend och visa dem i listan
 	const [events, setEvents] = useState<Event[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState("")
@@ -48,9 +47,10 @@ export const EventsPage = () => {
 	useEffect(() => {
 		const fetchEvents = async () => {
 			try {
-				const response = await apiService.getEvents()
+				const response = await apiService.getMyEvents()
 				if (response.ok) {
 					const data = await response.json()
+					// For now, display all events. Future enhancement: filter by user's registrations
 					setEvents(data.events)
 				} else if (response.status === 403) {
 					setError("Du saknar behörighet att visa events")
@@ -68,11 +68,9 @@ export const EventsPage = () => {
 	}, [])
 
 	return (
-		// jsx här
-
 		<PageLayout>
 			<Typography variant="h4" sx={{ fontWeight: 700, mb: 7 }}>
-				List med aktiviteter
+				Mina aktiviteter
 			</Typography>
 			{/* loading och error */}
 			{loading && (
@@ -84,9 +82,9 @@ export const EventsPage = () => {
 
 			<InfoBox sx={{ justifyContent: "left" }}>
 				{!loading && !error && events.length === 0 ? (
-					<Typography>Inga aktiviteter tillgängliga</Typography>
+					<Typography>Du är inte registrerad på någon aktivitet än</Typography>
 				) : (
-					<List aria-label="aktiviteter">
+					<List aria-label="mina aktiviteter">
 						{events.map((event) => (
 							<ListItem key={event.id} disablePadding>
 								<ListItemButton onClick={() => navigate({ to: `/events-detail/${event.id}` })}>
