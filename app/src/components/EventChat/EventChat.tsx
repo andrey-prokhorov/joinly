@@ -76,10 +76,6 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
                     Chatt 
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#888', ml: 1 }}>
-                    {currentUserId? `Du är inloggad som ${userInfoMap[currentUserId]?.name || "Unknown"}` : "Du måste vara inloggad för att chatta"}
-                </Typography>
-
                 {/* Chat Messages Container */}
                 <Card
                     sx={{
