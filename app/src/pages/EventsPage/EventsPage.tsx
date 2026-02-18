@@ -1,3 +1,6 @@
+import { List, ListItem, ListItemButton, ListItemText, Typography } from "@mui/material"
+import { useEffect, useState } from "react"
+import { apiService } from "@/api"
 import { Button, List, ListItem, ListItemButton, ListItemText, Stack, Typography } from "@mui/material"
 import { InfoBox } from "@/components/InfoBox/InfoBox"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
@@ -5,57 +8,100 @@ import { CreateEventDialog } from "../../components/Event/CreateEventDialog"
 import { useState } from "react"
 import { createEvent } from "../../hooks/events/UseCreatEvent"
 
+interface Event {
+	id: string
+	title: string
+	city: string
+	city_district: string | null
+	category: string
+	start_time: string
+	end_time: string
+	description: string
+}
+
+// formattera datum SE:
+const formatDate = (dateString: string) => {
+	const date = new Date(dateString)
+	return date.toLocaleString("sv-SE", {
+		weekday: "short",
+		day: "numeric",
+		month: "short",
+		hour: "2-digit",
+		minute: "2-digit",
+	})
+}
+
+// event längd:
+const getDuration = (start: string, end: string) => {
+	const diffMs = new Date(end).getTime() - new Date(start).getTime()
+	const hours = Math.floor(diffMs / (1000 * 60 * 60))
+	const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+	if (hours === 0) return `${minutes} min`
+	if (minutes === 0) return `${hours} tim`
+	return `${hours} h ${minutes} min`
+}
+
 export const EventsPage = () => {
-  const [open, setOpen] = useState(false)
+	// logik här för att hämta aktiviteter från backend och visa dem i listan
+	const [events, setEvents] = useState<Event[]>([])
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState("")
 
-  return (
-    <PageLayout>
- 			<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 7 }}>
- 				<Typography variant="h4" sx={{ fontWeight: 700 }}>
- 					Lista med aktiviteter
- 				</Typography>
+	useEffect(() => {
+		const fetchEvents = async () => {
+			try {
+				const response = await apiService.getEvents()
+				if (response.ok) {
+					const data = await response.json()
+					setEvents(data.events)
+				} else if (response.status === 403) {
+					setError("Du saknar behörighet att visa events")
+				} else {
+					setError("Kunde inte hämta events")
+				}
+			} catch (_error) {
+				setError("Ett fel uppstod vid hämtning av events")
+			} finally {
+				setLoading(false)
+			}
+		}
 
- 				<Button variant="contained" onClick={() => setOpen(true)}>
- 					Skapa aktivitet
- 				</Button>
- 			</Stack>
+		fetchEvents()
+	}, [])
 
-      <InfoBox sx={{ justifyContent: "left" }}>
-        <List aria-label="contacts">
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary="Cykling - Göteborg - Imorgon 10:00" />
-            </ListItemButton>
-          </ListItem>
+	return (
+		// jsx här
 
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary="Motorcykeltur - Malmö - Idag 15:00" />
-            </ListItemButton>
-          </ListItem>
+		<PageLayout>
+			<Typography variant="h4" sx={{ fontWeight: 700, mb: 7 }}>
+				List med aktiviteter
+			</Typography>
+			{/* loading och error */}
+			{loading && (
+				<Typography role="status" aria-live="polite">
+					Laddar...
+				</Typography>
+			)}
+			{error && <Typography color="error">{error}</Typography>}
 
-          <ListItem disablePadding>
-            <ListItemButton>
-              <ListItemText primary="Löpning - Stockholm - Idag 18:00" />
-            </ListItemButton>
-          </ListItem>
-        </List>
-      </InfoBox>
-
-      <CreateEventDialog
-        open={open}
-        onClose={() => setOpen(false)}
-        onCreate={async (data) => {
-          try {
-            const result = await createEvent(data)
-            console.log(result)
-            setOpen(false)
-          } catch (err) {
-            console.error(err)
-          }
-        }}
-      />
-
-    </PageLayout>
-  )
+			<InfoBox sx={{ justifyContent: "left" }}>
+				{!loading && !error && events.length === 0 ? (
+					<Typography>Inga aktiviteter tillgängliga</Typography>
+				) : (
+					<List aria-label="aktiviteter">
+						{events.map((event) => (
+							<ListItem key={event.id} disablePadding>
+								<ListItemButton>
+									<ListItemText
+										primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
+										secondary={`${event.title} - ${event.city}${event.city_district ? `, (${event.city_district})` : ""}, ${event.category}`}
+									/>
+								</ListItemButton>
+							</ListItem>
+						))}
+					</List>
+				)}
+			</InfoBox>
+		</PageLayout>
+	)
 }

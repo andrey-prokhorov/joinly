@@ -1,0 +1,326 @@
+{
+	"info": {
+		"name": "Joinly API - ACL Security Tests",
+		"description": "ACL-säkerhetstester: rollbaserad åtkomstkontroll och ägarskapskontroll.\n\nTestar att:\n- Vanlig user INTE kan nå admin-endpoints (403)\n- User INTE kan ändra/ta bort en annan users event (403)\n\n## Usage\n```bash\nnewman run tests/acl.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3001",
+			"type": "string"
+		},
+		{
+			"key": "user1Token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user2Token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user1EventId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user1Email",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user2Email",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Setup - Register user1",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const email = 'newman-acl-user1-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6) + '@test.com';",
+							"pm.collectionVariables.set('user1Email', email);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Setup: user1 registered', function () {",
+							"    pm.response.to.have.status(201);",
+							"    const json = pm.response.json();",
+							"    pm.collectionVariables.set('user1Token', json.token);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [{"key": "Content-Type", "value": "application/json"}],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"ACL User1\",\n    \"email\": \"{{user1Email}}\",\n    \"password\": \"Test123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				}
+			}
+		},
+		{
+			"name": "Setup - Register user2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const email = 'newman-acl-user2-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6) + '@test.com';",
+							"pm.collectionVariables.set('user2Email', email);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Setup: user2 registered', function () {",
+							"    pm.response.to.have.status(201);",
+							"    const json = pm.response.json();",
+							"    pm.collectionVariables.set('user2Token', json.token);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [{"key": "Content-Type", "value": "application/json"}],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"ACL User2\",\n    \"email\": \"{{user2Email}}\",\n    \"password\": \"Test123!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/auth/register",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "auth", "register"]
+				}
+			}
+		},
+		{
+			"name": "Setup - User1 creates event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Setup: event created by user1', function () {",
+							"    pm.response.to.have.status(201);",
+							"    const json = pm.response.json();",
+							"    pm.collectionVariables.set('user1EventId', json.event.id);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{"key": "Authorization", "value": "Bearer {{user1Token}}"},
+					{"key": "Content-Type", "value": "application/json"}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"ACL Test Event\",\n    \"description\": \"Event skapat av user1 för ACL-test\",\n    \"category\": \"test\",\n    \"start_time\": \"2026-06-01T10:00:00\",\n    \"end_time\": \"2026-06-01T12:00:00\",\n    \"city\": \"Stockholm\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events"]
+				}
+			}
+		},
+		{
+			"name": "1. User kan INTE nå admin-endpoint GET /api/acl (403)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Säkerhetstest: vanlig user ska INTE kunna läsa ACL-regler",
+							"pm.test('Status code is 403 Forbidden', function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test('Response says access denied', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('nekad');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{"key": "Authorization", "value": "Bearer {{user1Token}}"}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/acl",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "acl"]
+				}
+			}
+		},
+		{
+			"name": "2. User kan INTE skapa ACL-regel POST /api/acl (403)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Säkerhetstest: vanlig user ska INTE kunna skapa ACL-regler",
+							"pm.test('Status code is 403 Forbidden', function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test('Response says access denied', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('nekad');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{"key": "Authorization", "value": "Bearer {{user1Token}}"},
+					{"key": "Content-Type", "value": "application/json"}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userRoles\": \"*\",\n    \"method\": \"GET\",\n    \"restApiRoute\": \"/api/hack\",\n    \"comment\": \"Ska inte gå\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/acl",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "acl"]
+				}
+			}
+		},
+		{
+			"name": "3. User2 kan INTE uppdatera user1:s event (403)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Säkerhetstest: user2 ska INTE kunna ändra user1:s event (ägarskapskontroll)",
+							"pm.test('Status code is 403 Forbidden', function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test('Response says access denied', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('nekad');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{"key": "Authorization", "value": "Bearer {{user2Token}}"},
+					{"key": "Content-Type", "value": "application/json"}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Kapad av user2\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{user1EventId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{user1EventId}}"]
+				}
+			}
+		},
+		{
+			"name": "4. User2 kan INTE ta bort user1:s event (403)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Säkerhetstest: user2 ska INTE kunna ta bort user1:s event (ägarskapskontroll)",
+							"pm.test('Status code is 403 Forbidden', function () {",
+							"    pm.response.to.have.status(403);",
+							"});",
+							"",
+							"pm.test('Response says access denied', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('nekad');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{"key": "Authorization", "value": "Bearer {{user2Token}}"}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{user1EventId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{user1EventId}}"]
+				}
+			}
+		},
+		{
+			"name": "Cleanup - User1 deletes own event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Cleanup: event deleted', function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{"key": "Authorization", "value": "Bearer {{user1Token}}"}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{user1EventId}}",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{user1EventId}}"]
+				}
+			}
+		}
+	]
+}
