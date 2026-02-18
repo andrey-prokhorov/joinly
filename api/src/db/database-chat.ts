@@ -33,17 +33,23 @@ export function seedChatMessages(db: DatabaseType): void {
 	}
 
 	// Hämta alla events och users
-	const events = db.prepare("SELECT id FROM events").all() as Array<{
-		id: string
-	}>
-	const users = db.prepare("SELECT id FROM users").all() as Array<{ id: string }>
+	// const events = db.prepare("SELECT id FROM events").all() as Array<{
+	// 	id: string
+	// }>
+	// const users = db.prepare("SELECT id FROM users").all() as Array<{ id: string }>
 
-	if (events.length === 0 || users.length === 0) {
-		console.warn(
-			"Seed: Inga events eller users funna. Seed events och users först före chat messages."
-		)
-		return
-	}
+	// if (events.length === 0 || users.length === 0) {
+	// 	console.warn(
+	// 		"Seed: Inga events eller users funna. Seed events och users först före chat messages."
+	// 	)
+	// 	return
+	// }
+	const registrations = db
+		.prepare("SELECT event_id, user_id FROM event_registrations")
+		.all() as Array<{
+		event_id: string
+		user_id: string
+	}>
 
 	const insert = db.prepare(`
     INSERT INTO chat_messages (id, event_id, user_id, message, created_at)
@@ -51,26 +57,25 @@ export function seedChatMessages(db: DatabaseType): void {
   `)
 
 	// Skapa chat-meddelanden för det första eventet
-	const firstEvent = events[0]
-	const testMessages = [
-		"Vad roligt detta ska bli! Kan inte vänta tills dess.",
-		"Finns det möjlighet att köpa biljetter på plats?",
-		"Jag tänker komma tillsammans med några vänner.",
-		"Ser fram emot detta event!",
-		"Vilka är startpunkterna för löpsträckorna?",
-	]
+	// const firstEvent = events[0]
+	// const testMessages = [
+	// 	"Vad roligt detta ska bli! Kan inte vänta tills dess.",
+	// 	"Finns det möjlighet att köpa biljetter på plats?",
+	// 	"Jag tänker komma tillsammans med några vänner.",
+	// 	"Ser fram emot detta event!",
+	// 	"Vilka är startpunkterna för löpsträckorna?",
+	// ]
 
-	testMessages.forEach((message, index) => {
+	registrations.forEach((reg) => {
+		const testMessage = "Vad roligt detta ska bli! Kan inte vänta tills dess."
 		insert.run(
 			uuidv4(),
-			firstEvent.id,
-			users[index % users.length].id,
-			message,
-			new Date(Date.now() - (testMessages.length - index) * 60000).toISOString()
+			reg.event_id,
+			reg.user_id,
+			testMessage,
+			new Date().toISOString()
 		)
 	})
 
-	console.log(
-		`Seed: ${testMessages.length} chat-meddelanden skapade för första eventet`
-	)
+	console.log(`Seed: chat-meddelanden skapade för första eventet`)
 }

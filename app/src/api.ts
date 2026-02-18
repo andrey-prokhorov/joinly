@@ -89,10 +89,9 @@ class ApiService {
 	}
 
 	async getEvent(id: string): Promise<Response> {
-		// return this.request(`/events/${id}`, {
-		// 	method: "GET",
-		// })
-		return new MockEvents().getOneEvent(id);
+		return this.request(`/events/${id}`, {
+			method: "GET",
+		})
 	}
 
 
@@ -130,17 +129,15 @@ class ApiService {
 	}
 
 	async getMyEvents(): Promise<Response> {
-		// return this.request("/events/my", {
-		// 	method: "GET",
-		// })
-		return new MockEvents().getMyEvents();
+		return this.request("/myevents", {
+			method: "GET",
+		})
 	}
 
 	async getEventChatMessages(eventId: string): Promise<Response> {
-		// return this.request(`/events/${eventId}/chat`, {
-		// 	method: "GET",
-		// })
-		return new MockEvents().getEventChatMessages(eventId);
+		return this.request(`/events/${eventId}/chat`, {
+			method: "GET",
+		})
 	}
 
 	async sendEventChatMessage(eventId: string, message: string): Promise<Response> {
@@ -151,10 +148,9 @@ class ApiService {
 	}
 
 	async getEventRegistrations(eventId: string): Promise<Response> {
-		// return this.request(`/events/${eventId}/registrations`, {
-		// 	method: "GET",
-		// })
-		return new MockEvents().getEventRegistrations(eventId);
+		return this.request(`/events/${eventId}/registrations`, {
+			method: "GET",
+		})
 	}
 
 	// Helper method to store token
@@ -174,85 +170,3 @@ class ApiService {
 }
 
 export const apiService = new ApiService()
-
-class MockEvents {
-	async getMyEvents(): Promise<Response> {
-		return new Response(JSON.stringify({
-			events: [
-				{
-					id: "1",
-					title: "Mock Event",
-					city: "Stockholm",
-					city_district: null,
-					category: "Kultur",
-					start_time: "2024-01-01T12:00:00Z",
-					end_time: "2024-01-01T14:00:00Z",
-					description: "A mock event for testing purposes."
-				},
-				{
-					id: "2",
-					title: "Mock Event 2",
-					city: "Göteborg",
-					city_district: "Centrum",
-					category: "Sport",
-					start_time: "2024-02-01T15:00:00Z",
-					end_time: "2024-02-01T17:00:00Z",
-					description: "Another mock event for testing purposes."
-				}
-			]
-		}));
-	}
-	async getOneEvent(id: string): Promise<Response> {
-		return new Response(JSON.stringify({
-			id: id,
-			title: "Mock Event",
-			city: "Stockholm",
-			city_district: null,
-			category: "Kultur",
-			start_time: "2024-01-01T12:00:00Z",
-			end_time: "2024-01-01T14:00:00Z",
-			description: "A mock event for testing purposes."
-		}));
-	}
-
-	async getEventChatMessages(eventId: string): Promise<Response> {
-		return new Response(JSON.stringify({
-			messages: [
-				{
-					id: "1",
-					event_id: eventId,
-					user_id: "user1",
-					message: "Hej, är det någon som har tips på bra startpunkter för löpsträckorna?",
-					created_at: "2024-01-01T10:00:00Z"
-				},
-				{
-					id: "2",
-					event_id: eventId,
-					user_id: "user2",
-					message: "Jag har en bra startpunkt i centrum!",
-					created_at: "2024-01-01T11:00:00Z"
-				},
-				{
-					id: "3",
-					event_id: eventId,
-					user_id: "current-user",
-					message: "Jag kan inte komma. Jag har en annan aktivitet samtidigt.",
-					created_at: "2024-01-01T12:00:00Z"
-				}
-			]
-
-		}));
-	}
-
-	async getEventRegistrations(eventId: string): Promise<Response> {
-		return new Response(JSON.stringify({
-			users: [
-				{ id: "current-user", name: "Du", email: "user@example.com" },
-				{ id: "user1", name: "Anders Andersson", email: "anders@example.com" },
-				{ id: "user2", name: "Britta Bergström", email: "britta@example.com" },
-				{ id: "user3", name: "Carl Carlsson", email: "carl@example.com" },
-				
-			]
-		}));
-	}
-}

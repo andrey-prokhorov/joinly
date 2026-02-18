@@ -28,7 +28,7 @@ interface Event {
     description: string
 }
 
-interface User {
+interface EventUser {
     id: string
     name: string
     email: string
@@ -71,9 +71,9 @@ export const EventDetailsPage = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
     const [isRegistered, setIsRegistered] = useState(false)
-    const [participants, setParticipants] = useState<User[]>([])
+    const [participants, setParticipants] = useState<EventUser[]>([])
     const [userInfoMap, setUserInfoMap] = useState<Record<string, { color: string; name: string }>>({})
-    const currentUserId = "current-user" // TODO: Get from auth context
+   // const currentUserId = "current-user" // TODO: Get from auth context
 
     useEffect(() => {
         const fetchData = async () => {
@@ -91,12 +91,12 @@ export const EventDetailsPage = () => {
                 const usersResponse = await apiService.getEventRegistrations(eventId)
                 if (usersResponse.ok) {
                     const usersData = await usersResponse.json()
-                    const users = usersData.users || []
+                    const users = usersData.registrations || []
                     setParticipants(users)
 
                     // Build user info map for each user (color + name)
                     const infoMap: Record<string, { color: string; name: string }> = {}
-                    users.forEach((user: User) => {
+                    users.forEach((user: EventUser) => {
                         infoMap[user.id] = {
                             color: generateRandomColor(),
                             name: user.name,
@@ -273,7 +273,7 @@ export const EventDetailsPage = () => {
                         </Box>
                     </Stack>
                 </Box>
-                <EventChat eventId={eventId} userInfoMap={userInfoMap} currentUserId={currentUserId} />
+                <EventChat eventId={eventId} userInfoMap={userInfoMap} />
 
             </Stack>
         </PageLayout>

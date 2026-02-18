@@ -9,7 +9,6 @@ import { apiService } from "@/api";
 interface EventChatProps {
     eventId: string;
     userInfoMap: Record<string, { color: string; name: string }>;
-    currentUserId: string;
 }
 
 interface ChatMessage {
@@ -23,10 +22,27 @@ interface ChatMessage {
 
 
 
-export function EventChat({ eventId, userInfoMap, currentUserId }: EventChatProps) {
+export function EventChat({ eventId, userInfoMap }: EventChatProps) {
     const [newMessage, setNewMessage] = useState("");
     const polledMessages = useChatPolling(eventId, 5000); // 5000 ms = 5 sek
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<string>("");
+
+    useEffect(() => {
+        // Fetch current user ID from API
+        async function fetchCurrentUser() {
+            try {
+                const res = await apiService.getMe();
+                if (res.ok) {
+                    const data = await res.json();
+                    setCurrentUserId(data.user?.id);
+                }
+            } catch (_err) {
+                setCurrentUserId("");
+            }
+        }
+        fetchCurrentUser();
+    }, []);
 
     // Sync local chatMessages with polled messages (unless user just sent a message)
     useEffect(() => {
@@ -34,7 +50,7 @@ export function EventChat({ eventId, userInfoMap, currentUserId }: EventChatProp
     }, [polledMessages]);
 
     const handleSendMessage = async () => {
-        if (newMessage.trim()) {
+        if (newMessage.trim() && currentUserId) {
             const message: ChatMessage = {
                 id: Date.now().toString(),
                 event_id: eventId,
@@ -47,7 +63,7 @@ export function EventChat({ eventId, userInfoMap, currentUserId }: EventChatProp
             setNewMessage("");
             try {
                 await apiService.sendEventChatMessage(eventId, newMessage);
-            } catch (err) {
+            } catch (_err) {
                 // Optionally: show error, remove message, etc.
                 // For now, do nothing (will be corrected by polling)
             }
@@ -58,7 +74,10 @@ export function EventChat({ eventId, userInfoMap, currentUserId }: EventChatProp
         <Box sx={{ flex: 1, minWidth: 0 }}>
             <Stack spacing={2} sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Chatt
+                    Chatt 
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#888', ml: 1 }}>
+                    {currentUserId? `Du är inloggad som ${userInfoMap[currentUserId]?.name || "Unknown"}` : "Du måste vara inloggad för att chatta"}
                 </Typography>
 
                 {/* Chat Messages Container */}

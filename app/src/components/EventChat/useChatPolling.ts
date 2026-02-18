@@ -18,7 +18,7 @@ export function useChatPolling(eventId: string, intervalMs = 5000) {
         async function fetchMessages() {
             try {
                 const data = await apiService.getEventChatMessages(eventId).then(res => res.json());
-                setMessages(Array.isArray(data) ? data : []);
+                setMessages(Array.isArray(data.messages) ? data.messages : []);
             } catch (err) {
                 console.error("Error fetching chat messages", err);
                 setMessages([]);

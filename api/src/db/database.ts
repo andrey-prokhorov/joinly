@@ -59,6 +59,7 @@ const db: DatabaseType = new Database(dbPath)
 db.pragma("foreign_keys = ON")
 
 import { createAclTable, seedAclRules } from "./database-acl.js"
+import { createChatTable, seedChatMessages } from "./database-chat.js"
 // Importera table creation functions
 import { createEventsTable, seedEvents } from "./database-events.js"
 import {
@@ -66,7 +67,6 @@ import {
 	seedRegistrations,
 } from "./database-registrations.js"
 import { createUsersTable, seedUsers } from "./database-users.js"
-import { createChatTable, seedChatMessages } from "./database-chat.js"
 
 // Funktion för att initiera alla tabeller
 export function initDatabase(): void {

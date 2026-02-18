@@ -75,6 +75,13 @@ export function seedAclRules(db: DatabaseType): void {
 		null,
 		"Inloggade: filtrera events"
 	)
+	insert.run(
+		"user,admin",
+		"GET",
+		"/api/myevents",
+		null,
+		"Inloggade: se mina events"
+	)
 
 	// Events - kräver inloggning
 	insert.run(

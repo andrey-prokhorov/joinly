@@ -37,14 +37,21 @@ export function seedRegistrations(db: DatabaseType): void {
 		.prepare("SELECT id FROM users WHERE email = ?")
 		.get("test@example.com") as { id: string } | undefined
 
+	const user2 = db
+		.prepare("SELECT id FROM users WHERE email = ?")
+		.get("user2@example.com") as { id: string } | undefined
+
 	const event = db.prepare("SELECT id FROM events ORDER BY id LIMIT 1").get() as
 		| { id: string }
 		| undefined
 
-	if (user && event) {
-		db.prepare(
+	if (user && user2 && event) {
+		const sql = db.prepare(
 			"INSERT INTO event_registrations (event_id, user_id) VALUES (?, ?)"
-		).run(event.id, user.id)
+		)
+		sql.run(event.id, user.id)
 		console.log("Seed: Testregistrering skapad (test-user -> first event)")
+		sql.run(event.id, user2.id)
+		console.log("Seed: Testregistrering skapad (test2-user -> first event)")
 	}
 }
