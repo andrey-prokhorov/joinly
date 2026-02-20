@@ -1,12 +1,10 @@
-import { List, ListItem, ListItemButton, ListItemText, Typography } from "@mui/material"
+import { Alert, Button, List, ListItem, ListItemButton, ListItemText, Snackbar, Stack, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
 import { apiService } from "@/api"
-import { Button, List, ListItem, ListItemButton, ListItemText, Stack, Typography } from "@mui/material"
+import { CreateEventDialog } from "@/components/Event/CreateEventDialog"
 import { InfoBox } from "@/components/InfoBox/InfoBox"
+import { createEvent } from "@/hooks/events/UseCreatEvent"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
-import { CreateEventDialog } from "../../components/Event/CreateEventDialog"
-import { useState } from "react"
-import { createEvent } from "../../hooks/events/UseCreatEvent"
 
 interface Event {
 	id: string
@@ -42,10 +40,14 @@ const getDuration = (start: string, end: string) => {
 }
 
 export const EventsPage = () => {
-	// logik här för att hämta aktiviteter från backend och visa dem i listan
 	const [events, setEvents] = useState<Event[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState("")
+	const [open, setOpen] = useState(false)
+
+	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false)
+	const [snackbarMessage, setSnackbarMessage] = useState<string>("")
+	const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success")
 
 	useEffect(() => {
 		const fetchEvents = async () => {
@@ -70,18 +72,23 @@ export const EventsPage = () => {
 	}, [])
 
 	return (
-		// jsx här
-
 		<PageLayout>
-			<Typography variant="h4" sx={{ fontWeight: 700, mb: 7 }}>
-				List med aktiviteter
-			</Typography>
-			{/* loading och error */}
-			{loading && (
-				<Typography role="status" aria-live="polite">
-					Laddar...
+			<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 7 }}>
+				<Typography variant="h4" sx={{ fontWeight: 700, mb: 7 }}>
+					List med aktiviteter
 				</Typography>
-			)}
+
+				<Button variant="contained" onClick={() => setOpen(true)}>
+					Skapa aktivitet
+				</Button>
+
+				{loading && (
+					<Typography role="status" aria-live="polite">
+						Laddar...
+					</Typography>
+				)}
+			</Stack>
+
 			{error && <Typography color="error">{error}</Typography>}
 
 			<InfoBox sx={{ justifyContent: "left" }}>
@@ -102,6 +109,40 @@ export const EventsPage = () => {
 					</List>
 				)}
 			</InfoBox>
+			<CreateEventDialog
+				open={open}
+				onClose={() => setOpen(false)}
+				onCreate={async (data) => {
+					try {
+						const result = await createEvent(data)
+						setOpen(false)
+
+						if (result.success) {
+							setSnackbarSeverity("success")
+							setSnackbarMessage(result.message)
+							setSnackbarOpen(true)
+						} else {
+							setSnackbarSeverity("error")
+							setSnackbarMessage(result.message)
+							setSnackbarOpen(true)
+						}
+					} catch (err) {
+						setSnackbarSeverity("error")
+						setSnackbarMessage("Något gick fel! försök igen senare")
+						setSnackbarOpen(true)
+					}
+				}}
+			/>
+			<Snackbar open={snackbarOpen} autoHideDuration={5000} onClose={() => setSnackbarOpen(false)}>
+				<Alert
+					severity={snackbarSeverity}
+					variant="filled"
+					sx={{ width: "100%" }}
+					onClose={() => setSnackbarOpen(false)}
+				>
+					{snackbarMessage}
+				</Alert>
+			</Snackbar>
 		</PageLayout>
 	)
 }
