@@ -20,16 +20,16 @@ interface DbEvent {
 
 /**
  * @openapi
- * /api/events/my:
+ * /api/myevents:
  *   get:
- *     summary: Get events that user is registered for
- *     description: Retrieve events that the authenticated user is registered for
+ *     summary: Hämta mina events (de jag är registrerad på)
+ *     description: Returnerar alla events som den autentiserade användaren är registrerad på.
  *     tags: [Events]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Successfully fetched users registered events
+ *         description: Lyckad hämtning av användarens events
  *         content:
  *           application/json:
  *             schema:
@@ -43,12 +43,34 @@ interface DbEvent {
  *                   items:
  *                     $ref: '#/components/schemas/Event'
  *                 count:
- *                   type: number
- *                   example: 3
+ *                   type: integer
+ *                   example: 2
  *       401:
- *         description: Unauthorized - Invalid or missing token
+ *         description: Oauktoriserad användare
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Oauktoriserad användare.
  *       500:
- *         description: Internal server error
+ *         description: Internt serverfel vid hämtning av användarens events
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Internt serverfel vid hämtning av användarens events.
  */
 // GET /api/myevents - hämta mina events (de jag är registrerad på)
 router.get("/", (req: AuthRequest, res: Response) => {

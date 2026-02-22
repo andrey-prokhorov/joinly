@@ -90,7 +90,7 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
                     <CardContent sx={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column" }}>
                         {chatMessages.length === 0 ? (
                             <Typography color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
-                                Ingen konversation ännu. Vara den första att börja chatta!
+                                Ingen konversation ännu. Var den första att börja chatta!
                             </Typography>
                         ) : (
                             <Stack spacing={1.5}>
@@ -163,7 +163,7 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
                         placeholder="Skriv ett meddelande..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => {
+                        onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 handleSendMessage()
                             }

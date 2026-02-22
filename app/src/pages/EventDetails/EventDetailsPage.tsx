@@ -81,7 +81,8 @@ export const EventDetailsPage = () => {
                 // Fetch event details
                 const eventResponse = await apiService.getEvent(eventId)
                 if (eventResponse.ok) {
-                    const eventData = await eventResponse.json()
+                    const fetchedEvent = await eventResponse.json()
+                    const eventData = fetchedEvent?.event;
                     setEvent(eventData)
                 } else {
                     setError("Kunde inte hämta eventdetaljer")
@@ -89,6 +90,7 @@ export const EventDetailsPage = () => {
 
                 // Fetch registered users for this event
                 const usersResponse = await apiService.getEventRegistrations(eventId)
+                setIsRegistered(usersResponse.ok) // If we can fetch registrations, user is registered. Future enhancement: check if current user is in the list
                 if (usersResponse.ok) {
                     const usersData = await usersResponse.json()
                     const users = usersData.registrations || []
@@ -104,9 +106,11 @@ export const EventDetailsPage = () => {
                     })
                     setUserInfoMap(infoMap)
                 }
+                else {
+                    setError("Kunde inte hämta deltagarlista")
+                }
 
-                // TODO: Check if user is registered for this event
-                setIsRegistered(true)
+                
             } catch (_error) {
                 setError("Ett fel uppstod vid hämtning av data")
             } finally {
@@ -215,10 +219,6 @@ export const EventDetailsPage = () => {
                         {/* Action Buttons */}
                         <Stack direction="row" spacing={2}>
                             {isRegistered ? (
-                                <>
-                                    <Button variant="contained" color="primary" fullWidth>
-                                        Delta
-                                    </Button>
                                     <Button
                                         variant="outlined"
                                         color="error"
@@ -227,7 +227,6 @@ export const EventDetailsPage = () => {
                                     >
                                         Lämna event
                                     </Button>
-                                </>
                             ) : (
                                 <Button
                                     variant="contained"

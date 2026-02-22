@@ -50,7 +50,6 @@ export const MyEventsPage = () => {
 				const response = await apiService.getMyEvents()
 				if (response.ok) {
 					const data = await response.json()
-					// For now, display all events. Future enhancement: filter by user's registrations
 					setEvents(data.events)
 				} else if (response.status === 403) {
 					setError("Du saknar behörighet att visa events")

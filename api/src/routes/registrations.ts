@@ -301,7 +301,7 @@ router.delete("/:eventId/register", (req: AuthRequest, res: Response) => {
  *                 registrations:
  *                   type: array
  *                   items:
- *                     $ref: '#/components/schemas/EventRegistration'
+ *                     $ref: '#/components/schemas/EventUser'
  *                 count:
  *                   type: integer
  *                   example: 3
@@ -332,6 +332,7 @@ router.delete("/:eventId/register", (req: AuthRequest, res: Response) => {
  *                   type: string
  *                   example: Du är inte registrerad på detta event.
  */
+
 router.get("/:eventId/registrations", (req: AuthRequest, res: Response) => {
 	const { eventId } = req.params as { eventId: string }
 	const userId = req.user?.id
@@ -342,6 +343,23 @@ router.get("/:eventId/registrations", (req: AuthRequest, res: Response) => {
 			message: "Oauktoriserad användare.",
 		})
 		return
+	}
+
+	// Validera UUID-format innan vi frågar databasen
+	if (!isValidUuid(eventId)) {
+		return res.status(400).json({
+			success: false,
+			message: "Ogiltigt event-ID format.",
+		})
+	}
+
+	// Kontrollera att eventet existerar
+	const event = db.prepare("SELECT id FROM events WHERE id = ?").get(eventId)
+	if (!event) {
+		return res.status(404).json({
+			success: false,
+			message: "Event med detta ID hittades inte.",
+		})
 	}
 
 	try {

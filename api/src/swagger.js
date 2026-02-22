@@ -162,6 +162,29 @@ export function createOpenApiSpec() {
 						},
 						required: ["id", "event_id", "user_id", "created_at"],
 					},
+					EventUser: {
+						type: "object",
+						properties: {
+							id: {
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description: "ID of the registered user",
+							},
+							name: {
+								type: "string",
+								example: "Test User",
+								description: "Name of the registered user",
+							},
+							email: {
+								type: "string",
+								format: "email",
+								example: "user@example.com",
+								description: "Email of the registered user",
+							},
+						},
+						required: ["id", "name", "email"],
+					},
 					ChatMessage: {
 						type: "object",
 						properties: {
@@ -176,6 +199,12 @@ export function createOpenApiSpec() {
 								format: "uuid",
 								example: "550e8400-e29b-41d4-a716-446655440000",
 								description: "ID of the user who posted the message",
+							},
+							event_id: {
+								type: "string",
+								format: "uuid",
+								example: "550e8400-e29b-41d4-a716-446655440000",
+								description: "ID of the event the message belongs to",
 							},
 							message: {
 								type: "string",
