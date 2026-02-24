@@ -26,8 +26,8 @@ type Props = {
 }
 
 const emptyForm: EventFormData = {
-    id:"",
-    creator_user_id:"",
+    id: "",
+    creator_user_id: "",
     title: "",
     description: "",
     category: "",
@@ -55,7 +55,8 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
             form.category !== "" &&
             form.start_time !== "" &&
             form.end_time !== "" &&
-            form.city.trim().length > 0
+            form.city.trim().length > 0 &&
+            form.city_district.length > 0
         )
     }, [form])
 

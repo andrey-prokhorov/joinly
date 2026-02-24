@@ -27,7 +27,7 @@ export async function createEvent(event: EventFormData): Promise<CreateEventResu
 		event.city === "" ||
 		event.city_district === ""
 	) {
-		return { success: false, message: "Required fields are empty" }
+		return { success: false, message: "Obligatoriska fält är tomma" }
 	}
 
 	const newEvent: CreateEvent = {
@@ -42,16 +42,35 @@ export async function createEvent(event: EventFormData): Promise<CreateEventResu
 
 	try {
 		const res = await apiService.createEvent(newEvent)
-		const data = await res.json()
 
 		if (!res.ok) {
-			return {
-				success: false,
-				message: `Create event failed (${res.status}): ${data.message || JSON.stringify(data)}`,
+			try {
+				const errorData = await res.json()
+				return {
+					success: false,
+					message: `Create event failed (${res.status}): ${errorData.message || JSON.stringify(errorData)}`,
+				}
+			} catch {
+				let fallbackMessage = "Unknown error"
+				const text = await res.text()
+				if (text) {
+					fallbackMessage = text
+				}
+
+				return {
+					success: false,
+					message: `Create event failed (${res.status}): ${fallbackMessage}`,
+				}
 			}
 		}
 
-		const raw = data.event
+		const data = await res.json()	
+
+		if (!data?.event) {
+			return { success: false, message: "Invalid response format" };
+		}
+
+		const raw = data.event;
 		const createdEvent: EventFormData = {
 			id: raw.id,
 			creator_user_id: raw.creator_user_id,
@@ -66,7 +85,8 @@ export async function createEvent(event: EventFormData): Promise<CreateEventResu
 		}
 
 		return { success: true, message: "Event skapades!", event: createdEvent }
-	} catch (err: any) {
-		return { success: false, message: err.message || "Unknown error" }
+	} catch (err: unknown) {
+		const message = err instanceof Error ? err.message : "Unknown error"
+		return { success: false, message }
 	}
 }

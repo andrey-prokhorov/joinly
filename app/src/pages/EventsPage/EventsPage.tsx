@@ -49,25 +49,26 @@ export const EventsPage = () => {
 	const [snackbarMessage, setSnackbarMessage] = useState<string>("")
 	const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success")
 
-	useEffect(() => {
-		const fetchEvents = async () => {
-			try {
-				const response = await apiService.getEvents()
-				if (response.ok) {
-					const data = await response.json()
-					setEvents(data.events)
-				} else if (response.status === 403) {
-					setError("Du saknar behörighet att visa events")
-				} else {
-					setError("Kunde inte hämta events")
-				}
-			} catch (_error) {
-				setError("Ett fel uppstod vid hämtning av events")
-			} finally {
-				setLoading(false)
-			}
-		}
+	const fetchEvents = async () => {
+		try {
+			const response = await apiService.getEvents()
 
+			if (response.ok) {
+				const data = await response.json()
+				setEvents(data.events)
+			} else if (response.status === 403) {
+				setError("Du saknar behörighet att visa events")
+			} else {
+				setError("Kunde inte hämta events")
+			}
+		} catch {
+			setError("Ett fel uppstod vid hämtning av events")
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	useEffect(() => {
 		fetchEvents()
 	}, [])
 
@@ -81,13 +82,13 @@ export const EventsPage = () => {
 				<Button variant="contained" onClick={() => setOpen(true)}>
 					Skapa aktivitet
 				</Button>
-
-				{loading && (
-					<Typography role="status" aria-live="polite">
-						Laddar...
-					</Typography>
-				)}
 			</Stack>
+			
+			{loading && (
+				<Typography role="status" aria-live="polite">
+					Laddar...
+				</Typography>
+			)}
 
 			{error && <Typography color="error">{error}</Typography>}
 
@@ -113,26 +114,23 @@ export const EventsPage = () => {
 				open={open}
 				onClose={() => setOpen(false)}
 				onCreate={async (data) => {
-					try {
-						const result = await createEvent(data)
-						setOpen(false)
+					const result = await createEvent(data)
 
-						if (result.success) {
-							setSnackbarSeverity("success")
-							setSnackbarMessage(result.message)
-							setSnackbarOpen(true)
-						} else {
-							setSnackbarSeverity("error")
-							setSnackbarMessage(result.message)
-							setSnackbarOpen(true)
-						}
-					} catch (err) {
+					if (result.success) {
+						setSnackbarSeverity("success")
+						setSnackbarMessage(result.message)
+						setSnackbarOpen(true)
+
+						setOpen(false)
+						await fetchEvents()
+					} else {
 						setSnackbarSeverity("error")
-						setSnackbarMessage("Något gick fel! försök igen senare")
+						setSnackbarMessage(result.message)
 						setSnackbarOpen(true)
 					}
 				}}
 			/>
+
 			<Snackbar open={snackbarOpen} autoHideDuration={5000} onClose={() => setSnackbarOpen(false)}>
 				<Alert
 					severity={snackbarSeverity}
