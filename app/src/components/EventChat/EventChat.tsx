@@ -4,7 +4,7 @@ import SendIcon from "@mui/icons-material/Send";
 import { useState, useEffect } from "react";
 import { apiService } from "@/api";
 
-
+const MAX_CHAT_MESSAGE_LENGTH = 3000; // Max antal tecken i ett meddelande
 
 interface EventChatProps {
     eventId: string;
@@ -51,6 +51,10 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
 
     const handleSendMessage = async () => {
         if (newMessage.trim() && currentUserId) {
+            if (newMessage.length > MAX_CHAT_MESSAGE_LENGTH) {
+                alert(`Meddelande får vara max ${MAX_CHAT_MESSAGE_LENGTH} tecken långt.`);
+                return;
+            }
             const message: ChatMessage = {
                 id: Date.now().toString(),
                 event_id: eventId,
@@ -74,7 +78,7 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
         <Box sx={{ flex: 1, minWidth: 0 }}>
             <Stack spacing={2} sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
                 <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                    Chatt 
+                    Chatt
                 </Typography>
                 {/* Chat Messages Container */}
                 <Card
@@ -165,10 +169,11 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
+                                e.preventDefault();
                                 handleSendMessage()
                             }
                         }}
-
+                        slotProps={{ htmlInput: { 'aria-label': 'Skriv ett meddelande' } }}
                     />
                     <Button
                         variant="contained"

@@ -1,3 +1,5 @@
+	// Maxlängd för chatmeddelande
+	const MAX_CHAT_MESSAGE_LENGTH = 3000;
 import { type Response, Router } from "express"
 import db from "../db/database.js"
 import type { AuthRequest } from "../middleware/auth.js"
@@ -1006,6 +1008,13 @@ router.post("/:id/chat", (req: AuthRequest, res: Response) => {
 			success: false,
 			message: "Meddelande krävs och får inte vara tomt.",
 		})
+	}
+
+	if (message.length > MAX_CHAT_MESSAGE_LENGTH) {
+		return res.status(400).json({
+			success: false,
+			message: `Meddelande får vara max ${MAX_CHAT_MESSAGE_LENGTH} tecken långt.`,
+		});
 	}
 
 	try {

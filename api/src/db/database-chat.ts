@@ -32,18 +32,6 @@ export function seedChatMessages(db: DatabaseType): void {
 		return
 	}
 
-	// Hämta alla events och users
-	// const events = db.prepare("SELECT id FROM events").all() as Array<{
-	// 	id: string
-	// }>
-	// const users = db.prepare("SELECT id FROM users").all() as Array<{ id: string }>
-
-	// if (events.length === 0 || users.length === 0) {
-	// 	console.warn(
-	// 		"Seed: Inga events eller users funna. Seed events och users först före chat messages."
-	// 	)
-	// 	return
-	// }
 	const registrations = db
 		.prepare("SELECT event_id, user_id FROM event_registrations")
 		.all() as Array<{
@@ -55,16 +43,6 @@ export function seedChatMessages(db: DatabaseType): void {
     INSERT INTO chat_messages (id, event_id, user_id, message, created_at)
     VALUES (?, ?, ?, ?, ?)
   `)
-
-	// Skapa chat-meddelanden för det första eventet
-	// const firstEvent = events[0]
-	// const testMessages = [
-	// 	"Vad roligt detta ska bli! Kan inte vänta tills dess.",
-	// 	"Finns det möjlighet att köpa biljetter på plats?",
-	// 	"Jag tänker komma tillsammans med några vänner.",
-	// 	"Ser fram emot detta event!",
-	// 	"Vilka är startpunkterna för löpsträckorna?",
-	// ]
 
 	registrations.forEach((reg) => {
 		const testMessage = "Vad roligt detta ska bli! Kan inte vänta tills dess."

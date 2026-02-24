@@ -13,11 +13,25 @@ export function useChatPolling(eventId: string, intervalMs = 5000) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
 
     useEffect(() => {
-        let intervalId: number;
+        let intervalId: number | null = null;
+        let isVisible = true;
 
         async function fetchMessages() {
             try {
-                const data = await apiService.getEventChatMessages(eventId).then(res => res.json());
+                const res = await apiService.getEventChatMessages(eventId);
+                if (!res.ok) {
+                    // Optionally: show user feedback for specific errors
+                    if (res.status === 403) {
+                        console.warn("Du är inte längre registrerad för eventet.");
+                    } else if (res.status === 404) {
+                        console.warn("Eventet hittades inte eller har tagits bort.");
+                    } else {
+                        console.error(`Fel vid hämtning av chatmeddelanden: ${res.status}`);
+                    }
+                    setMessages([]);
+                    return;
+                }
+                const data = await res.json();
                 setMessages(Array.isArray(data.messages) ? data.messages : []);
             } catch (err) {
                 console.error("Error fetching chat messages", err);
@@ -25,10 +39,39 @@ export function useChatPolling(eventId: string, intervalMs = 5000) {
             }
         }
 
-        fetchMessages();
-        intervalId = window.setInterval(fetchMessages, intervalMs);
+        function startPolling() {
+            if (intervalId === null) {
+                fetchMessages();
+                intervalId = window.setInterval(fetchMessages, intervalMs);
+            }
+        }
 
-        return () => clearInterval(intervalId);
+        function stopPolling() {
+            if (intervalId !== null) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+        function handleVisibilityChange() {
+            isVisible = !document.hidden;
+            if (isVisible) {
+                startPolling();
+            } else {
+                stopPolling();
+            }
+        }
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        // Start polling if visible on mount
+        if (!document.hidden) {
+            startPolling();
+        }
+
+        return () => {
+            stopPolling();
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
     }, [eventId, intervalMs]);
 
     return messages;
