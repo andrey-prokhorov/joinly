@@ -59,6 +59,20 @@ export function seedEvents(db: DatabaseType): void {
 	}
 
 	const events = [
+		// Add a past event for testing registration to ended events
+		{
+			title: "Past Test Event",
+			category: "Running",
+			...(() => {
+				const times = generateEventTimes(-2, 10, 0, 2) // 2 days ago
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
+			city: "Stockholm",
+			city_district: "Test District",
+			description:
+				"This is a past event used for testing registration validation. The event has already ended.",
+			creator_user_id: "seed-user-id",
+		},
 		{
 			title: "Högdalen Running Club Event",
 			category: "Running",
