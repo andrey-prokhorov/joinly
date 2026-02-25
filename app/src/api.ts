@@ -94,6 +94,7 @@ class ApiService {
 		})
 	}
 
+
 	async updateEvent(id: string, eventData: unknown): Promise<Response> {
 		return this.request(`/events/${id}`, {
 			method: "PUT",
@@ -123,6 +124,31 @@ class ApiService {
 
 	async getUsers(): Promise<Response> {
 		return this.request("/users", {
+			method: "GET",
+		})
+	}
+
+	async getMyEvents(): Promise<Response> {
+		return this.request("/myevents", {
+			method: "GET",
+		})
+	}
+
+	async getEventChatMessages(eventId: string): Promise<Response> {
+		return this.request(`/events/${eventId}/chat`, {
+			method: "GET",
+		})
+	}
+
+	async sendEventChatMessage(eventId: string, message: string): Promise<Response> {
+		return this.request(`/events/${eventId}/chat`, {
+			method: "POST",
+			body: JSON.stringify({ message }),
+		})
+	}
+
+	async getEventRegistrations(eventId: string): Promise<Response> {
+		return this.request(`/events/${eventId}/registrations`, {
 			method: "GET",
 		})
 	}

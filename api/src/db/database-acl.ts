@@ -75,6 +75,13 @@ export function seedAclRules(db: DatabaseType): void {
 		null,
 		"Inloggade: filtrera events"
 	)
+	insert.run(
+		"user,admin",
+		"GET",
+		"/api/myevents",
+		null,
+		"Inloggade: se mina events"
+	)
 
 	// Events - kräver inloggning
 	insert.run(
@@ -138,6 +145,22 @@ export function seedAclRules(db: DatabaseType): void {
 		"/api/events/:eventId/registrations",
 		null,
 		"Inloggade: se deltagarlista"
+	)
+
+	// Event chat
+	insert.run(
+		"user,admin",
+		"GET",
+		"/api/events/:id/chat",
+		null,
+		"Inloggade: hämta chatmeddelanden"
+	)
+	insert.run(
+		"user,admin",
+		"POST",
+		"/api/events/:id/chat",
+		null,
+		"Inloggade: skicka chattmeddelande"
 	)
 
 	// Health

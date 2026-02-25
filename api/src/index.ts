@@ -12,6 +12,7 @@ import type { AuthRequest } from "./middleware/auth.js"
 // Importera routes
 import authRoutes from "./routes/auth.js"
 import eventRoutes from "./routes/events.js"
+import myEventsRoutes from "./routes/myevents.js"
 import registrationRoutes from "./routes/registrations.js"
 import { createOpenApiSpec } from "./swagger.js"
 
@@ -118,6 +119,7 @@ app.use("/api", createAclMiddleware())
 app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
 app.use("/api/events", registrationRoutes)
+app.use("/api/myevents", myEventsRoutes)
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
 
 // Health endpoint - användbart för CI/CD och monitoring

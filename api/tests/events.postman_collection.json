@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Joinly API - Events Tests",
-		"description": "Events CRUD tests for Joinly API. Registers a unique test user for auth.\n\n## Events Read Tests (require auth: role user or admin)\n1. Events - Get all (with token)\n2. Events - Get all (without token - expects 401 Unauthorized)\n3. Events - Get by ID (with token)\n4. Events - Get by ID (without token - expects 401 Unauthorized)\n5. Events - Filter search (with token)\n6. Events - Filter search (without token - expects 401 Unauthorized)\n\n## Events CRUD Tests (require auth + ACL)\n7. Events - Create event (with token)\n8. Events - Create event (without token)\n9. Events - Create event with missing fields\n10. Events - Create event with invalid dates\n11. Events - Update event (with token)\n12. Events - Update event (without token)\n13. Events - Update non-existent event\n14. Events - Update with invalid dates\n15. Events - Delete event (with token)\n16. Events - Delete event (without token)\n17. Events - Delete non-existent event\n\n## Usage\n```bash\nnewman run tests/events.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
+		"description": "Events CRUD tests for Joinly API. Registers a unique test user for auth.\n\n## Events Read Tests (require auth: role user or admin)\n1. Events - Get all (with token)\n2. Events - Get all (without token - expects 401 Unauthorized)\n3. Events - Get by ID (with token)\n4. Events - Get by ID (without token - expects 401 Unauthorized)\n5. Events - Filter search (with token)\n6. Events - Filter search (without token - expects 401 Unauthorized)\n\n## Events CRUD Tests (require auth + ACL)\n7. Events - Create event (with token)\n8. Events - Create event (without token)\n9. Events - Create event with missing fields\n10. Events - Create event with invalid dates\n11. Events - Update event (with token)\n12. Events - Update event (without token)\n13. Events - Update non-existent event\n14. Events - Update with invalid dates\n15. Events - Delete event (with token)\n16. Events - Delete event (without token)\n17. Events - Delete non-existent event\n\n## Chat Tests (require auth + registration)\n18. Chat - Get messages (registered with token)\n19. Chat - Get messages (without token)\n20. Chat - Get messages for non-existent event\n21. Chat - Post message (registered with token)\n22. Chat - Post message (without token)\n23. Chat - Post message with empty message\n24. Chat - Post message for non-existent event\n\n## Usage\n```bash\nnewman run tests/events.postman_collection.json --env-var \"baseUrl=http://localhost:3001\"\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -23,6 +23,11 @@
 		},
 		{
 			"key": "registerEmail",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testChatMessageId",
 			"value": "",
 			"type": "string"
 		}
@@ -79,8 +84,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/auth/register",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "auth", "register"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
 				}
 			}
 		},
@@ -123,8 +134,13 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -155,13 +171,18 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
 		{
-			"name": "3. Events - Get by ID (with token)", 
+			"name": "3. Events - Get by ID (with token)",
 			"event": [
 				{
 					"listen": "test",
@@ -204,8 +225,14 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"test-event-id-123"
+					]
 				}
 			}
 		},
@@ -236,8 +263,14 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"test-event-id-123"
+					]
 				}
 			}
 		},
@@ -282,8 +315,15 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "filter", "search"],
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"filter",
+						"search"
+					],
 					"query": [
 						{
 							"key": "city",
@@ -320,8 +360,15 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "filter", "search"],
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"filter",
+						"search"
+					],
 					"query": [
 						{
 							"key": "city",
@@ -399,8 +446,64 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
+				}
+			}
+		},
+		{
+			"name": "Setup Chat - Register user for event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Registration lyckas med 201",
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"// Test: Registration är framgångsrik",
+							"pm.test('Registration successful', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.true;",
+							"});",
+							"",
+							"// Test: Response innehåller registration",
+							"pm.test('Response has registration object', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.registration).to.be.an('object');",
+							"    pm.expect(json.registration.event_id).to.eql(pm.collectionVariables.get('testEventId'));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"register"
+					]
 				}
 			}
 		},
@@ -440,8 +543,13 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -485,8 +593,13 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -530,8 +643,13 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -590,8 +708,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
@@ -631,8 +755,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
@@ -676,8 +806,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/non-existent-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-id-123"
+					]
 				}
 			}
 		},
@@ -721,13 +857,452 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
 		{
-			"name": "15. Events - Delete event (with token)",
+			"name": "15. Chat - Get messages (registered with token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Get chat messages lyckas med 200",
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"// Test: Response har success: true",
+							"pm.test('Response has success true', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.true;",
+							"});",
+							"",
+							"// Test: Response innehåller messages array",
+							"pm.test('Response has messages array and count', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.messages).to.be.an('array');",
+							"    pm.expect(json.count).to.be.a('number');",
+							"    pm.expect(json.count).to.eql(json.messages.length);",
+							"});",
+							"",
+							"// Test: Om det finns meddelanden, validera struktur",
+							"pm.test('Chat messages have correct structure', function () {",
+							"    const json = pm.response.json();",
+							"    if (json.messages.length > 0) {",
+							"        const msg = json.messages[0];",
+							"        pm.expect(msg.id).to.be.a('string');",
+							"        pm.expect(msg.event_id).to.be.a('string');",
+							"        pm.expect(msg.user_id).to.be.a('string');",
+							"        pm.expect(msg.message).to.be.a('string');",
+							"        pm.expect(msg.created_at).to.be.a('string');",
+							"    }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "16. Chat - Get messages (without token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Utan token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('Autentisering');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "17. Chat - Get messages for non-existent event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Icke-existerande event ger 404",
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"// Test: Response säger att event inte finns",
+							"pm.test('Response says event not found', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('hittades inte');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/events/non-existent-event-id/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-event-id",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "18. Chat - Post message (registered with token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Post message lyckas med 201",
+							"pm.test('Status code is 201', function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"// Test: Response har success: true",
+							"pm.test('Response has success true', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.success).to.be.true;",
+							"});",
+							"",
+							"// Test: Response innehåller skapade meddelandet",
+							"pm.test('Response has created chat message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.chatMessage).to.be.an('object');",
+							"    pm.expect(json.chatMessage.id).to.be.a('string');",
+							"    pm.expect(json.chatMessage.event_id).to.eql(pm.collectionVariables.get('testEventId'));",
+							"    pm.expect(json.chatMessage.user_id).to.be.a('string');",
+							"    pm.expect(json.chatMessage.message).to.eql('Vad ett fantastiskt event detta blir!');",
+							"    pm.expect(json.chatMessage.created_at).to.be.a('string');",
+							"    ",
+							"    // Spara message ID för senare användning",
+							"    pm.collectionVariables.set('testChatMessageId', json.chatMessage.id);",
+							"});",
+							"",
+							"// Test: Response innehåller framgångsmeddelande",
+							"pm.test('Response has success message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('framgångsrikt');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"Vad ett fantastiskt event detta blir!\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "19. Chat - Post message (without token)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Utan token ger 401",
+							"pm.test('Status code is 401', function () {",
+							"    pm.response.to.have.status(401);",
+							"});",
+							"",
+							"// Test: Response kräver autentisering",
+							"pm.test('Response requires authentication', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('Autentisering');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"En test meddelande\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "20. Chat - Post message with empty message",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Tom meddelande ger 400",
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Test: Response säger att meddelande krävs",
+							"pm.test('Response requires message', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('krävs');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "21. Chat - Post message exceeding max length",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.variables.set(\"longMessage\", \"A\".repeat(3001));"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"// Test: För långt meddelande ger 400",
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Test: Response säger att meddelande är för långt",
+							"pm.test('Response mentions max length', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('max');",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"{{longMessage}}\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "22. Chat - Post message for non-existent event",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: Icke-existerande event ger 404",
+							"pm.test('Status code is 404', function () {",
+							"    pm.response.to.have.status(404);",
+							"});",
+							"",
+							"// Test: Response säger att event inte finns",
+							"pm.test('Response says event not found', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('hittades inte');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"Testmeddelande för icke-existerande event\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events/non-existent-event-id/chat",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-event-id",
+						"chat"
+					]
+				}
+			}
+		},
+		{
+			"name": "23. Events - Delete event (with token)",
 			"event": [
 				{
 					"listen": "test",
@@ -771,13 +1346,19 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
 		{
-			"name": "16. Events - Delete event (without token)",
+			"name": "24. Events - Delete event (without token)",
 			"event": [
 				{
 					"listen": "test",
@@ -803,13 +1384,19 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"test-event-id-123"
+					]
 				}
 			}
 		},
 		{
-			"name": "17. Events - Delete non-existent event",
+			"name": "25. Events - Delete non-existent event",
 			"event": [
 				{
 					"listen": "test",
@@ -840,8 +1427,14 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/non-existent-id-456",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-id-456"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-id-456"
+					]
 				}
 			}
 		}

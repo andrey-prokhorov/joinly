@@ -1,3 +1,6 @@
+// Maxlängd för chatmeddelande
+const MAX_CHAT_MESSAGE_LENGTH = 3000
+
 import { type Response, Router } from "express"
 import db from "../db/database.js"
 import type { AuthRequest } from "../middleware/auth.js"
@@ -15,6 +18,15 @@ interface DbEvent {
 	city: string
 	city_district: string
 	creator_user_id: string
+	created_at: string
+}
+
+// Typ för ChatMessage från databasen
+interface DbChatMessage {
+	id: string
+	event_id: string
+	user_id: string
+	message: string
 	created_at: string
 }
 
@@ -748,4 +760,291 @@ router.delete("/:id", (req: AuthRequest, res: Response) => {
 	}
 })
 
+/**
+ * @openapi
+ * /api/events/{id}/chat:
+ *   get:
+ *     summary: Get event chat messages
+ *     description: Retrieve all chat messages for a specific event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID (UUID)
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved chat messages
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 messages:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/ChatMessage'
+ *                 count:
+ *                   type: number
+ *       400:
+ *         description: Bad request - Event ID is required
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
+//get api/events/:id/chat - hämta chatmeddelanden för event
+router.get("/:id/chat", (req: AuthRequest, res: Response) => {
+	const { id } = req.params
+
+	if (!id) {
+		return res.status(400).json({
+			success: false,
+			message: "Event ID krävs.",
+		})
+	}
+
+	try {
+		// Kontrollera att eventet existerar
+		const event = db.prepare("SELECT * FROM events WHERE id = ?").get(id) as
+			| DbEvent
+			| undefined
+
+		if (!event) {
+			return res.status(404).json({
+				success: false,
+				message: "Event med detta ID hittades inte.",
+			})
+		}
+
+		// Kontrollera att användaren är registrerad för eventet
+		const userId = req.user?.id
+		if (!userId) {
+			return res.status(401).json({
+				success: false,
+				message: "Oauktoriserad användare.",
+			})
+		}
+
+		const registration = db
+			.prepare(
+				"SELECT * FROM event_registrations WHERE event_id = ? AND user_id = ?"
+			)
+			.get(id, String(userId)) as
+			| {
+					id: number
+					event_id: string
+					user_id: string
+					created_at: string
+			  }
+			| undefined
+
+		if (!registration) {
+			return res.status(403).json({
+				success: false,
+				message: "Du är inte registrerad för detta event.",
+			})
+		}
+
+		// Hämta alla chatmeddelanden för eventet
+		const messages = db
+			.prepare(
+				"SELECT * FROM chat_messages WHERE event_id = ? ORDER BY created_at ASC"
+			)
+			.all(id) as DbChatMessage[]
+
+		res.json({
+			success: true,
+			messages,
+			count: messages.length,
+		})
+	} catch (error) {
+		console.error("Fel vid hämtning av chatmeddelanden:", error)
+		res.status(500).json({
+			success: false,
+			message: "Internt serverfel vid hämtning av chatmeddelanden.",
+		})
+	}
+})
+
+/**
+ * @openapi
+ * /api/events/{id}/chat:
+ *   post:
+ *     summary: Post chat message to event
+ *     description: Add a new chat message to an event's discussion
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID (UUID)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - message
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: "This event looks great!"
+ *     responses:
+ *       201:
+ *         description: Message posted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Meddelande skapat framgångsrikt."
+ *                 chatMessage:
+ *                   $ref: '#/components/schemas/ChatMessage'
+ *       400:
+ *         description: Bad request - Missing required fields
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       404:
+ *         description: Event not found
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/:id/chat", (req: AuthRequest, res: Response) => {
+	const { id } = req.params
+	const { message } = req.body
+
+	if (!id) {
+		return res.status(400).json({
+			success: false,
+			message: "Event ID krävs.",
+		})
+	}
+
+	if (!message || typeof message !== "string" || message.trim() === "") {
+		return res.status(400).json({
+			success: false,
+			message: "Meddelande krävs och får inte vara tomt.",
+		})
+	}
+
+	if (message.length > MAX_CHAT_MESSAGE_LENGTH) {
+		return res.status(400).json({
+			success: false,
+			message: `Meddelande får vara max ${MAX_CHAT_MESSAGE_LENGTH} tecken långt.`,
+		})
+	}
+
+	// Kontrollera om meddelandet innehåller HTML-taggar eller script
+	const htmlTagRegex = /<[^>]+>/
+	if (htmlTagRegex.test(message)) {
+		return res.status(400).json({
+			success: false,
+			message: "Meddelande får inte innehålla HTML-taggar eller script.",
+		})
+	}
+	try {
+		// Kontrollera att eventet existerar
+		const event = db.prepare("SELECT * FROM events WHERE id = ?").get(id) as
+			| DbEvent
+			| undefined
+
+		if (!event) {
+			return res.status(404).json({
+				success: false,
+				message: "Event med detta ID hittades inte.",
+			})
+		}
+
+		// Kontrollera att användaren är autentiserad
+		const userId = req.user?.id
+		if (!userId) {
+			return res.status(401).json({
+				success: false,
+				message: "Oauktoriserad användare.",
+			})
+		}
+
+		// Kontrollera att användaren är registrerad för eventet
+		const registration = db
+			.prepare(
+				"SELECT * FROM event_registrations WHERE event_id = ? AND user_id = ?"
+			)
+			.get(id, String(userId)) as
+			| {
+					id: number
+					event_id: string
+					user_id: string
+					created_at: string
+			  }
+			| undefined
+
+		if (!registration) {
+			return res.status(403).json({
+				success: false,
+				message: "Du är inte registrerad för detta event.",
+			})
+		}
+
+		// Skapa chatmeddelandet
+		const chatMessageId = crypto.randomUUID()
+		const created_at = new Date().toISOString()
+
+		const insertMessage = db.prepare(`
+			INSERT INTO chat_messages (id, event_id, user_id, message, created_at)
+			VALUES (?, ?, ?, ?, ?)
+		`)
+
+		const result = insertMessage.run(
+			chatMessageId,
+			id,
+			String(userId),
+			message.trim(),
+			created_at
+		)
+
+		if (result.changes > 0) {
+			// Hämta det skapade meddelandet
+			const newMessage = db
+				.prepare("SELECT * FROM chat_messages WHERE id = ?")
+				.get(chatMessageId) as DbChatMessage
+
+			res.status(201).json({
+				success: true,
+				message: "Meddelande skapat framgångsrikt.",
+				chatMessage: newMessage,
+			})
+		} else {
+			res.status(500).json({
+				success: false,
+				message: "Misslyckades att skapa meddelandet.",
+			})
+		}
+	} catch (error) {
+		console.error("Fel vid skapande av chatmeddelande:", error)
+		res.status(500).json({
+			success: false,
+			message: "Internt serverfel vid skapande av chatmeddelande.",
+		})
+	}
+})
 export default router
