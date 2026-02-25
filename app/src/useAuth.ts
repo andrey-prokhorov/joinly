@@ -28,6 +28,13 @@ export const useAuth = (): UseAuthReturn => {
 		setIsLoading(true)
 
 		try {
+            const tokenExists = apiService.hasToken()
+
+            if (!tokenExists) {
+                setUser(null)
+                return
+            }
+						
 			const response = await apiService.getMe()
 			if (response.ok) {
 				const data = await response.json()
