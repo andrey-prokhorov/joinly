@@ -84,8 +84,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/auth/register",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "auth", "register"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"register"
+					]
 				}
 			}
 		},
@@ -128,8 +134,13 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -160,13 +171,18 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
 		{
-			"name": "3. Events - Get by ID (with token)", 
+			"name": "3. Events - Get by ID (with token)",
 			"event": [
 				{
 					"listen": "test",
@@ -209,8 +225,14 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"test-event-id-123"
+					]
 				}
 			}
 		},
@@ -241,8 +263,14 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"test-event-id-123"
+					]
 				}
 			}
 		},
@@ -287,8 +315,15 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "filter", "search"],
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"filter",
+						"search"
+					],
 					"query": [
 						{
 							"key": "city",
@@ -325,8 +360,15 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/filter/search?city=Stockholm",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "filter", "search"],
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"filter",
+						"search"
+					],
 					"query": [
 						{
 							"key": "city",
@@ -404,8 +446,13 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -448,8 +495,15 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}", "register"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"register"
+					]
 				}
 			}
 		},
@@ -489,8 +543,13 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -534,8 +593,13 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -579,8 +643,13 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events"
+					]
 				}
 			}
 		},
@@ -639,8 +708,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
@@ -680,8 +755,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
@@ -725,8 +806,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/non-existent-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-id-123"
+					]
 				}
 			}
 		},
@@ -770,8 +857,14 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
@@ -828,8 +921,15 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
 				}
 			}
 		},
@@ -860,8 +960,15 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
 				}
 			}
 		},
@@ -897,8 +1004,15 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/non-existent-event-id/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-event-id", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-event-id",
+						"chat"
+					]
 				}
 			}
 		},
@@ -962,8 +1076,15 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
 				}
 			}
 		},
@@ -1003,8 +1124,15 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
 				}
 			}
 		},
@@ -1048,8 +1176,15 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
 				}
 			}
 		},
@@ -1057,8 +1192,18 @@
 			"name": "21. Chat - Post message exceeding max length",
 			"event": [
 				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.variables.set(\"longMessage\", \"A\".repeat(3001));"
+						]
+					}
+				},
+				{
 					"listen": "test",
 					"script": {
+						"type": "text/javascript",
 						"exec": [
 							"// Test: För långt meddelande ger 400",
 							"pm.test('Status code is 400', function () {",
@@ -1070,8 +1215,7 @@
 							"    const json = pm.response.json();",
 							"    pm.expect(json.message).to.include('max');",
 							"});"
-						],
-						"type": "text/javascript"
+						]
 					}
 				}
 			],
@@ -1089,12 +1233,19 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"message\": \"" + "A".repeat(3001) + "\"\n}"
+					"raw": "{\n    \"message\": \"{{longMessage}}\"\n}"
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}",
+						"chat"
+					]
 				}
 			}
 		},
@@ -1138,8 +1289,15 @@
 				},
 				"url": {
 					"raw": "{{baseUrl}}/api/events/non-existent-event-id/chat",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-event-id", "chat"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-event-id",
+						"chat"
+					]
 				}
 			}
 		},
@@ -1188,8 +1346,14 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/{{testEventId}}",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "{{testEventId}}"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"{{testEventId}}"
+					]
 				}
 			}
 		},
@@ -1220,8 +1384,14 @@
 				"header": [],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/test-event-id-123",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "test-event-id-123"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"test-event-id-123"
+					]
 				}
 			}
 		},
@@ -1257,8 +1427,14 @@
 				],
 				"url": {
 					"raw": "{{baseUrl}}/api/events/non-existent-id-456",
-					"host": ["{{baseUrl}}"],
-					"path": ["api", "events", "non-existent-id-456"]
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"events",
+						"non-existent-id-456"
+					]
 				}
 			}
 		}
