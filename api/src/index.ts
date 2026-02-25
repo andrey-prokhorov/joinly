@@ -64,14 +64,15 @@ const requestLogger = (req: Request, res: Response, next: NextFunction) => {
 	next()
 }
 
-const isProduction = process.env.NODE_ENV === "production"
 const openApiSpec = createOpenApiSpec()
 
 initDatabase()
+seedData()
 
-if (!isProduction) {
-	seedData()
-}
+// const isProduction = process.env.NODE_ENV === "production"
+// if (!isProduction) {
+// 	seedData()
+// }
 
 // CORS configuration
 const corsOptions = {
