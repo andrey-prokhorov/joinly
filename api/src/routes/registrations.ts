@@ -373,13 +373,13 @@ router.get("/:eventId/registrations", (req: AuthRequest, res: Response) => {
 			.all(eventId) as EventUser[]
 
 		// Kontrollera att användaren är registrerad på eventet
-		const isRegistered = registrations.some((r) => r.id === userId)
-		if (!isRegistered) {
-			return res.status(403).json({
-				success: false,
-				message: "Du är inte registrerad på detta event.",
-			})
-		}
+		// const isRegistered = registrations.some((r) => r.id === userId)
+		// if (!isRegistered) {
+		// 	return res.status(403).json({
+		// 		success: false,
+		// 		message: "Du är inte registrerad på detta event.",
+		// 	})
+		// }
 
 		res.json({
 			success: true,
