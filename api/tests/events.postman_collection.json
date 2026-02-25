@@ -1054,7 +1054,52 @@
 			}
 		},
 		{
-			"name": "21. Chat - Post message for non-existent event",
+			"name": "21. Chat - Post message exceeding max length",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test: För långt meddelande ger 400",
+							"pm.test('Status code is 400', function () {",
+							"    pm.response.to.have.status(400);",
+							"});",
+							"",
+							"// Test: Response säger att meddelande är för långt",
+							"pm.test('Response mentions max length', function () {",
+							"    const json = pm.response.json();",
+							"    pm.expect(json.message).to.include('max');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{authToken}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"message\": \"" + "A".repeat(3001) + "\"\n}"
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/chat",
+					"host": ["{{baseUrl}}"],
+					"path": ["api", "events", "{{testEventId}}", "chat"]
+				}
+			}
+		},
+		{
+			"name": "22. Chat - Post message for non-existent event",
 			"event": [
 				{
 					"listen": "test",
@@ -1099,7 +1144,7 @@
 			}
 		},
 		{
-			"name": "22. Events - Delete event (with token)",
+			"name": "23. Events - Delete event (with token)",
 			"event": [
 				{
 					"listen": "test",
@@ -1149,7 +1194,7 @@
 			}
 		},
 		{
-			"name": "23. Events - Delete event (without token)",
+			"name": "24. Events - Delete event (without token)",
 			"event": [
 				{
 					"listen": "test",
@@ -1181,7 +1226,7 @@
 			}
 		},
 		{
-			"name": "24. Events - Delete non-existent event",
+			"name": "25. Events - Delete non-existent event",
 			"event": [
 				{
 					"listen": "test",

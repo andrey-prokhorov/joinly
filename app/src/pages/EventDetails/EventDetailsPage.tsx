@@ -73,20 +73,21 @@ export const EventDetailsPage = () => {
     const [isRegistered, setIsRegistered] = useState(false)
     const [participants, setParticipants] = useState<EventUser[]>([])
     const [userInfoMap, setUserInfoMap] = useState<Record<string, { color: string; name: string }>>({})
-   // const currentUserId = "current-user" // TODO: Get from auth context
+    // const currentUserId = "current-user" // TODO: Get from auth context
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 // Fetch event details
                 const eventResponse = await apiService.getEvent(eventId)
-                if (eventResponse.ok) {
-                    const fetchedEvent = await eventResponse.json()
-                    const eventData = fetchedEvent?.event;
-                    setEvent(eventData)
-                } else {
+                if (!eventResponse.ok) {
                     setError("Kunde inte hämta eventdetaljer")
+                    setLoading(false)
+                    return;
                 }
+                const fetchedEvent = await eventResponse.json()
+                const eventData = fetchedEvent?.event;
+                setEvent(eventData)
 
                 // Fetch registered users for this event
                 const usersResponse = await apiService.getEventRegistrations(eventId)
@@ -105,12 +106,9 @@ export const EventDetailsPage = () => {
                         }
                     })
                     setUserInfoMap(infoMap)
-                }
-                else {
+                } else {
                     setError("Kunde inte hämta deltagarlista")
                 }
-
-                
             } catch (_error) {
                 setError("Ett fel uppstod vid hämtning av data")
             } finally {
@@ -219,14 +217,14 @@ export const EventDetailsPage = () => {
                         {/* Action Buttons */}
                         <Stack direction="row" spacing={2}>
                             {isRegistered ? (
-                                    <Button
-                                        variant="outlined"
-                                        color="error"
-                                        fullWidth
-                                        onClick={handleLeaveEvent}
-                                    >
-                                        Lämna event
-                                    </Button>
+                                <Button
+                                    variant="outlined"
+                                    color="error"
+                                    fullWidth
+                                    onClick={handleLeaveEvent}
+                                >
+                                    Lämna event
+                                </Button>
                             ) : (
                                 <Button
                                     variant="contained"

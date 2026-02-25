@@ -14,7 +14,6 @@ export function useChatPolling(eventId: string, intervalMs = 5000) {
 
     useEffect(() => {
         let intervalId: number | null = null;
-        let isVisible = true;
 
         async function fetchMessages() {
             try {
@@ -54,8 +53,7 @@ export function useChatPolling(eventId: string, intervalMs = 5000) {
         }
 
         function handleVisibilityChange() {
-            isVisible = !document.hidden;
-            if (isVisible) {
+            if (!document.hidden) {
                 startPolling();
             } else {
                 stopPolling();
