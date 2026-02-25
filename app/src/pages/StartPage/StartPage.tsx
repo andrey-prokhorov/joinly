@@ -33,7 +33,7 @@ export const StartPage = () => {
 						Logga in
 					</Button>
 					<Button variant="contained" color="primary" component={Link} to="/register" sx={{ mb: 2 }}>
-						Registera dig
+						Registrera dig
 					</Button>
 				</Stack>
 			)}
