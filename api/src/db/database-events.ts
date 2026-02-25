@@ -36,12 +36,36 @@ export function seedEvents(db: DatabaseType): void {
 		return
 	}
 
+	// Generate dates for the coming week
+	const currentDate = new Date()
+	const tomorrow = new Date(currentDate)
+	tomorrow.setDate(currentDate.getDate() + 1)
+
+	const generateEventTimes = (
+		daysFromNow: number,
+		hour: number,
+		minute = 0,
+		durationHours: number
+	) => {
+		const date = new Date(currentDate)
+		date.setDate(currentDate.getDate() + daysFromNow)
+		date.setHours(hour, minute, 0, 0)
+		const startTime = date.toISOString().slice(0, 19)
+
+		const endDate = new Date(date.getTime() + durationHours * 60 * 60 * 1000)
+		const endTime = endDate.toISOString().slice(0, 19)
+
+		return { startTime, endTime }
+	}
+
 	const events = [
 		{
 			title: "Högdalen Running Club Event",
 			category: "Running",
-			start_time: "2024-06-01T09:00:00",
-			end_time: "2024-06-01T10:00:00",
+			...(() => {
+				const times = generateEventTimes(1, 9, 0, 1)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Stockholm",
 			city_district: "Högdalen",
 			description:
@@ -51,8 +75,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Morning 5K Run",
 			category: "Running",
-			start_time: "2026-03-15T07:00:00",
-			end_time: "2026-03-15T08:30:00",
+			...(() => {
+				const times = generateEventTimes(1, 7, 0, 1.5)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Denver",
 			city_district: "Downtown",
 			description:
@@ -62,8 +88,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "10K City Challenge",
 			category: "Running",
-			start_time: "2026-04-20T08:00:00",
-			end_time: "2026-04-20T10:00:00",
+			...(() => {
+				const times = generateEventTimes(2, 8, 0, 2)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Chicago",
 			city_district: "Loop",
 			description:
@@ -73,8 +101,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Trail Half Marathon",
 			category: "Running",
-			start_time: "2026-05-18T07:30:00",
-			end_time: "2026-05-18T11:00:00",
+			...(() => {
+				const times = generateEventTimes(3, 7, 30, 3.5)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Portland",
 			city_district: "Forest Park",
 			description:
@@ -84,8 +114,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Sunset 5K Beach Run",
 			category: "Running",
-			start_time: "2026-06-25T19:00:00",
-			end_time: "2026-06-25T20:30:00",
+			...(() => {
+				const times = generateEventTimes(4, 19, 0, 1.5)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "San Diego",
 			city_district: "Mission Beach",
 			description:
@@ -95,8 +127,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Marathon Training Group",
 			category: "Running",
-			start_time: "2026-07-08T06:00:00",
-			end_time: "2026-07-08T10:00:00",
+			...(() => {
+				const times = generateEventTimes(5, 6, 0, 4)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Boston",
 			city_district: "Back Bay",
 			description:
@@ -106,8 +140,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Urban Cycling Tour",
 			category: "Cycling",
-			start_time: "2026-04-12T09:00:00",
-			end_time: "2026-04-12T13:00:00",
+			...(() => {
+				const times = generateEventTimes(6, 9, 0, 4)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Austin",
 			city_district: "Downtown",
 			description:
@@ -117,8 +153,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "15K Hill Training Run",
 			category: "Running",
-			start_time: "2026-05-30T07:00:00",
-			end_time: "2026-05-30T09:30:00",
+			...(() => {
+				const times = generateEventTimes(6, 7, 0, 2.5)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Seattle",
 			city_district: "Capitol Hill",
 			description:
@@ -128,8 +166,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Mountain Bike Adventure",
 			category: "Cycling",
-			start_time: "2026-08-15T08:00:00",
-			end_time: "2026-08-15T16:00:00",
+			...(() => {
+				const times = generateEventTimes(7, 8, 0, 8)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Moab",
 			city_district: "Arches National Park",
 			description:
@@ -139,8 +179,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Sprint Triathlon Training",
 			category: "Triathlon",
-			start_time: "2026-06-14T07:30:00",
-			end_time: "2026-06-14T12:00:00",
+			...(() => {
+				const times = generateEventTimes(7, 7, 30, 4.5)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Miami",
 			city_district: "South Beach",
 			description:
@@ -150,8 +192,10 @@ export function seedEvents(db: DatabaseType): void {
 		{
 			title: "Night 10K City Run",
 			category: "Running",
-			start_time: "2026-08-28T20:00:00",
-			end_time: "2026-08-28T22:00:00",
+			...(() => {
+				const times = generateEventTimes(7, 20, 0, 2)
+				return { start_time: times.startTime, end_time: times.endTime }
+			})(),
 			city: "Nashville",
 			city_district: "Music Row",
 			description:
