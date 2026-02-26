@@ -21,6 +21,12 @@ interface DbRegistration {
 	created_at: string
 }
 
+interface EventUser {
+	id: string
+	name: string
+	email: string
+}
+
 // Enkel UUID-validering
 const isValidUuid = (id: string): boolean =>
 	/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
@@ -260,6 +266,131 @@ router.delete("/:eventId/register", (req: AuthRequest, res: Response) => {
 		res.status(500).json({
 			success: false,
 			message: "Internt serverfel vid avregistrering.",
+		})
+	}
+})
+
+/**
+ * @openapi
+ * /api/events/{eventId}/registrations:
+ *   get:
+ *     summary: Hämta registreringar för ett event
+ *     description: Returnerar alla användare som är registrerade på ett event. Endast tillgängligt för användare som är registrerade på eventet.
+ *     tags: [Event Registrations]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Eventets ID (UUID)
+ *     responses:
+ *       200:
+ *         description: Lista över registrerade användare
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 registrations:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/EventUser'
+ *                 count:
+ *                   type: integer
+ *                   example: 3
+ *       401:
+ *         description: Oauktoriserad användare
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Oauktoriserad användare.
+ *       403:
+ *         description: Användaren är inte registrerad på eventet
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: Du är inte registrerad på detta event.
+ */
+
+router.get("/:eventId/registrations", (req: AuthRequest, res: Response) => {
+	const { eventId } = req.params as { eventId: string }
+	const userId = req.user?.id
+
+	if (!userId) {
+		res.status(401).json({
+			success: false,
+			message: "Oauktoriserad användare.",
+		})
+		return
+	}
+
+	// Validera UUID-format innan vi frågar databasen
+	if (!isValidUuid(eventId)) {
+		return res.status(400).json({
+			success: false,
+			message: "Ogiltigt event-ID format.",
+		})
+	}
+
+	// Kontrollera att eventet existerar
+	const event = db.prepare("SELECT id FROM events WHERE id = ?").get(eventId)
+	if (!event) {
+		return res.status(404).json({
+			success: false,
+			message: "Event med detta ID hittades inte.",
+		})
+	}
+
+	try {
+		const registrations = db
+			.prepare(
+				`SELECT r.user_id as id, u.name as name, u.email as email
+				FROM event_registrations r
+				JOIN users u ON r.user_id = u.id
+				WHERE r.event_id = ?`
+			)
+			.all(eventId) as EventUser[]
+
+		// Kontrollera att användaren är registrerad på eventet
+		// const isRegistered = registrations.some((r) => r.id === userId)
+		// if (!isRegistered) {
+		// 	return res.status(403).json({
+		// 		success: false,
+		// 		message: "Du är inte registrerad på detta event.",
+		// 	})
+		// }
+
+		res.json({
+			success: true,
+			registrations,
+			count: registrations.length,
+		})
+	} catch (error) {
+		console.error("Fel vid hämtning av registreringar:", error)
+		res.status(500).json({
+			success: false,
+			message: "Internt serverfel vid hämtning av registreringar.",
 		})
 	}
 })

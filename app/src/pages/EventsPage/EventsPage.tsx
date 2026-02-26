@@ -1,5 +1,6 @@
 import { Alert, Button, List, ListItem, ListItemButton, ListItemText, Snackbar, Stack, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
+import { useNavigate } from "@tanstack/react-router"
 import { apiService } from "@/api"
 import { CreateEventDialog } from "@/components/Event/CreateEventDialog"
 import { InfoBox } from "@/components/InfoBox/InfoBox"
@@ -40,6 +41,8 @@ const getDuration = (start: string, end: string) => {
 }
 
 export const EventsPage = () => {
+	const navigate = useNavigate()
+	// logik här för att hämta aktiviteter från backend och visa dem i listan
 	const [events, setEvents] = useState<Event[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState("")
@@ -99,7 +102,7 @@ export const EventsPage = () => {
 					<List aria-label="aktiviteter">
 						{events.map((event) => (
 							<ListItem key={event.id} disablePadding>
-								<ListItemButton>
+								<ListItemButton onClick={() => navigate({ to: `/events-detail/${event.id}` })}>
 									<ListItemText
 										primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
 										secondary={`${event.title} - ${event.city}${event.city_district ? `, (${event.city_district})` : ""}, ${event.category}`}

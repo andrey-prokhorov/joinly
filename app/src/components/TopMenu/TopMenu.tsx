@@ -29,6 +29,7 @@ export const TopMenu = () => {
                         <Stack direction="row" alignItems="center">
                             <MenuButton to="/start">Start</MenuButton>
                             <MenuButton to="/events">Events</MenuButton>
+                            <MenuButton to="/my-events">Mina Events</MenuButton>
                         </Stack>
                     </Box>
                     {isAuthenticated && user ? (

@@ -59,6 +59,7 @@ const db: DatabaseType = new Database(dbPath)
 db.pragma("foreign_keys = ON")
 
 import { createAclTable, seedAclRules } from "./database-acl.js"
+import { createChatTable, seedChatMessages } from "./database-chat.js"
 // Importera table creation functions
 import { createEventsTable, seedEvents } from "./database-events.js"
 import {
@@ -80,6 +81,8 @@ export function initDatabase(): void {
 	// Skapa event registrations-tabell
 	createRegistrationsTable(db)
 
+	//skapa chat messages-tabell
+	createChatTable(db)
 	// Skapa ACL-tabell
 	createAclTable(db)
 
@@ -91,15 +94,16 @@ export function initDatabase(): void {
 
 // Funktion för att köra all seed-data
 export function seedData(): void {
-	const isProduction = process.env.NODE_ENV === "production"
+	// const isProduction = process.env.NODE_ENV === "production"
 
-	if (isProduction) {
-		console.log("Produktion: Ingen seed-data skapas. Lägg till data manuellt.")
-		return
-	}
+	// if (isProduction) {
+	// 	console.log("Produktion: Ingen seed-data skapas. Lägg till data manuellt.")
+	// 	return
+	// }
 	seedUsers(db)
 	seedEvents(db)
 	seedRegistrations(db)
+	seedChatMessages(db)
 	seedAclRules(db)
 }
 
