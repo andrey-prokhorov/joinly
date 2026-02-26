@@ -1,8 +1,10 @@
-import { List, ListItem, ListItemButton, ListItemText, Typography } from "@mui/material"
+import { Alert, Button, List, ListItem, ListItemButton, ListItemText, Snackbar, Stack, Typography } from "@mui/material"
 import { useEffect, useState } from "react"
 import { useNavigate } from "@tanstack/react-router"
 import { apiService } from "@/api"
+import { CreateEventDialog } from "@/components/Event/CreateEventDialog"
 import { InfoBox } from "@/components/InfoBox/InfoBox"
+import { createEvent } from "@/hooks/events/UseCreatEvent"
 import { PageLayout } from "../../components/PageLayout/PageLayout"
 
 interface Event {
@@ -44,42 +46,53 @@ export const EventsPage = () => {
 	const [events, setEvents] = useState<Event[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState("")
+	const [open, setOpen] = useState(false)
+
+	const [snackbarOpen, setSnackbarOpen] = useState<boolean>(false)
+	const [snackbarMessage, setSnackbarMessage] = useState<string>("")
+	const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success")
+
+	const fetchEvents = async () => {
+		try {
+			const response = await apiService.getEvents()
+
+			if (response.ok) {
+				const data = await response.json()
+				setEvents(data.events)
+			} else if (response.status === 403) {
+				setError("Du saknar behörighet att visa events")
+			} else {
+				setError("Kunde inte hämta events")
+			}
+		} catch {
+			setError("Ett fel uppstod vid hämtning av events")
+		} finally {
+			setLoading(false)
+		}
+	}
 
 	useEffect(() => {
-		const fetchEvents = async () => {
-			try {
-				const response = await apiService.getEvents()
-				if (response.ok) {
-					const data = await response.json()
-					setEvents(data.events)
-				} else if (response.status === 403) {
-					setError("Du saknar behörighet att visa events")
-				} else {
-					setError("Kunde inte hämta events")
-				}
-			} catch (_error) {
-				setError("Ett fel uppstod vid hämtning av events")
-			} finally {
-				setLoading(false)
-			}
-		}
-
 		fetchEvents()
 	}, [])
 
 	return (
-		// jsx här
-
 		<PageLayout>
-			<Typography variant="h4" sx={{ fontWeight: 700, mb: 7 }}>
-				List med aktiviteter
-			</Typography>
-			{/* loading och error */}
+			<Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 7 }}>
+				<Typography variant="h4" sx={{ fontWeight: 700, mb: 7 }}>
+					List med aktiviteter
+				</Typography>
+
+				<Button variant="contained" onClick={() => setOpen(true)}>
+					Skapa aktivitet
+				</Button>
+			</Stack>
+			
 			{loading && (
 				<Typography role="status" aria-live="polite">
 					Laddar...
 				</Typography>
 			)}
+
 			{error && <Typography color="error">{error}</Typography>}
 
 			<InfoBox sx={{ justifyContent: "left" }}>
@@ -100,6 +113,37 @@ export const EventsPage = () => {
 					</List>
 				)}
 			</InfoBox>
+			<CreateEventDialog
+				open={open}
+				onClose={() => setOpen(false)}
+				onCreate={async (data) => {
+					const result = await createEvent(data)
+
+					if (result.success) {
+						setSnackbarSeverity("success")
+						setSnackbarMessage(result.message)
+						setSnackbarOpen(true)
+
+						setOpen(false)
+						await fetchEvents()
+					} else {
+						setSnackbarSeverity("error")
+						setSnackbarMessage(result.message)
+						setSnackbarOpen(true)
+					}
+				}}
+			/>
+
+			<Snackbar open={snackbarOpen} autoHideDuration={5000} onClose={() => setSnackbarOpen(false)}>
+				<Alert
+					severity={snackbarSeverity}
+					variant="filled"
+					sx={{ width: "100%" }}
+					onClose={() => setSnackbarOpen(false)}
+				>
+					{snackbarMessage}
+				</Alert>
+			</Snackbar>
 		</PageLayout>
 	)
 }
