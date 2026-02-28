@@ -1,11 +1,6 @@
 name: App CI
 
 on:
-  push:
-    branches: ["**"]
-    paths:
-      - "app/**"
-      - ".github/workflows/app-ci.yml"
   pull_request:
     branches: ["**"]
     paths:

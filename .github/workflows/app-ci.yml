@@ -1,11 +1,6 @@
-name: App CI
+name: APP CI
 
 on:
-  push:
-    branches: ["**"]
-    paths:
-      - "app/**"
-      - ".github/workflows/app-ci.yml"
   pull_request:
     branches: ["**"]
     paths:
@@ -13,7 +8,7 @@ on:
       - ".github/workflows/app-ci.yml"
 
 concurrency:
-  group: app-ci-${{ github.event.pull_request.number }}  
+  group: app-app-ci-${{ github.event.pull_request.number }}  
   cancel-in-progress: true
 
 jobs:
