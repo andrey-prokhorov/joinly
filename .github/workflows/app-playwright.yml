@@ -1,20 +1,14 @@
 name: App Playwright
 
 on:
-  push:
-    branches: ["**"]
-    paths:
-      - "app/**"
-      - ".github/workflows/app-playwright.yml"
   pull_request:
-    branches: ["**"]
     paths:
       - "app/**"
       - ".github/workflows/app-playwright.yml"
   workflow_dispatch:
 
 concurrency:
-  group: app-playwright-${{ github.ref }}
+  group: app-playwright-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -24,6 +18,9 @@ jobs:
     defaults:
       run:
         working-directory: app
+    env:
+      E2E_TEST_USERNAME: ${{ secrets.E2E_TEST_USERNAME }}
+      E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,10 +35,10 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browser
-        run: npx playwright@latest install --with-deps chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: npx playwright@latest test --pass-with-no-tests
+        run: npx playwright test --pass-with-no-tests
 
       - name: Upload Playwright report
         if: always()
