@@ -65,7 +65,6 @@ export function useEventRegistrations(
 					(participant: EventUser) => participant.id === user.id,
 				);
 				setIsCurrentUserRegistered(isRegistered);
-				console.log("Current user registration status:", isRegistered);
 			}
 		} catch (fetchError) {
 			console.error("Fel vid hämtning av deltagarlista:", fetchError);

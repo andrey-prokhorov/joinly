@@ -163,9 +163,9 @@
 					}
 				],
 				"url": {
-					"raw": "{{baseUrl}}/api/registrations/{{testEventId}}",
+					"raw": "{{baseUrl}}/api/events/{{testEventId}}/register",
 					"host": ["{{baseUrl}}"],
-					"path": ["api", "registrations", "{{testEventId}}"]
+					"path": ["api", "events", "{{testEventId}}", "register"]
 				}
 			}
 		},

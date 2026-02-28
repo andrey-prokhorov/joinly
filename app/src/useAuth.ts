@@ -63,8 +63,15 @@ export const useAuth = (): UseAuthReturn => {
 			}
 		}
 
-		// Prevent multiple simultaneous requests
+		// If another request is in-flight, wait for it to complete
 		if (authCache.isLoading) {
+			// Poll until the other request completes
+			while (authCache.isLoading) {
+				await new Promise((resolve) => setTimeout(resolve, 50));
+			}
+			// Update state from cache once the request is done
+			setUser(authCache.user);
+			setIsLoading(false);
 			return;
 		}
 
