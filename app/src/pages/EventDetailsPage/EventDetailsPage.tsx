@@ -1,7 +1,7 @@
 import { Box, Stack, Typography } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-//import { EventChat } from "../../components/EventChat/EventChat";
+import { EventChat } from "@/pages/EventDetailsPage/EventChat/EventChat";
 import { PageLayout } from "../../components/PageLayout/PageLayout";
 import { EventActionButtons } from "./EventActionButtons";
 import { EventInfo } from "./EventInfo";
@@ -27,7 +27,6 @@ export const EventDetailsPage = () => {
 		refetch: refetchRegistrations,
 	} = useEventRegistrations(eventId);
 
-	// Use custom hook for event actions
 	const { actionLoading, joinEvent, leaveEvent } = useEventActions();
 
 	const [userInfoMap, setUserInfoMap] = useState<
@@ -91,6 +90,10 @@ export const EventDetailsPage = () => {
 							onLeaveEvent={handleLeaveEvent}
 							loading={actionLoading}
 						/>
+
+						{isCurrentUserRegistered && (
+							<EventChat eventId={eventId} userInfoMap={userInfoMap} />
+						)}
 					</Stack>
 				</Box>
 

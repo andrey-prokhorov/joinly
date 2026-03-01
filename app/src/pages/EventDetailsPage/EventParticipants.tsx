@@ -8,7 +8,7 @@ import {
 	Typography,
 } from "@mui/material";
 import { InfoBox } from "@/components/InfoBox/InfoBox";
-import { generateRandomColor } from "./utils";
+import { generateRandomChatColor } from "./utils";
 
 interface EventUser {
 	id: string;
@@ -41,7 +41,7 @@ export const EventParticipants = ({
 									<Avatar
 										sx={{
 											mr: 2,
-											bgcolor: userInfo?.color || generateRandomColor(),
+											bgcolor: userInfo?.color || generateRandomChatColor(),
 											color: "surface.secondary",
 											fontWeight: "bold",
 										}}

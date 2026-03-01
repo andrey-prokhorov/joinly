@@ -1,9 +1,22 @@
 // Utility functions for EventDetailsPage
 
 /**
- * Generate a random HSL color for user avatars
- * @returns A random HSL color string
+ * Generate a random color for user avatars from predefined list
+ * @returns A random color string
  */
+export const generateRandomChatColor = (): string => {
+	const colors = [
+		"primary.main",
+		"secondary.dark",
+		"secondary.main",
+		"#BBC863",
+		"#658C58",
+		"#31694E",
+	];
+	const randomIndex = Math.floor(Math.random() * colors.length);
+	return colors[randomIndex];
+};
+
 export const generateRandomColor = (): string => {
 	const hue = Math.floor(Math.random() * 360);
 	const saturation = Math.floor(Math.random() * 30) + 70; // 70-100%
@@ -22,7 +35,7 @@ export const createUserInfoMap = (
 	const infoMap: Record<string, { color: string; name: string }> = {};
 	participants.forEach((user) => {
 		infoMap[user.id] = {
-			color: generateRandomColor(),
+			color: generateRandomChatColor(),
 			name: user.name,
 		};
 	});
