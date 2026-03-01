@@ -60,6 +60,7 @@ export const MyEventsPage = () => {
 				}
 
 				const responseCreatedEvents = await apiService.getMyCreatedEvents()
+
 				if (responseCreatedEvents.ok) {
 					const createdData = await responseCreatedEvents.json()
 					setCreatedEvents(createdData.events)
@@ -97,7 +98,7 @@ export const MyEventsPage = () => {
 					Aktiviteter jag skapat
 				</Typography>
 
-				{createdEvents.length === 0 ? (
+				{!loading && !error && createdEvents.length === 0 ? (
 					<Typography>Du har inte skapat några aktiviteter än</Typography>
 				) : (
 					<List aria-label="aktiviteter jag skapat" sx={{ width: "100%" }}>
@@ -125,7 +126,7 @@ export const MyEventsPage = () => {
 				{!loading && !error && registeredEvents.length === 0 ? (
 					<Typography sx={{ mb: 3 }}>Du är inte registrerad på någon aktivitet än</Typography>
 				) : (
-					<List aria-label="aktiviteter jag skapat" sx={{ width: "100%" }}>
+					<List aria-label="aktiviteter jag deltar i" sx={{ width: "100%" }}>
 						{registeredEvents.map((event) => (
 							<ListItem key={event.id} disablePadding>
 								<ListItemButton onClick={() => navigate({ to: `/events-detail/${event.id}` })}>

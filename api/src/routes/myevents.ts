@@ -160,7 +160,6 @@ router.get("/", (req: AuthRequest, res: Response) => {
  */
 // GET /api/myevents/created - hämta mina skapade events (de jag har skapat)
 router.get("/created", (req: AuthRequest, res: Response) => {
-	console.log("here")
 	const userId = req.user?.id
 	if (!userId) {
 		return res.status(401).json({
@@ -176,8 +175,6 @@ router.get("/created", (req: AuthRequest, res: Response) => {
 				WHERE creator_user_id = ?`
 			)
 			.all(userId) as DbEvent[]
-
-		console.log(events)
 
 		res.json({
 			success: true,
