@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiService } from "@/api";
 
 interface Event {
@@ -24,7 +24,7 @@ export function useEventDetails(eventId: string): UseEventDetailsResult {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 
-	const fetchEventDetails = async () => {
+	const fetchEventDetails = useCallback(async () => {
 		if (!eventId) {
 			setError("Inget event-ID angivet");
 			setLoading(false);
@@ -61,7 +61,7 @@ export function useEventDetails(eventId: string): UseEventDetailsResult {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [eventId]);
 
 	const refetch = () => {
 		fetchEventDetails();
@@ -69,7 +69,7 @@ export function useEventDetails(eventId: string): UseEventDetailsResult {
 
 	useEffect(() => {
 		fetchEventDetails();
-	}, [eventId]);
+	}, [fetchEventDetails]);
 
 	return {
 		event,

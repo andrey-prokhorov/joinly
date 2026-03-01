@@ -1,5 +1,6 @@
 import {
 	Alert,
+	Box,
 	Button,
 	List,
 	ListItem,
@@ -70,7 +71,11 @@ export const EventsPage = () => {
 
 			if (response.ok) {
 				const data = await response.json();
-				setEvents(data.events);
+				// Filter out past events
+				const currentEvents = data.events.filter((event: Event) => {
+					return new Date(event.end_time) > new Date();
+				});
+				setEvents(currentEvents);
 			} else if (response.status === 403) {
 				setError("Du saknar behörighet att visa events");
 			} else {
@@ -89,19 +94,10 @@ export const EventsPage = () => {
 
 	return (
 		<PageLayout>
-			<Stack
-				direction="row"
-				alignItems="center"
-				justifyContent="space-between"
-				sx={{ mb: 7 }}
-			>
-				<Typography variant="h4" sx={{ fontWeight: 700, mb: 7 }}>
+			<Stack direction="row" alignItems="center" justifyContent="space-between">
+				<Typography variant="h4" sx={{ fontWeight: 700, mb: 7, pl: 6 }}>
 					List med aktiviteter
 				</Typography>
-
-				<Button variant="contained" onClick={() => setOpen(true)}>
-					Skapa aktivitet
-				</Button>
 			</Stack>
 
 			{loading && (
@@ -110,13 +106,21 @@ export const EventsPage = () => {
 				</Typography>
 			)}
 
+			<Box sx={{ mb: 3, pr: 6, display: "flex", justifyContent: "flex-end" }}>
+				<Button variant="contained" onClick={() => setOpen(true)}>
+					Skapa aktivitet
+				</Button>
+			</Box>
+
 			{error && <Typography color="error">{error}</Typography>}
 
-			<InfoBox sx={{ justifyContent: "left" }}>
+			<InfoBox
+				sx={{ justifyContent: "left", backgroundColor: "background.default" }}
+			>
 				{!loading && !error && events.length === 0 ? (
 					<Typography>Inga aktiviteter tillgängliga</Typography>
 				) : (
-					<List aria-label="aktiviteter">
+					<List aria-label="aktiviteter" sx={{ width: "100%" }}>
 						{events.map((event) => (
 							<ListItem key={event.id} disablePadding>
 								<ListItemButton
@@ -125,6 +129,11 @@ export const EventsPage = () => {
 									<ListItemText
 										primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
 										secondary={`${event.title} - ${event.city}${event.city_district ? `, (${event.city_district})` : ""}, ${event.category}`}
+										sx={{
+											p: 4,
+											backgroundColor: "background.paper",
+											borderRadius: 1,
+										}}
 									/>
 								</ListItemButton>
 							</ListItem>

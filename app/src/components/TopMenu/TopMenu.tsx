@@ -2,7 +2,6 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import { AppBar, Box, Button, Stack, Toolbar, Typography } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "../../useAuth";
-import { Logo } from "../Logo/Logo";
 import { MenuButton } from "./MenuButton";
 
 export const TopMenu = () => {
@@ -11,9 +10,14 @@ export const TopMenu = () => {
 	return (
 		<AppBar position="static">
 			<Stack direction="row" alignItems="center" px={4} py={1} spacing={1}>
-				<Logo />
-				<Typography variant="h5" px={4} py={2}>
-					joinly
+				{/* <Logo /> */}
+				<Typography
+					variant="h5"
+					px={4}
+					py={2}
+					sx={{ fontFamily: "ClimateCrisis", fontSize: 60 }}
+				>
+					Joinly
 				</Typography>
 			</Stack>
 			<AppBar
