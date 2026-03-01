@@ -1,0 +1,606 @@
+{
+    "info": {
+        "name": "Joinly API - MyEvents Tests",
+        "description": "Tests for /api/myevents and /api/myevents/created endpoints. Includes success and failure cases with security checks.\n\nUsage:\n```bash\nnewman run tests/myevents.postman_collection.json --env-var \"baseUrl=http://localhost:3001\" \n```",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:3001",
+            "type": "string"
+        },
+        {
+            "key": "authToken",
+            "value": "",
+            "type": "string",
+            "description": "Token for primary test user"
+        },
+        {
+            "key": "secondAuthToken",
+            "value": "",
+            "type": "string",
+            "description": "Token for second user (no events created)"
+        },
+        {
+            "key": "registerEmail",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "secondRegisterEmail",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "createdEventId",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Setup - Register primary user",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "const uniqueEmail = 'newman-myevents-' + Date.now() + '@test.com';",
+                            "pm.collectionVariables.set('registerEmail', uniqueEmail);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code is 201', function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "const json = pm.response.json();",
+                            "pm.test('Response contains token', function () {",
+                            "    pm.expect(json.token).to.be.a('string');",
+                            "    pm.collectionVariables.set('authToken', json.token);",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Newman Creator\",\n    \"email\": \"{{registerEmail}}\",\n    \"password\": \"Test123!\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/auth/register",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "register"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Setup - Register second user (for registration tests)",
+            "event": [
+                {
+                    "listen": "prerequest",
+                    "script": {
+                        "exec": [
+                            "const uniqueEmail = 'newman-myevents2-' + Date.now() + '@test.com';",
+                            "pm.collectionVariables.set('secondRegisterEmail', uniqueEmail);"
+                        ],
+                        "type": "text/javascript"
+                    }
+                },
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code is 201', function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "const json = pm.response.json();",
+                            "pm.test('Second user got token', function () {",
+                            "    pm.expect(json.token).to.be.a('string');",
+                            "    pm.collectionVariables.set('secondAuthToken', json.token);",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Newman Registrant\",\n    \"email\": \"{{secondRegisterEmail}}\",\n    \"password\": \"Test123!\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/auth/register",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "auth",
+                        "register"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Setup - Create an event for primary user",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Create event succeeded', function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "const json = pm.response.json();",
+                            "pm.collectionVariables.set('createdEventId', json.event.id);",
+                            "pm.test('Created event belongs to creator', function () {",
+                            "    pm.expect(json.event.creator_user_id).to.be.a('string');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{authToken}}"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"title\": \"MyEvents Test Event\",\n    \"description\": \"Event for myevents endpoint tests\",\n    \"category\": \"test\",\n    \"start_time\": \"2026-07-01T10:00:00\",\n    \"end_time\": \"2026-07-01T12:00:00\",\n    \"city\": \"Stockholm\"\n}"
+                },
+                "url": {
+                    "raw": "{{baseUrl}}/api/events",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "events"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Setup - Primary user registers for created event",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Registration succeeded', function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});",
+                            "pm.test('Response has success flag', function () {",
+                            "    const json = pm.response.json();",
+                            "    pm.expect(json.success).to.eql(true);",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{authToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/events/{{createdEventId}}/register",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "events",
+                        "{{createdEventId}}",
+                        "register"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Setup - Second user registers for created event",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Registration succeeded', function () {",
+                            "    pm.response.to.have.status(201);",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{secondAuthToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/events/{{createdEventId}}/register",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "events",
+                        "{{createdEventId}}",
+                        "register"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "1. MyEvents - Get with token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code 200', function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "const json = pm.response.json();",
+                            "pm.test('Success true and array present', function () {",
+                            "    pm.expect(json.success).to.eql(true);",
+                            "    pm.expect(json.events).to.be.an('array');",
+                            "});",
+                            "pm.test('Response has count property', function () {",
+                            "    pm.expect(json.count).to.be.a('number');",
+                            "});",
+                            "pm.test('Response contains registered event', function () {",
+                            "    const ids = json.events.map(e => e.id);",
+                            "    pm.expect(ids).to.include(pm.collectionVariables.get('createdEventId'));",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{authToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "2. MyEvents - Get without token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('401 when no token', function () {",
+                            "    pm.response.to.have.status(401);",
+                            "});",
+                            "pm.test('Auth required message', function () {",
+                            "    const json = pm.response.json();",
+                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "3. MyEvents - Get with invalid token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('401 for invalid token', function () {",
+                            "    pm.response.to.have.status(401);",
+                            "});",
+                            "pm.test('Auth required message', function () {",
+                            "    const json = pm.response.json();",
+                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer invalidtoken123"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "4. MyEvents - Second user has registrations",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200 with registrations', function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "const json = pm.response.json();",
+                            "pm.test('Success true and count is 1', function () {",
+                            "    pm.expect(json.success).to.eql(true);",
+                            "    pm.expect(json.count).to.eql(1);",
+                            "});",
+                            "pm.test('Event array contains registered event', function () {",
+                            "    pm.expect(json.events).to.be.an('array');",
+                            "    const ids = json.events.map(e => e.id);",
+                            "    pm.expect(ids).to.include(pm.collectionVariables.get('createdEventId'));",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{secondAuthToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "5. MyEvents Created - Get with token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status code 200', function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "const json = pm.response.json();",
+                            "pm.test('Success true and array present', function () {",
+                            "    pm.expect(json.success).to.eql(true);",
+                            "    pm.expect(json.events).to.be.an('array');",
+                            "});",
+                            "pm.test('Response contains created event', function () {",
+                            "    const ids = json.events.map(e => e.id);",
+                            "    pm.expect(ids).to.include(pm.collectionVariables.get('createdEventId'));",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{authToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents/created",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents",
+                        "created"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "6. MyEvents Created - Get without token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('401 when no token', function () {",
+                            "    pm.response.to.have.status(401);",
+                            "});",
+                            "pm.test('Auth required message', function () {",
+                            "    const json = pm.response.json();",
+                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents/created",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents",
+                        "created"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "7. MyEvents Created - Get with invalid token",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('401 for invalid token', function () {",
+                            "    pm.response.to.have.status(401);",
+                            "});",
+                            "pm.test('Auth required message', function () {",
+                            "    const json = pm.response.json();",
+                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer invalidtoken123"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents/created",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents",
+                        "created"
+                    ]
+                }
+            }
+        },
+        {
+            "name": "8. MyEvents Created - Second user has none",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test('Status 200 even with zero events', function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});",
+                            "const json = pm.response.json();",
+                            "pm.test('Count is 0 and array empty', function () {",
+                            "    pm.expect(json.success).to.eql(true);",
+                            "    pm.expect(json.count).to.eql(0);",
+                            "    pm.expect(json.events).to.be.an('array').that.is.empty;",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{secondAuthToken}}"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/myevents/created",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "myevents",
+                        "created"
+                    ]
+                }
+            }
+        }
+    ]
+}
