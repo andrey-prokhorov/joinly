@@ -15,7 +15,7 @@ import {
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import dayjs, { type Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import { useMemo, useState } from "react";
 import { type EventFormData, EventType } from "@/types/event";
 
