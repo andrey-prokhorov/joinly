@@ -1,3 +1,4 @@
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import { AppBar, Box, Button, Stack, Toolbar, Typography } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "../../useAuth";
@@ -34,25 +35,23 @@ export const TopMenu = () => {
 					</Box>
 					{isAuthenticated && user ? (
 						<Stack direction="row" alignItems="center" spacing={2}>
+							<PersonOutlineOutlinedIcon sx={{ color: "primary.main" }} />
+
 							<Typography
-								variant="body2"
-								sx={{ color: "primary.main", fontWeight: 500 }}
+								variant="body1"
+								sx={{ color: "primary.main", fontWeight: 600 }}
 							>
-								Inloggad som: <strong>{user.name}</strong>
+								{user.name}
 							</Typography>
+
 							<Button
 								onClick={() => logout()}
+								variant="outlined"
+								size="small"
 								sx={{
 									color: "primary.main",
 									fontWeight: 600,
 									textTransform: "none",
-									fontSize: "1rem",
-									px: 2,
-									py: 1,
-									"&:hover": {
-										bgcolor: "rgba(9, 99, 126, 0.15)",
-										textDecoration: "underline",
-									},
 								}}
 							>
 								Logga ut

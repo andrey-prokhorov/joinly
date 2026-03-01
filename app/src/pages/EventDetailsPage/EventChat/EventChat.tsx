@@ -90,7 +90,33 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
 				<Typography variant="h6" sx={{ fontWeight: 600 }}>
 					Chatt
 				</Typography>
-				{/* Chat Messages Container */}
+
+				{/* Message Input */}
+				<Stack direction="row" spacing={1}>
+					<TextField
+						fullWidth
+						size="small"
+						placeholder="Skriv ett meddelande..."
+						value={newMessage}
+						onChange={(e) => setNewMessage(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter") {
+								e.preventDefault();
+								handleSendMessage();
+							}
+						}}
+						slotProps={{ htmlInput: { "aria-label": "Skriv ett meddelande" } }}
+					/>
+					<Button
+						variant="contained"
+						endIcon={<SendIcon sx={{ color: "white" }} />}
+						onClick={handleSendMessage}
+						sx={{ px: 3 }}
+					>
+						Skicka
+					</Button>
+				</Stack>
+
 				<Card
 					sx={{
 						flex: 1,
@@ -99,6 +125,7 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
 						overflowY: "auto",
 						minHeight: "400px",
 						maxHeight: "600px",
+						bgcolor: "surface.natural",
 					}}
 				>
 					<CardContent
@@ -118,10 +145,10 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
 							</Typography>
 						) : (
 							<Stack spacing={1.5}>
-								{chatMessages.map((msg) => {
+								{[...chatMessages].reverse().map((msg) => {
 									const isCurrentUser = msg.user_id === currentUserId;
 									const userInfo = userInfoMap[msg.user_id];
-									const userColor = userInfo?.color || "#999";
+									const userColor = userInfo?.color || "text.secondary";
 									const userName = userInfo?.name || "Unknown";
 									return (
 										<Box
@@ -183,32 +210,6 @@ export function EventChat({ eventId, userInfoMap }: EventChatProps) {
 						)}
 					</CardContent>
 				</Card>
-
-				{/* Message Input */}
-				<Stack direction="row" spacing={1}>
-					<TextField
-						fullWidth
-						size="small"
-						placeholder="Skriv ett meddelande..."
-						value={newMessage}
-						onChange={(e) => setNewMessage(e.target.value)}
-						onKeyDown={(e) => {
-							if (e.key === "Enter") {
-								e.preventDefault();
-								handleSendMessage();
-							}
-						}}
-						slotProps={{ htmlInput: { "aria-label": "Skriv ett meddelande" } }}
-					/>
-					<Button
-						variant="contained"
-						endIcon={<SendIcon />}
-						onClick={handleSendMessage}
-						sx={{ px: 3 }}
-					>
-						Skicka
-					</Button>
-				</Stack>
 			</Stack>
 		</Box>
 	);

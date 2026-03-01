@@ -23,17 +23,23 @@ export function useEventRegistrations(
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [isCurrentUserRegistered, setIsCurrentUserRegistered] = useState(false);
+	const [isInitialLoad, setIsInitialLoad] = useState(true);
 	const { user } = useAuth();
 
 	const fetchEventRegistrations = useCallback(async () => {
 		if (!eventId) {
 			setError("Inget event-ID angivet");
-			setLoading(false);
+			if (isInitialLoad) {
+				setLoading(false);
+				setIsInitialLoad(false);
+			}
 			return;
 		}
 
 		try {
-			setLoading(true);
+			if (isInitialLoad) {
+				setLoading(true);
+			}
 			setError("");
 
 			const response = await apiService.getEventRegistrations(eventId);
@@ -57,14 +63,25 @@ export function useEventRegistrations(
 			const data = await response.json();
 			const users = data.registrations || [];
 
-			setParticipants(users);
+			// Only update participants if data has actually changed
+			setParticipants((prevParticipants) => {
+				if (
+					prevParticipants.length !== users.length ||
+					!prevParticipants.every((p, i) => p.id === users[i]?.id)
+				) {
+					return users;
+				}
+				return prevParticipants;
+			});
 
 			// Check if current user is registered
 			if (user?.id) {
 				const isRegistered = users.some(
 					(participant: EventUser) => participant.id === user.id,
 				);
-				setIsCurrentUserRegistered(isRegistered);
+				setIsCurrentUserRegistered((prev) =>
+					prev !== isRegistered ? isRegistered : prev,
+				);
 			}
 		} catch (fetchError) {
 			console.error("Fel vid hämtning av deltagarlista:", fetchError);
@@ -72,9 +89,12 @@ export function useEventRegistrations(
 			setParticipants([]);
 			setIsCurrentUserRegistered(false);
 		} finally {
-			setLoading(false);
+			if (isInitialLoad) {
+				setLoading(false);
+				setIsInitialLoad(false);
+			}
 		}
-	}, [eventId, user]);
+	}, [eventId, user, isInitialLoad]);
 
 	const refetch = () => {
 		fetchEventRegistrations();
@@ -82,6 +102,14 @@ export function useEventRegistrations(
 
 	useEffect(() => {
 		fetchEventRegistrations();
+
+		// Set up polling every 5 seconds
+		const interval = setInterval(() => {
+			fetchEventRegistrations();
+		}, 5000);
+
+		// Cleanup interval on component unmount
+		return () => clearInterval(interval);
 	}, [fetchEventRegistrations]);
 
 	return {

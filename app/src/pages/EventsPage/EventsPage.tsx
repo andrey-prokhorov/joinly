@@ -10,11 +10,11 @@ import {
 	Typography,
 } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiService } from "@/api";
-import { CreateEventDialog } from "@/components/Event/CreateEventDialog";
 import { InfoBox } from "@/components/InfoBox/InfoBox";
 import { createEvent } from "@/pages/EventDetailsPage/hooks/events/UseCreatEvent";
+import { CreateEventDialog } from "@/pages/EventsPage/CreateEventDialog";
 import { PageLayout } from "../../components/PageLayout/PageLayout";
 
 interface Event {
@@ -64,7 +64,7 @@ export const EventsPage = () => {
 		"success",
 	);
 
-	const fetchEvents = async () => {
+	const fetchEvents = useCallback(async () => {
 		try {
 			const response = await apiService.getEvents();
 
@@ -81,11 +81,11 @@ export const EventsPage = () => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		fetchEvents();
-	}, []);
+	}, [fetchEvents]);
 
 	return (
 		<PageLayout>

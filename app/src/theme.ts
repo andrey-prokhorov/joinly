@@ -1,4 +1,4 @@
-import { createTheme, type ThemeOptions } from "@mui/material/styles"
+import { createTheme, type ThemeOptions } from "@mui/material/styles";
 
 export const themeOptions: ThemeOptions = {
 	typography: {
@@ -27,6 +27,7 @@ export const themeOptions: ThemeOptions = {
 			dark: "#7AB2B2",
 			main: "#FFF7F0",
 			secondary: "#F4F4F4",
+			natural: "#F8F8F8",
 		},
 		background: {
 			default: "#FFF7F0",
@@ -78,6 +79,6 @@ export const themeOptions: ThemeOptions = {
 			},
 		},
 	},
-}
+};
 
-export const theme = createTheme(themeOptions)
+export const theme = createTheme(themeOptions);
