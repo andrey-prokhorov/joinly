@@ -24,6 +24,8 @@ export function useEventRegistrations(
 	const [error, setError] = useState("");
 	const [isCurrentUserRegistered, setIsCurrentUserRegistered] = useState(false);
 	const [isInitialLoad, setIsInitialLoad] = useState(true);
+	const [shouldPoll, setShouldPoll] = useState(true);
+	const [errorCount, setErrorCount] = useState(0);
 	const { user } = useAuth();
 
 	const fetchEventRegistrations = useCallback(async () => {
@@ -46,13 +48,16 @@ export function useEventRegistrations(
 
 			if (!response.ok) {
 				if (response.status === 403) {
-					// User is not registered for this event
+					// User is not registered for this event - stop polling
 					setParticipants([]);
 					setIsCurrentUserRegistered(false);
 					setError("Du är inte registrerad för detta event");
+					setShouldPoll(false);
 					return;
 				}
 
+				// For other errors, increment error count
+				setErrorCount(prev => prev + 1);
 				const errorData = await response.json().catch(() => ({}));
 				setError(errorData.message || "Kunde inte hämta deltagarlista");
 				setParticipants([]);
@@ -83,11 +88,14 @@ export function useEventRegistrations(
 					prev !== isRegistered ? isRegistered : prev,
 				);
 			}
+			// Reset error count on successful request
+			setErrorCount(0);
 		} catch (fetchError) {
 			console.error("Fel vid hämtning av deltagarlista:", fetchError);
 			setError("Ett fel uppstod vid hämtning av deltagarlista");
 			setParticipants([]);
 			setIsCurrentUserRegistered(false);
+			setErrorCount(prev => prev + 1);
 		} finally {
 			if (isInitialLoad) {
 				setLoading(false);
@@ -98,23 +106,27 @@ export function useEventRegistrations(
 
 	const refetch = () => {
 		fetchEventRegistrations();
+		setShouldPoll(true); // Resume polling on manual refetch
+		setErrorCount(0); // Reset error count
 	};
 
 	useEffect(() => {
 		fetchEventRegistrations();
 
-		// Set up polling every 5 seconds
+		// Set up polling with conditions
 		const interval = setInterval(() => {
-			fetchEventRegistrations();
+			// Only poll if:
+			// 1. Polling is enabled
+			// 2. Error count is not too high (stop after 3 consecutive errors)
+			// 3. Tab is visible
+			if (shouldPoll && errorCount < 3 && !document.hidden) {
+				fetchEventRegistrations();
+			}
 		}, 5000);
 
 		// Cleanup interval on component unmount
 		return () => clearInterval(interval);
-	}, [fetchEventRegistrations]);
-
-	return {
-		participants,
-		loading,
+	}, [fetchEventRegistrations, shouldPoll, errorCount]);
 		error,
 		isCurrentUserRegistered,
 		refetch,
