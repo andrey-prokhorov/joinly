@@ -41,14 +41,12 @@ const emptyForm: EventFormData = {
 export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
 	const [form, setForm] = useState<EventFormData>(emptyForm);
 
-	const [startTimeValue, setStartTimetValue] = useState<Dayjs | null>(null);
-	const [endTimeValue, setEndTimeValue] = useState<Dayjs | null>(null);
-
-	startTimeValue !== null &&
-		endTimeValue !== null &&
-		!endTimeValue.isAfter(startTimeValue);
-
 	const canCreate = useMemo(() => {
+		const isTimeValid =
+			form.start_time !== "" && form.end_time !== ""
+				? dayjs(form.end_time).isAfter(dayjs(form.start_time).add(5, "minute"))
+				: false;
+
 		return (
 			form.title.trim().length > 0 &&
 			form.description.trim().length > 0 &&
@@ -56,15 +54,14 @@ export const CreateEventDialog = ({ open, onClose, onCreate }: Props) => {
 			form.start_time !== "" &&
 			form.end_time !== "" &&
 			form.city.trim().length > 0 &&
-			form.city_district.length > 0
+			form.city_district.length > 0 &&
+			isTimeValid
 		);
 	}, [form]);
 
 	const handleClose = () => {
 		onClose();
 		setForm(emptyForm);
-		setStartTimetValue(null);
-		setEndTimeValue(null);
 	};
 
 	const handleCreate = () => {
