@@ -15,7 +15,7 @@ Du behöver inte gå med i grupper eller planera långt i förväg - se vad som 
 | UI-bibliotek | Material UI (MUI) |
 | Routing | TanStack Router (filbaserad) |
 | Linting | Biome (backend + frontend) |
-| Tester | Newman (API-integration), Vitest (unit) |
+| Tester | Newman (API-integration + SQL injection), Vitest (unit) |
 | CI/CD | GitHub Actions |
 
 ## Komma igång
@@ -75,8 +75,10 @@ Frontend körs på http://localhost:3000
 - **Registrering och inloggning** - JWT-baserad autentisering
 - **Events** - Skapa, visa och hantera aktiviteter
 - **Eventanmälan** - Anmäl/avanmäl dig till events
+- **Chat inom events** - Registrerade deltagare kan chatta i events
 - **Rollbaserad åtkomstkontroll (ACL)** - Middleware som styr behörigheter per endpoint
 - **Skyddade routes** - Frontend omdirigerar till login vid utgången session
+- **SQL injection-skydd** - Defense in depth: validering, prepared statements, UUID-validering
 
 ## Testning
 
