@@ -166,24 +166,22 @@
 			}
 		},
 		{
-			"name": "Register for event (201)",
+			"name": "Register for event - creator already registered (409)",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test('Status code is 201', function () {",
-							"    pm.response.to.have.status(201);",
+							"// Skaparen auto-registreras vid event-skapande, så 409 är förväntat.",
+							"pm.test('Status code is 409 (creator auto-registered)', function () {",
+							"    pm.response.to.have.status(409);",
 							"});",
 							"",
-							"pm.test('Registration successful', function () {",
+							"pm.test('Already registered response structure', function () {",
 							"    const json = pm.response.json();",
-							"    pm.expect(json.success).to.be.true;",
-							"    pm.expect(json.message).to.eql('Registrering genomförd.');",
-							"    pm.expect(json.registration).to.be.an('object');",
-							"    pm.expect(json.registration.event_id).to.eql(pm.collectionVariables.get('testEventId'));",
-							"    pm.expect(json.registration.user_id).to.be.a('string');",
-							"    pm.expect(json.registration.created_at).to.be.a('string');",
+							"    pm.expect(json.success).to.be.false;",
+							"    pm.expect(json.message).to.be.a('string');",
+							"    pm.expect(json.message).to.include('redan');",
 							"});"
 						],
 						"type": "text/javascript"
