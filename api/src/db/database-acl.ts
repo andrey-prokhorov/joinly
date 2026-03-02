@@ -82,6 +82,13 @@ export function seedAclRules(db: DatabaseType): void {
 		null,
 		"Inloggade: se mina events"
 	)
+	insert.run(
+		"user,admin",
+		"GET",
+		"/api/myevents/created",
+		null,
+		"Inloggade: se events jag skapat"
+	)
 
 	// Events - kräver inloggning
 	insert.run(
@@ -172,5 +179,5 @@ export function seedAclRules(db: DatabaseType): void {
 	insert.run("admin", "PUT", "/api/acl/:id", null, "Admin: uppdatera regel")
 	insert.run("admin", "DELETE", "/api/acl/:id", null, "Admin: ta bort regel")
 
-	console.log("Seed: 21 ACL-regler skapade")
+	console.log("Seed: 22 ACL-regler skapade")
 }

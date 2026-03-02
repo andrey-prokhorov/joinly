@@ -1,23 +1,23 @@
-name: App CI
+name: API CI
 
 on:
   pull_request:
     branches: ["**"]
     paths:
-      - "app/**"
-      - ".github/workflows/app-ci.yml"
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
 
 concurrency:
-  group: app-api-ci-${{ github.event.pull_request.number }}  
+  group: api-ci-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
-  npm-audit:
-    name: Frontend security audit (npm)
+  api-audit:
+    name: API security audit (npm)
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
 
@@ -26,20 +26,22 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: api/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run npm audit
-        run: npm audit --audit-level=high
+      # --omit=dev: Newman (test runner) har kända sårbarheter i sina dependencies
+      # som inte påverkar produktion. Vi auditerar därför bara prod-dependencies.
+      - name: Run npm audit (production dependencies only)
+        run: npm audit --omit=dev --audit-level=high
 
-  frontend-lint-build:
-    name: Frontend lint & build
+  api-lint-build:
+    name: API lint & build
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app
+        working-directory: api
     steps:
       - uses: actions/checkout@v4
 
@@ -48,7 +50,7 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache-dependency-path: api/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -56,27 +58,52 @@ jobs:
       - name: Lint (Biome)
         run: npm run lint
 
-      - name: Build frontend
+      - name: Build TypeScript
         run: npm run build
 
-  frontend-tests:
-    name: Frontend (Vitest) unit tests
+  api-integration-tests:
+    name: API integration tests (Newman)
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: app
+        working-directory: api
+    env:
+      RATE_LIMIT_ENABLED: "false"
+      SEED_TESTUSER_1_PASSWORD: ${{ secrets.SEED_TESTUSER_1_PASSWORD }}
+      SEED_TESTUSER_2_PASSWORD: ${{ secrets.SEED_TESTUSER_2_PASSWORD }}
+      SEED_ADMIN_1_PASSWORD: ${{ secrets.SEED_ADMIN_1_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
-          cache-dependency-path: app/package-lock.json
+          cache: npm
+          cache-dependency-path: api/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests (Vitest)
-        run: npm run test:ci        
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Start server in background
+        run: npm start &
+
+      - name: Wait for server to be ready
+        run: |
+          echo "Waiting for server..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3001/api/health > /dev/null; then
+              echo "Server is ready!"
+              exit 0
+            fi
+            echo "Attempt $i/30..."
+            sleep 1
+          done
+          echo "Server failed to start"
+          exit 1
+
+      - name: Run Newman tests
+        run: npm run test:api
