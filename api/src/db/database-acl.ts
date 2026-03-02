@@ -82,6 +82,13 @@ export function seedAclRules(db: DatabaseType): void {
 		null,
 		"Inloggade: se mina events"
 	)
+	insert.run(
+		"user,admin",
+		"GET",
+		"/api/myevents/created",
+		null,
+		"Inloggade: se mina skapade events"
+	)
 
 	// Events - kräver inloggning
 	insert.run(
