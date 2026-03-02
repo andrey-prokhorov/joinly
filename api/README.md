@@ -81,6 +81,18 @@ Servern startar på **http://localhost:3001**
 | POST | `/api/events/:eventId/register` | Ja | Anmäl dig till event |
 | DELETE | `/api/events/:eventId/register` | Ja | Avanmäl dig från event |
 
+### Mina events
+| Metod | Endpoint | Auth | Beskrivning |
+|-------|----------|------|-------------|
+| GET | `/api/myevents` | Ja | Hämta events jag är anmäld till |
+| GET | `/api/myevents/created` | Ja | Hämta events jag har skapat |
+
+### Chat
+| Metod | Endpoint | Auth | Beskrivning |
+|-------|----------|------|-------------|
+| GET | `/api/events/:id/chat` | Ja | Hämta chattmeddelanden för event |
+| POST | `/api/events/:id/chat` | Ja | Skicka chattmeddelande i event |
+
 ### System
 | Metod | Endpoint | Auth | Beskrivning |
 |-------|----------|------|-------------|
@@ -116,7 +128,7 @@ api/
 │   │   ├── database-users.ts        # Users-tabell & seed-data
 │   │   ├── database-events.ts       # Events-tabell & seed-data
 │   │   ├── database-registrations.ts # Event-registreringar
-│   │   ├── database-acl.ts          # ACL-regler (21 regler)
+│   │   ├── database-acl.ts          # ACL-regler (seed-data)
 │   │   └── database-blacklist.ts    # Token blacklist (logout)
 │   ├── middleware/
 │   │   ├── auth.ts             # JWT-verifiering + blacklist-check
@@ -161,7 +173,7 @@ cp .env.example .env
 
 ## CI/CD
 
-API:et har tre jobb i GitHub Actions (`.github/workflows/ci.yml`):
+API:et har tre jobb i GitHub Actions (`.github/workflows/api-ci.yml`):
 
 | Jobb | Syfte |
 |------|-------|
@@ -205,6 +217,15 @@ Se [docs/security.md](docs/security.md) för produktionskrav och säkerhetskontr
 ---
 
 ## Ändringslogg
+
+### 2026-03-02 - CI-fix, SQL injection-tester och dokumentation (Pål)
+
+- Återställt `api-ci.yml` - API CI-pipeline var trasig sedan workflow-uppdelningen (frontend-kod hade kopierats in)
+- Lagt till SQL injection-testsvit (11 tester, 39 assertions) som verifierar defense in depth
+- Lagt till saknad ACL-regel för `GET /api/myevents/created` (23→24 regler)
+- Fixat myevents-tester (felaktiga assertions)
+- Uppdaterat `test:api` att köra alla 8 Newman-samlingar (92 requests, 208 assertions totalt)
+- Uppdaterat säkerhetsdokumentation med SQL injection-skydd och testresultat
 
 ### 2026-02-15 - ACL-middleware (Pål) - Epic #62, Issue #63
 

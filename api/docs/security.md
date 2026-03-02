@@ -6,7 +6,7 @@ Dokumentation av säkerhetsmekanismer i Joinly API:et.
 
 ## ACL (Access Control List)
 
-Behörigheter styrs via en `acl`-tabell i databasen med 21 regler. Varje request matchas mot dessa regler.
+Behörigheter styrs via en `acl`-tabell i databasen med 24 regler. Varje request matchas mot dessa regler.
 
 ### Flöde vid varje request
 
@@ -24,7 +24,7 @@ Behörigheter styrs via en `acl`-tabell i databasen med 21 regler. Varje request
 | `user` + `fieldMatchingUserId` | Bara ägaren | redigera/ta bort egna events |
 | `admin` | Bara admin | redigera/ta bort alla events, hantera ACL |
 
-### Alla 21 ACL-regler
+### Alla 24 ACL-regler
 
 | Roller | Metod | Route | Ägarskapskontroll | Beskrivning |
 |--------|-------|-------|-------------------|-------------|
@@ -35,6 +35,8 @@ Behörigheter styrs via en `acl`-tabell i databasen med 21 regler. Varje request
 | `user,admin` | GET | `/api/events` | - | Lista events |
 | `user,admin` | GET | `/api/events/:id` | - | Se ett event |
 | `user,admin` | GET | `/api/events/filter/search` | - | Filtrera events |
+| `user,admin` | GET | `/api/myevents` | - | Se mina events |
+| `user,admin` | GET | `/api/myevents/created` | - | Se events jag skapat |
 | `user,admin` | POST | `/api/events` | - | Skapa event |
 | `user` | PUT | `/api/events/:id` | `creator_user_id` | Redigera egna events |
 | `user` | DELETE | `/api/events/:id` | `creator_user_id` | Ta bort egna events |
@@ -43,6 +45,8 @@ Behörigheter styrs via en `acl`-tabell i databasen med 21 regler. Varje request
 | `user,admin` | POST | `/api/events/:eventId/register` | - | Anmäl till event |
 | `user,admin` | DELETE | `/api/events/:eventId/register` | - | Avanmäl från event |
 | `user,admin` | GET | `/api/events/:eventId/registrations` | - | Se deltagarlista |
+| `user,admin` | GET | `/api/events/:id/chat` | - | Hämta chattmeddelanden |
+| `user,admin` | POST | `/api/events/:id/chat` | - | Skicka chattmeddelande |
 | `*` | GET | `/api/health` | - | Hälsokontroll |
 | `admin` | GET | `/api/acl` | - | Se ACL-regler |
 | `admin` | POST | `/api/acl` | - | Skapa ACL-regel |
@@ -53,9 +57,59 @@ Behörigheter styrs via en `acl`-tabell i databasen med 21 regler. Varje request
 
 ACL kan stängas av med `ACL_ENABLED=false` i `.env` (för felsökning). I produktion ska ACL alltid vara på.
 
-### SQL injection-skydd
+### SQL injection-skydd (ACL)
 
 ACL-middleware använder en route-whitelist för att förhindra att manipulerade routes kan användas för SQL injection via dynamiska tabellnamn.
+
+---
+
+## SQL Injection-skydd
+
+API:et skyddas mot SQL injection med **defense in depth** - tre oberoende lager:
+
+### Lager 1: Input-validering
+
+Validators (`src/utils/validators.ts`) använder två strategier: vissa fält blockerar SQL-tecken redan i input, medan andra tillåter dem och förlitar sig på lager 2 (prepared statements):
+
+- **Email-validering** - regex som bara tillåter giltiga email-tecken, blockerar `'`, `;`, `--` etc.
+- **Lösenordsvalidering** - längd- och komplexitetskrav
+- **Namnvalidering** - längd 2-50 tecken, blockerar HTML-taggar och kontrolltecken men tillåter SQL-tecken (skyddas av lager 2)
+
+### Lager 2: Prepared statements
+
+Alla databasfrågor använder **parameteriserade queries** via better-sqlite3:
+
+```typescript
+// Prepared statement - SQL-strängen och data hanteras separat
+db.prepare("SELECT * FROM users WHERE email = ?").get(email)
+```
+
+Prepared statements gör att användarinput aldrig tolkas som SQL-kod, oavsett innehåll. Även om en angripare skickar `'; DROP TABLE users; --` som namn behandlas det som vanlig text.
+
+### Lager 3: UUID-validering och whitelist
+
+- **UUID-validering** - vissa endpoints (t.ex. uppdatera/ta bort event) validerar event-ID som UUID-format innan databasanrop, medan andra som `GET /api/events/:id` gör parameteriserade queries direkt och ger 404 vid ogiltiga ID:n
+- **Route-whitelist** - ACL-middleware matchar bara definierade routes i ACL-tabellen; anrop mot okända routes ger 403
+
+### Testverifiering
+
+SQL injection-skyddet verifieras med 11 automatiserade Newman-tester (`tests/sql-injection.postman_collection.json`):
+
+| Test | Attack-payload | Endpoint | Förväntat |
+|------|---------------|----------|-----------|
+| 1-3 | `' OR '1'='1'`, UNION SELECT, DROP TABLE | Login (email) | 400 (blockerat av validering) |
+| 4 | `' OR '1'='1` | Login (lösenord) | 401 (bcrypt.compare misslyckas) |
+| 5-6 | SQL i city/category | Filter-sökning | 200 med tom lista (prepared statement) |
+| 7-8 | DROP TABLE, UNION SELECT i namn | Register | 201 - sparas som text, inte exekverat |
+| 9 | DROP TABLE i event-titel | Skapa event | 201 - sparas som text |
+| 10 | SQL i ID-parameter | Hämta event | 400/404 (UUID-validering) |
+| 11 | Health check efter alla attacker | Health | 200 - databasen intakt |
+
+Testerna bevisar att:
+- Lager 1 blockerar SQL i email-fält (test 1-3)
+- Lager 2 skyddar namn/titel-fält där SQL-tecken tillåts (test 7-9)
+- Lager 3 blockerar SQL i ID-parametrar (test 10)
+- Databasen överlever alla attacker (test 11)
 
 ---
 

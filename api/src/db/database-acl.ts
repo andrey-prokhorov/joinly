@@ -87,7 +87,7 @@ export function seedAclRules(db: DatabaseType): void {
 		"GET",
 		"/api/myevents/created",
 		null,
-		"Inloggade: se mina skapade events"
+		"Inloggade: se events jag skapat"
 	)
 
 	// Events - kräver inloggning
@@ -179,5 +179,9 @@ export function seedAclRules(db: DatabaseType): void {
 	insert.run("admin", "PUT", "/api/acl/:id", null, "Admin: uppdatera regel")
 	insert.run("admin", "DELETE", "/api/acl/:id", null, "Admin: ta bort regel")
 
-	console.log("Seed: 21 ACL-regler skapade")
+	const finalCount = db.prepare("SELECT COUNT(*) as count FROM acl").get() as {
+		count: number
+	}
+	const createdRules = finalCount.count - ruleCount.count
+	console.log(`Seed: ${createdRules} ACL-regler skapade`)
 }

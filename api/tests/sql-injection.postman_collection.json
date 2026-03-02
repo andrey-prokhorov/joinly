@@ -1,0 +1,631 @@
+{
+  "info": {
+    "name": "Joinly API - SQL Injection Security Tests",
+    "description": "Verifierar att prepared statements och input-validering skyddar mot SQL injection-attacker. Defense in depth: lager 1 (input-validering), lager 2 (prepared statements) och lager 3 (UUID/whitelist-validering). Idempotent - kan köras flera gånger utan DB-reset.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "--- PRIO 1: Login-endpoint (vanligaste attackvektorn) ---",
+      "item": [
+        {
+          "name": "1. Login - Classic OR injection in email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (blocked by validation)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('password_hash');",
+                  "    pm.expect(body).to.not.include('bcrypt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"' OR '1'='1' --\", \"password\": \"anything\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "2. Login - UNION SELECT injection in email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (blocked by validation)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('password_hash');",
+                  "    pm.expect(body).to.not.include('bcrypt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"' UNION SELECT * FROM users --\", \"password\": \"anything\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "3. Login - DROP TABLE injection in email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 400 (blocked by validation)', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('password_hash');",
+                  "    pm.expect(body).to.not.include('bcrypt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"'; DROP TABLE users; --\", \"password\": \"anything\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "4. Login - SQL injection in password field",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Lösenordet når aldrig en SQL-query - det jämförs med bcrypt.compare()",
+                  "// Så detta testar att arkitekturen i sig förhindrar injection i password-fältet",
+                  "pm.test('Status code is 401 (not bypassed)', function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('password_hash');",
+                  "    pm.expect(body).to.not.include('bcrypt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"test@example.com\", \"password\": \"' OR '1'='1\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "--- PRIO 2: Filter-endpoint (dynamisk query) ---",
+      "item": [
+        {
+          "name": "Setup - Register or login for authenticated tests",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    // Ny registrering - spara token",
+                  "    pm.collectionVariables.set('authToken', jsonData.token);",
+                  "    pm.test('Setup: user registered', function () {",
+                  "        pm.response.to.have.status(201);",
+                  "    });",
+                  "} else if (pm.response.code === 409) {",
+                  "    // Användaren finns redan - logga in istället",
+                  "    pm.test('Setup: user exists, will login next', function () {",
+                  "        pm.response.to.have.status(409);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"SQLi Tester\", \"email\": \"sqli-tester@example.com\", \"password\": \"Test1234^\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Setup - Login (fallback if already registered)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "pm.collectionVariables.set('authToken', jsonData.token);",
+                  "",
+                  "pm.test('Setup: logged in', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"sqli-tester@example.com\", \"password\": \"Test1234^\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "5. Filter - SQL injection in city parameter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Filter bygger dynamisk query med params-array.",
+                  "// Prepared statements gör att SQL-koden behandlas som vanlig text.",
+                  "pm.test('Status code is 200 (query treated as text, no match)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('Response has events array (empty - no city matches SQL string)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('events');",
+                  "    pm.expect(jsonData.events).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('password_hash');",
+                  "    pm.expect(body).to.not.include('bcrypt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/filter/search?city=' OR '1'='1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "filter", "search"],
+              "query": [
+                { "key": "city", "value": "' OR '1'='1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Filter - DROP TABLE injection in category parameter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 200 (query treated as text, no match)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('Response has events array (empty - no category matches SQL string)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property('events');",
+                  "    pm.expect(jsonData.events).to.be.an('array');",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('password_hash');",
+                  "    pm.expect(body).to.not.include('bcrypt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/filter/search?category='; DROP TABLE events; --",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "filter", "search"],
+              "query": [
+                { "key": "category", "value": "'; DROP TABLE events; --" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "--- PRIO 3: Register + Events (prepared statements bevisar) ---",
+      "item": [
+        {
+          "name": "7. Register - DROP TABLE injection in name field",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Unik email med timestamp - gör testet idempotent",
+                  "const uniqueEmail = 'sqli-drop-' + Date.now() + '@example.com';",
+                  "pm.collectionVariables.set('sqliDropEmail', uniqueEmail);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Namn-validering tillåter ' och ; (bara HTML-taggar blockeras).",
+                  "// Prepared statements gör att SQL sparas som vanlig text.",
+                  "// DET HÄR är det viktigaste testet - visar att lager 2 (prepared statements) fungerar.",
+                  "pm.test('Status code is 201 (SQL stored as plain text)', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('SQL was stored as literal text, not executed', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user.name).to.include('DROP TABLE');",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.match(/\\$2b\\$\\d+\\$/);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Robert'; DROP TABLE users; --\", \"email\": \"{{sqliDropEmail}}\", \"password\": \"Test1234^\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "8. Register - UNION SELECT injection in name field",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// Unik email med timestamp - gör testet idempotent",
+                  "const uniqueEmail = 'sqli-union-' + Date.now() + '@example.com';",
+                  "pm.collectionVariables.set('sqliUnionEmail', uniqueEmail);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 (SQL stored as plain text)', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('SQL was stored as literal text, not executed', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.user.name).to.include('UNION SELECT');",
+                  "});",
+                  "",
+                  "pm.test('Response does NOT contain actual bcrypt hashes from database', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.match(/\\$2b\\$\\d+\\$/);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"' UNION SELECT password_hash FROM users --\", \"email\": \"{{sqliUnionEmail}}\", \"password\": \"Test1234^\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "9. Events - SQL injection in event title",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201 (SQL stored as plain text)', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('SQL was stored as literal text in title', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.event.title).to.include('DROP TABLE');",
+                  "});",
+                  "",
+                  "// Spara event-id för cleanup",
+                  "if (pm.response.code === 201) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('sqliEventId', jsonData.event.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Event'; DROP TABLE events; --\", \"description\": \"Testing SQL injection in event title\", \"category\": \"test\", \"city\": \"Stockholm\", \"city_district\": \"Södermalm\", \"start_time\": \"2026-12-01T18:00:00\", \"end_time\": \"2026-12-01T20:00:00\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events"]
+            }
+          }
+        },
+        {
+          "name": "10. Events - SQL injection in ID parameter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// UUID-validering eller 404 - SQL i ID:t ska inte returnera data",
+                  "pm.test('Status code is 400, 404, or 401 (not 200, not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([400, 401, 404]);",
+                  "});",
+                  "",
+                  "pm.test('Server did not crash (not 500)', function () {",
+                  "    pm.expect(pm.response.code).to.not.equal(500);",
+                  "});",
+                  "",
+                  "pm.test('No data leakage in response', function () {",
+                  "    const body = pm.response.text();",
+                  "    pm.expect(body).to.not.include('password_hash');",
+                  "    pm.expect(body).to.not.include('bcrypt');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/' OR '1'='1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "' OR '1'='1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "--- VERIFIERING: Databasen överlevde ---",
+      "item": [
+        {
+          "name": "11. Health check - Database survived all attacks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Detta är det slutgiltiga beviset: efter alla injection-försök",
+                  "// fungerar databasen fortfarande. Ingen DROP TABLE lyckades.",
+                  "pm.test('Status code is 200 (server is alive)', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Database is intact (health check passes)', function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.equal('ok');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          }
+        },
+        {
+          "name": "Cleanup - Delete test event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Cleanup: test event deleted or not found', function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{sqliEventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "events", "{{sqliEventId}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "sqliEventId",
+      "value": ""
+    },
+    {
+      "key": "sqliDropEmail",
+      "value": ""
+    },
+    {
+      "key": "sqliUnionEmail",
+      "value": ""
+    }
+  ]
+}

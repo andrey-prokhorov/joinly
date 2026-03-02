@@ -334,7 +334,7 @@
                             "});",
                             "pm.test('Auth required message', function () {",
                             "    const json = pm.response.json();",
-                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "    pm.expect(json.message).to.include('Autentisering krävs');",
                             "});"
                         ],
                         "type": "text/javascript"
@@ -368,7 +368,7 @@
                             "});",
                             "pm.test('Auth required message', function () {",
                             "    const json = pm.response.json();",
-                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "    pm.expect(json.message).to.include('Autentisering krävs');",
                             "});"
                         ],
                         "type": "text/javascript"
@@ -497,7 +497,7 @@
                             "});",
                             "pm.test('Auth required message', function () {",
                             "    const json = pm.response.json();",
-                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "    pm.expect(json.message).to.include('Autentisering krävs');",
                             "});"
                         ],
                         "type": "text/javascript"
@@ -532,7 +532,7 @@
                             "});",
                             "pm.test('Auth required message', function () {",
                             "    const json = pm.response.json();",
-                            "    pm.expect(json.message).to.include('Oauktoriserad');",
+                            "    pm.expect(json.message).to.include('Autentisering krävs');",
                             "});"
                         ],
                         "type": "text/javascript"
