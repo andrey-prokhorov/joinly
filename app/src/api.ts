@@ -141,6 +141,12 @@ class ApiService {
 		});
 	}
 
+	async getMyCreatedEvents(): Promise<Response>{
+		return this.request("/myevents/created", {
+			method: "GET",
+		})
+	}
+
 	async getEventChatMessages(eventId: string): Promise<Response> {
 		return this.request(`/events/${eventId}/chat`, {
 			method: "GET",

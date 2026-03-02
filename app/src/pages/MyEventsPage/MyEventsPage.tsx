@@ -40,21 +40,34 @@ const getDuration = (start: string, end: string) => {
 
 export const MyEventsPage = () => {
 	const navigate = useNavigate()
-	const [events, setEvents] = useState<Event[]>([])
+	const [registeredEvents, setRegisteredEvents] = useState<Event[]>([])
+	const [createdEvents, setCreatedEvents] = useState<Event[]>([])
 	const [loading, setLoading] = useState(true)
 	const [error, setError] = useState("")
 
 	useEffect(() => {
-		const fetchEvents = async () => {
+		const fetchRegisteredEvents = async () => {
 			try {
-				const response = await apiService.getMyEvents()
-				if (response.ok) {
-					const data = await response.json()
-					setEvents(data.events)
-				} else if (response.status === 403) {
+				const responseRegisteredEvents = await apiService.getMyEvents()
+
+				if (responseRegisteredEvents.ok) {
+					const registeredData = await responseRegisteredEvents.json()
+					setRegisteredEvents(registeredData.events)
+				} else if (responseRegisteredEvents.status === 403) {
 					setError("Du saknar behörighet att visa events")
 				} else {
-					setError("Kunde inte hämta events")
+					setError("Kunde inte hämta registrerade events")
+				}
+
+				const responseCreatedEvents = await apiService.getMyCreatedEvents()
+
+				if (responseCreatedEvents.ok) {
+					const createdData = await responseCreatedEvents.json()
+					setCreatedEvents(createdData.events)
+				} else if (responseCreatedEvents.status === 403) {
+					setError("Du saknar behörighet att visa events")
+				} else {
+					setError("Kunde inte hämta skapade events")
 				}
 			} catch (_error) {
 				setError("Ett fel uppstod vid hämtning av events")
@@ -63,7 +76,7 @@ export const MyEventsPage = () => {
 			}
 		}
 
-		fetchEvents()
+		fetchRegisteredEvents()
 	}, [])
 
 	return (
@@ -79,17 +92,49 @@ export const MyEventsPage = () => {
 			)}
 			{error && <Typography color="error">{error}</Typography>}
 
-			<InfoBox sx={{ justifyContent: "left" }}>
-				{!loading && !error && events.length === 0 ? (
-					<Typography>Du är inte registrerad på någon aktivitet än</Typography>
+			<InfoBox sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+				{/* SKAPADE */}
+				<Typography variant="h6" sx={{ mt: 4, mb: 1, p: "8px 16px" }}>
+					Aktiviteter jag skapat
+				</Typography>
+
+				{!loading && !error && createdEvents.length === 0 ? (
+					<Typography>Du har inte skapat några aktiviteter än</Typography>
 				) : (
-					<List aria-label="mina aktiviteter">
-						{events.map((event) => (
+					<List aria-label="aktiviteter jag skapat" sx={{ width: "100%" }}>
+						{createdEvents.map((event) => (
 							<ListItem key={event.id} disablePadding>
 								<ListItemButton onClick={() => navigate({ to: `/events-detail/${event.id}` })}>
 									<ListItemText
 										primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
-										secondary={`${event.title} - ${event.city}${event.city_district ? `, (${event.city_district})` : ""}, ${event.category}`}
+										secondary={`${event.title} - ${event.city}${
+											event.city_district ? `, (${event.city_district})` : ""
+										}, ${event.category}`}
+									/>
+								</ListItemButton>
+							</ListItem>
+						))}
+					</List>
+				)}
+			</InfoBox>
+			<InfoBox sx={{ flexDirection: "column", alignItems: "flex-start" }}>
+				{/* REGISTRERADE */}
+				<Typography variant="h6" sx={{ mt: 4, mb: 1, p: "8px 16px" }}>
+					Aktiviteter jag deltar i
+				</Typography>
+
+				{!loading && !error && registeredEvents.length === 0 ? (
+					<Typography sx={{ mb: 3 }}>Du är inte registrerad på någon aktivitet än</Typography>
+				) : (
+					<List aria-label="aktiviteter jag deltar i" sx={{ width: "100%" }}>
+						{registeredEvents.map((event) => (
+							<ListItem key={event.id} disablePadding>
+								<ListItemButton onClick={() => navigate({ to: `/events-detail/${event.id}` })}>
+									<ListItemText
+										primary={`${formatDate(event.start_time)} (${getDuration(event.start_time, event.end_time)})`}
+										secondary={`${event.title} - ${event.city}${
+											event.city_district ? `, (${event.city_district})` : ""
+										}, ${event.category}`}
 									/>
 								</ListItemButton>
 							</ListItem>
