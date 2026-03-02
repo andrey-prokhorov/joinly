@@ -417,41 +417,43 @@ router.post("/", (req: AuthRequest, res: Response) => {
 			})
 		}
 
-		const result = insertEvent.run(
-			id,
-			title,
-			description,
-			category,
-			start_time,
-			end_time,
-			city,
-			city_district,
-			String(creatorUserId),
-			created_at
-		)
+		// Transaktion: skapa event + registrera skaparen som deltagare atomiskt
+		const createEventTx = db.transaction(() => {
+			const result = insertEvent.run(
+				id,
+				title,
+				description,
+				category,
+				start_time,
+				end_time,
+				city,
+				city_district,
+				String(creatorUserId),
+				created_at
+			)
 
-		if (result.changes > 0) {
-			// Registrera skaparen som deltagare automatiskt (idempotent vid dubbletter)
+			if (result.changes === 0) {
+				throw new Error("Misslyckades att skapa event.")
+			}
+
+			// Registrera skaparen som deltagare automatiskt
 			db.prepare(
 				"INSERT OR IGNORE INTO event_registrations (event_id, user_id) VALUES (?, ?)"
 			).run(id, String(creatorUserId))
+		})
 
-			// Hämta det skapade eventet
-			const newEvent = db
-				.prepare("SELECT * FROM events WHERE id = ?")
-				.get(id) as DbEvent
+		createEventTx()
 
-			res.status(201).json({
-				success: true,
-				message: "Event skapat framgångsrikt.",
-				event: newEvent,
-			})
-		} else {
-			res.status(500).json({
-				success: false,
-				message: "Misslyckades att skapa event.",
-			})
-		}
+		// Hämta det skapade eventet
+		const newEvent = db
+			.prepare("SELECT * FROM events WHERE id = ?")
+			.get(id) as DbEvent
+
+		res.status(201).json({
+			success: true,
+			message: "Event skapat framgångsrikt.",
+			event: newEvent,
+		})
 	} catch (error) {
 		console.error("Fel vid skapande av event:", error)
 		res.status(500).json({

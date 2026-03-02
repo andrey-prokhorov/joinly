@@ -205,18 +205,15 @@
                     "script": {
                         "exec": [
                             "// Skaparen auto-registreras vid event-skapande, så 409 är förväntat.",
-                            "pm.test('Registration succeeded or already registered', function () {",
-                            "    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
+                            "pm.test('Status code is 409 (creator auto-registered)', function () {",
+                            "    pm.response.to.have.status(409);",
                             "});",
-                            "pm.test('Response confirms registration state', function () {",
+                            "",
+                            "pm.test('Already registered response structure', function () {",
                             "    const json = pm.response.json();",
-                            "    if (pm.response.code === 201) {",
-                            "        pm.expect(json.success).to.eql(true);",
-                            "    } else {",
-                            "        pm.expect(json.success).to.eql(false);",
-                            "        pm.expect(json.message).to.be.a('string');",
-                            "        pm.expect(json.message).to.include('redan');",
-                            "    }",
+                            "    pm.expect(json.success).to.eql(false);",
+                            "    pm.expect(json.message).to.be.a('string');",
+                            "    pm.expect(json.message).to.include('redan');",
                             "});"
                         ],
                         "type": "text/javascript"
