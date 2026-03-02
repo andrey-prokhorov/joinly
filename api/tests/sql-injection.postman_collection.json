@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Joinly API - SQL Injection Security Tests",
-    "description": "Verifierar att prepared statements och input-validering skyddar mot SQL injection-attacker. Defense in depth: lager 1 (input-validering) och lager 2 (prepared statements). Idempotent - kan köras flera gånger utan DB-reset.",
+    "description": "Verifierar att prepared statements och input-validering skyddar mot SQL injection-attacker. Defense in depth: lager 1 (input-validering), lager 2 (prepared statements) och lager 3 (UUID/whitelist-validering). Idempotent - kan köras flera gånger utan DB-reset.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -42,8 +42,8 @@
               "raw": "{\"email\": \"' OR '1'='1' --\", \"password\": \"anything\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/login",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             }
           }
@@ -82,8 +82,8 @@
               "raw": "{\"email\": \"' UNION SELECT * FROM users --\", \"password\": \"anything\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/login",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             }
           }
@@ -122,8 +122,8 @@
               "raw": "{\"email\": \"'; DROP TABLE users; --\", \"password\": \"anything\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/login",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             }
           }
@@ -164,8 +164,8 @@
               "raw": "{\"email\": \"test@example.com\", \"password\": \"' OR '1'='1\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/login",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             }
           }
@@ -210,8 +210,8 @@
               "raw": "{\"name\": \"SQLi Tester\", \"email\": \"sqli-tester@example.com\", \"password\": \"Test1234^\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/register",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "register"]
             }
           }
@@ -243,8 +243,8 @@
               "raw": "{\"email\": \"sqli-tester@example.com\", \"password\": \"Test1234^\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/login",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "login"]
             }
           }
@@ -287,8 +287,8 @@
               { "key": "Authorization", "value": "Bearer {{authToken}}" }
             ],
             "url": {
-              "raw": "http://localhost:3001/api/events/filter/search?city=' OR '1'='1",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/events/filter/search?city=' OR '1'='1",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "events", "filter", "search"],
               "query": [
                 { "key": "city", "value": "' OR '1'='1" }
@@ -332,8 +332,8 @@
               { "key": "Authorization", "value": "Bearer {{authToken}}" }
             ],
             "url": {
-              "raw": "http://localhost:3001/api/events/filter/search?category='; DROP TABLE events; --",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/events/filter/search?category='; DROP TABLE events; --",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "events", "filter", "search"],
               "query": [
                 { "key": "category", "value": "'; DROP TABLE events; --" }
@@ -397,8 +397,8 @@
               "raw": "{\"name\": \"Robert'; DROP TABLE users; --\", \"email\": \"{{sqliDropEmail}}\", \"password\": \"Test1234^\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/register",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "register"]
             }
           }
@@ -451,8 +451,8 @@
               "raw": "{\"name\": \"' UNION SELECT password_hash FROM users --\", \"email\": \"{{sqliUnionEmail}}\", \"password\": \"Test1234^\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/auth/register",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "auth", "register"]
             }
           }
@@ -497,8 +497,8 @@
               "raw": "{\"title\": \"Event'; DROP TABLE events; --\", \"description\": \"Testing SQL injection in event title\", \"category\": \"test\", \"city\": \"Stockholm\", \"city_district\": \"Södermalm\", \"start_time\": \"2026-12-01T18:00:00\", \"end_time\": \"2026-12-01T20:00:00\"}"
             },
             "url": {
-              "raw": "http://localhost:3001/api/events",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/events",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "events"]
             }
           }
@@ -534,8 +534,8 @@
               { "key": "Authorization", "value": "Bearer {{authToken}}" }
             ],
             "url": {
-              "raw": "http://localhost:3001/api/events/' OR '1'='1",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/events/' OR '1'='1",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "events", "' OR '1'='1"]
             }
           }
@@ -570,8 +570,8 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:3001/api/health",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "health"]
             }
           }
@@ -584,7 +584,7 @@
               "script": {
                 "exec": [
                   "pm.test('Cleanup: test event deleted or not found', function () {",
-                  "    pm.expect(pm.response.code).to.be.oneOf([200, 401, 404]);",
+                  "    pm.expect(pm.response.code).to.be.oneOf([200, 404]);",
                   "});"
                 ]
               }
@@ -596,8 +596,8 @@
               { "key": "Authorization", "value": "Bearer {{authToken}}" }
             ],
             "url": {
-              "raw": "http://localhost:3001/api/events/{{sqliEventId}}",
-              "host": ["http://localhost:3001"],
+              "raw": "{{baseUrl}}/api/events/{{sqliEventId}}",
+              "host": ["{{baseUrl}}"],
               "path": ["api", "events", "{{sqliEventId}}"]
             }
           }
@@ -606,6 +606,11 @@
     }
   ],
   "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
     {
       "key": "authToken",
       "value": ""

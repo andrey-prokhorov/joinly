@@ -94,7 +94,7 @@ jobs:
         run: npm run build
 
       - name: Start server in background
-        run: npm start &
+        run: node dist/index.js &
 
       - name: Wait for server to be ready
         run: |

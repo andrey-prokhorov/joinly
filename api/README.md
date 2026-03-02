@@ -128,7 +128,7 @@ api/
 │   │   ├── database-users.ts        # Users-tabell & seed-data
 │   │   ├── database-events.ts       # Events-tabell & seed-data
 │   │   ├── database-registrations.ts # Event-registreringar
-│   │   ├── database-acl.ts          # ACL-regler (22 regler)
+│   │   ├── database-acl.ts          # ACL-regler (seed-data)
 │   │   └── database-blacklist.ts    # Token blacklist (logout)
 │   ├── middleware/
 │   │   ├── auth.ts             # JWT-verifiering + blacklist-check
@@ -222,14 +222,14 @@ Se [docs/security.md](docs/security.md) för produktionskrav och säkerhetskontr
 
 - Återställt `api-ci.yml` - API CI-pipeline var trasig sedan workflow-uppdelningen (frontend-kod hade kopierats in)
 - Lagt till SQL injection-testsvit (11 tester, 39 assertions) som verifierar defense in depth
-- Lagt till saknad ACL-regel för `GET /api/myevents/created` (21→22 regler)
+- Lagt till saknad ACL-regel för `GET /api/myevents/created` (23→24 regler)
 - Fixat myevents-tester (felaktiga assertions)
 - Uppdaterat `test:api` att köra alla 8 Newman-samlingar (92 requests, 208 assertions totalt)
 - Uppdaterat säkerhetsdokumentation med SQL injection-skydd och testresultat
 
 ### 2026-02-15 - ACL-middleware (Pål) - Epic #62, Issue #63
 
-- Implementerat databasdriven ACL med 22 regler i `acl`-tabellen
+- Implementerat databasdriven ACL med 21 regler i `acl`-tabellen
 - ACL-middleware ersätter alla hårdkodade behörighetskontroller
 - `optionalToken` ersätter `authenticateToken` - extraherar JWT utan att blockera
 - Ägarskapsverifiering via `fieldMatchingUserId` (skapare eller admin)

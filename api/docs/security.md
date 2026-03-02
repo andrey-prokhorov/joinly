@@ -6,7 +6,7 @@ Dokumentation av säkerhetsmekanismer i Joinly API:et.
 
 ## ACL (Access Control List)
 
-Behörigheter styrs via en `acl`-tabell i databasen med 22 regler. Varje request matchas mot dessa regler.
+Behörigheter styrs via en `acl`-tabell i databasen med 24 regler. Varje request matchas mot dessa regler.
 
 ### Flöde vid varje request
 
@@ -24,7 +24,7 @@ Behörigheter styrs via en `acl`-tabell i databasen med 22 regler. Varje request
 | `user` + `fieldMatchingUserId` | Bara ägaren | redigera/ta bort egna events |
 | `admin` | Bara admin | redigera/ta bort alla events, hantera ACL |
 
-### Alla 22 ACL-regler
+### Alla 24 ACL-regler
 
 | Roller | Metod | Route | Ägarskapskontroll | Beskrivning |
 |--------|-------|-------|-------------------|-------------|
