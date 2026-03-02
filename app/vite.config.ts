@@ -1,25 +1,23 @@
-import { defineConfig } from 'vite'
-import { devtools } from '@tanstack/devtools-vite'
-import viteReact from '@vitejs/plugin-react'
+import { resolve } from "node:path";
+import viteReact from "@vitejs/plugin-react";
+import { defineConfig } from "vitest/config";
 
-
-import { tanstackRouter } from '@tanstack/router-plugin/vite'
-import { fileURLToPath, URL } from 'node:url'
-
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    devtools(),
-    tanstackRouter({
-      target: 'react',
-      autoCodeSplitting: true,
-    }),
-    viteReact(),
-    
-  ],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
-  },
-})
+	plugins: [viteReact()],
+	resolve: {
+		alias: {
+			"@": resolve(__dirname, "./src"),
+		},
+	},
+	test: {
+		globals: true,
+		environment: "jsdom",
+		exclude: [
+			"**/node_modules/**",
+			"**/dist/**",
+			"**/cypress/**",
+			"**/.{idea,git,cache,output,temp}/**",
+			"**/playwright/**", // Exclude Playwright tests from Vitest
+		],
+	},
+});

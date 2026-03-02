@@ -1,24 +1,28 @@
 // src/services/api.ts
 
 class ApiService {
-	private baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api"
+	private baseUrl =
+		import.meta.env.VITE_API_BASE_URL || "http://localhost:3001/api";
 
 	private getToken(): string | null {
-		return localStorage.getItem("authToken")
+		return localStorage.getItem("authToken");
 	}
 
-	private async request(endpoint: string, options: RequestInit = {}): Promise<Response> {
-		const url = `${this.baseUrl}${endpoint}`
+	private async request(
+		endpoint: string,
+		options: RequestInit = {},
+	): Promise<Response> {
+		const url = `${this.baseUrl}${endpoint}`;
 
 		const headers: Record<string, string> = {
 			"Content-Type": "application/json",
 			...(options.headers as Record<string, string>),
-		}
+		};
 
 		// Add JWT token to Authorization header if it exists
-		const token = this.getToken()
+		const token = this.getToken();
 		if (token) {
-			headers.Authorization = `Bearer ${token}`
+			headers.Authorization = `Bearer ${token}`;
 		}
 
 		try {
@@ -26,24 +30,24 @@ class ApiService {
 				...options,
 				headers,
 				credentials: "include",
-			})
+			});
 			if (
 				response.status === 401 &&
 				endpoint !== "/auth/login" &&
 				endpoint !== "/auth/register" &&
 				endpoint !== "/auth/me"
 			) {
-				this.clearToken()
-				window.location.href = "/login?expired=true"
+				this.clearToken();
+				window.location.href = "/login?expired=true";
 			}
 			// Förbered 403-hantering - komponenter kollar response.status för att visa felmeddelande
 			if (response.status === 403) {
-				console.warn(`Åtkomst nekad: ${endpoint}`)
+				console.warn(`Åtkomst nekad: ${endpoint}`);
 			}
-			return response
+			return response;
 		} catch (error) {
-			console.error(`API Error at ${endpoint}:`, error)
-			throw error
+			console.error(`API Error at ${endpoint}:`, error);
+			throw error;
 		}
 	}
 
@@ -52,86 +56,89 @@ class ApiService {
 		return this.request("/auth/login", {
 			method: "POST",
 			body: JSON.stringify({ email, password }),
-		})
+		});
 	}
 
-	async register(email: string, password: string, name: string): Promise<Response> {
+	async register(
+		email: string,
+		password: string,
+		name: string,
+	): Promise<Response> {
 		return this.request("/auth/register", {
 			method: "POST",
 			body: JSON.stringify({ email, password, name }),
-		})
+		});
 	}
 
 	async getMe(): Promise<Response> {
 		return this.request("/auth/me", {
 			method: "GET",
-		})
+		});
 	}
 
 	async logout(): Promise<Response> {
 		return this.request("/auth/logout", {
 			method: "POST",
-		})
+		});
 	}
 
 	// Events endpoints
 	async getEvents(): Promise<Response> {
 		return this.request("/events", {
 			method: "GET",
-		})
+		});
 	}
 
 	async createEvent(eventData: unknown): Promise<Response> {
 		return this.request("/events", {
 			method: "POST",
 			body: JSON.stringify(eventData),
-		})
+		});
 	}
 
 	async getEvent(id: string): Promise<Response> {
 		return this.request(`/events/${id}`, {
 			method: "GET",
-		})
+		});
 	}
-
 
 	async updateEvent(id: string, eventData: unknown): Promise<Response> {
 		return this.request(`/events/${id}`, {
 			method: "PUT",
 			body: JSON.stringify(eventData),
-		})
+		});
 	}
 
 	async deleteEvent(id: string): Promise<Response> {
 		return this.request(`/events/${id}`, {
 			method: "DELETE",
-		})
+		});
 	}
 
 	// Users endpoints
 	async getUser(id: string): Promise<Response> {
 		return this.request(`/users/${id}`, {
 			method: "GET",
-		})
+		});
 	}
 
 	async updateUser(id: string, userData: unknown): Promise<Response> {
 		return this.request(`/users/${id}`, {
 			method: "PUT",
 			body: JSON.stringify(userData),
-		})
+		});
 	}
 
 	async getUsers(): Promise<Response> {
 		return this.request("/users", {
 			method: "GET",
-		})
+		});
 	}
 
 	async getMyEvents(): Promise<Response> {
 		return this.request("/myevents", {
 			method: "GET",
-		})
+		});
 	}
 
 	async getMyCreatedEvents(): Promise<Response>{
@@ -143,36 +150,51 @@ class ApiService {
 	async getEventChatMessages(eventId: string): Promise<Response> {
 		return this.request(`/events/${eventId}/chat`, {
 			method: "GET",
-		})
+		});
 	}
 
-	async sendEventChatMessage(eventId: string, message: string): Promise<Response> {
+	async sendEventChatMessage(
+		eventId: string,
+		message: string,
+	): Promise<Response> {
 		return this.request(`/events/${eventId}/chat`, {
 			method: "POST",
 			body: JSON.stringify({ message }),
-		})
+		});
 	}
 
 	async getEventRegistrations(eventId: string): Promise<Response> {
 		return this.request(`/events/${eventId}/registrations`, {
 			method: "GET",
-		})
+		});
+	}
+
+	async registerForEvent(eventId: string): Promise<Response> {
+		return this.request(`/events/${eventId}/register`, {
+			method: "POST",
+		});
+	}
+
+	async unregisterFromEvent(eventId: string): Promise<Response> {
+		return this.request(`/events/${eventId}/register`, {
+			method: "DELETE",
+		});
 	}
 
 	// Helper method to store token
 	setToken(token: string): void {
-		localStorage.setItem("authToken", token)
+		localStorage.setItem("authToken", token);
 	}
 
 	// Helper method to clear token
 	clearToken(): void {
-		localStorage.removeItem("authToken")
+		localStorage.removeItem("authToken");
 	}
 
 	// Helper method to check if token exists
 	hasToken(): boolean {
-		return localStorage.getItem("authToken") !== null
+		return localStorage.getItem("authToken") !== null;
 	}
 }
 
-export const apiService = new ApiService()
+export const apiService = new ApiService();
