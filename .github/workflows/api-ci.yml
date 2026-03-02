@@ -1,6 +1,11 @@
 name: API CI
 
 on:
+  push:
+    branches: ["**"]
+    paths:
+      - "api/**"
+      - ".github/workflows/api-ci.yml"
   pull_request:
     branches: ["**"]
     paths:
@@ -8,7 +13,7 @@ on:
       - ".github/workflows/api-ci.yml"
 
 concurrency:
-  group: api-ci-${{ github.event.pull_request.number }}
+  group: api-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
