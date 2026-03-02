@@ -431,6 +431,11 @@ router.post("/", (req: AuthRequest, res: Response) => {
 		)
 
 		if (result.changes > 0) {
+			// Registrera skaparen som deltagare automatiskt (idempotent vid dubbletter)
+			db.prepare(
+				"INSERT OR IGNORE INTO event_registrations (event_id, user_id) VALUES (?, ?)"
+			).run(id, String(creatorUserId))
+
 			// Hämta det skapade eventet
 			const newEvent = db
 				.prepare("SELECT * FROM events WHERE id = ?")

@@ -204,12 +204,19 @@
                     "listen": "test",
                     "script": {
                         "exec": [
-                            "pm.test('Registration succeeded', function () {",
-                            "    pm.response.to.have.status(201);",
+                            "// Skaparen auto-registreras vid event-skapande, så 409 är förväntat.",
+                            "pm.test('Registration succeeded or already registered', function () {",
+                            "    pm.expect(pm.response.code).to.be.oneOf([201, 409]);",
                             "});",
-                            "pm.test('Response has success flag', function () {",
+                            "pm.test('Response confirms registration state', function () {",
                             "    const json = pm.response.json();",
-                            "    pm.expect(json.success).to.eql(true);",
+                            "    if (pm.response.code === 201) {",
+                            "        pm.expect(json.success).to.eql(true);",
+                            "    } else {",
+                            "        pm.expect(json.success).to.eql(false);",
+                            "        pm.expect(json.message).to.be.a('string');",
+                            "        pm.expect(json.message).to.include('redan');",
+                            "    }",
                             "});"
                         ],
                         "type": "text/javascript"
