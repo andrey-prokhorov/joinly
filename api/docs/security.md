@@ -69,11 +69,11 @@ API:et skyddas mot SQL injection med **defense in depth** - tre oberoende lager:
 
 ### Lager 1: Input-validering
 
-Validators (`src/utils/validators.ts`) blockerar SQL-tecken innan de når databasen:
+Validators (`src/utils/validators.ts`) använder två strategier: vissa fält blockerar SQL-tecken redan i input, medan andra tillåter dem och förlitar sig på lager 2 (prepared statements):
 
 - **Email-validering** - regex som bara tillåter giltiga email-tecken, blockerar `'`, `;`, `--` etc.
 - **Lösenordsvalidering** - längd- och komplexitetskrav
-- **Namnvalidering** - längd 2-50 tecken, blockerar HTML-taggar och kontrolltecken (SQL-tecken passerar medvetet - skyddas av lager 2)
+- **Namnvalidering** - längd 2-50 tecken, blockerar HTML-taggar och kontrolltecken men tillåter SQL-tecken (skyddas av lager 2)
 
 ### Lager 2: Prepared statements
 
@@ -88,8 +88,8 @@ Prepared statements gör att användarinput aldrig tolkas som SQL-kod, oavsett i
 
 ### Lager 3: UUID-validering och whitelist
 
-- **UUID-validering** - event-ID:n valideras som UUID-format innan databasanrop
-- **Route-whitelist** - ACL-middleware matchar bara kända routes, okända routes ger 403
+- **UUID-validering** - vissa endpoints (t.ex. uppdatera/ta bort event) validerar event-ID som UUID-format innan databasanrop, medan andra som `GET /api/events/:id` gör parameteriserade queries direkt och ger 404 vid ogiltiga ID:n
+- **Route-whitelist** - ACL-middleware matchar bara definierade routes i ACL-tabellen; anrop mot okända routes ger 403
 
 ### Testverifiering
 
