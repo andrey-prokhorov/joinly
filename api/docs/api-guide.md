@@ -421,8 +421,7 @@ Authorization: Bearer <token>
       "title": "Lördagskonsert i parken",
       "category": "music",
       "start_time": "2026-03-15T18:00:00Z",
-      "city": "Stockholm",
-      "registered_at": "2026-03-01T12:00:00Z"
+      "city": "Stockholm"
     }
   ],
   "count": 1
@@ -477,7 +476,7 @@ Authorization: Bearer <token>
 }
 ```
 
-**Fel:** 401 om token saknas/ogiltig, 404 om eventet inte finns.
+**Fel:** 401 om token saknas/ogiltig, 403 om användaren inte är registrerad på eventet, 404 om eventet inte finns.
 
 ### Skicka chattmeddelande i event
 
@@ -512,4 +511,5 @@ Content-Type: application/json
 |--------|-------|
 | 400 | Tomt meddelande |
 | 401 | Saknar eller ogiltig token |
+| 403 | Inte registrerad på eventet |
 | 404 | Eventet finns inte |

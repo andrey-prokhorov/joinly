@@ -231,7 +231,7 @@ Se [docs/security.md](docs/security.md) för produktionskrav och säkerhetskontr
 
 ### 2026-02-15 - ACL-middleware (Pål) - Epic #62, Issue #63
 
-- Implementerat databasdriven ACL med 24 regler i `acl`-tabellen
+- Implementerat databasdriven ACL med 21 regler i `acl`-tabellen
 - ACL-middleware ersätter alla hårdkodade behörighetskontroller
 - `optionalToken` ersätter `authenticateToken` - extraherar JWT utan att blockera
 - Ägarskapsverifiering via `fieldMatchingUserId` (skapare eller admin)
