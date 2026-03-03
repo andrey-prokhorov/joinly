@@ -73,7 +73,7 @@ Content-Type: application/json
   "message": "Användare skapad. Du kan nu logga in.",
   "token": "eyJhbGciOiJIUzI1NiIs...",
   "user": {
-    "id": 3,
+    "id": "b7f5c2e0-1a2b-4c3d-9e8f-123456789abc",
     "email": "anna@example.com",
     "name": "Anna Svensson",
     "role": "user"
@@ -110,7 +110,7 @@ Content-Type: application/json
   "message": "Inloggning lyckades.",
   "token": "eyJhbGciOiJIUzI1NiIs...",
   "user": {
-    "id": 3,
+    "id": "b7f5c2e0-1a2b-4c3d-9e8f-123456789abc",
     "email": "anna@example.com",
     "name": "Anna Svensson",
     "role": "user"
@@ -152,7 +152,7 @@ Authorization: Bearer <token>
 **Svar (200):**
 ```json
 {
-  "user": { "id": 3, "email": "anna@example.com", "role": "user" },
+  "user": { "id": "b7f5c2e0-1a2b-4c3d-9e8f-123456789abc", "email": "anna@example.com", "role": "user" },
   "message": "Användare är inloggad."
 }
 ```
@@ -403,3 +403,113 @@ Authorization: Bearer <token>
 | 400 | Ogiltigt event-ID |
 | 401 | Saknar eller ogiltig token |
 | 404 | Eventet finns inte eller du är inte anmäld |
+
+### Hämta mina event-anmälningar
+
+```http
+GET /api/myevents
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "events": [
+    {
+      "id": "abc-123",
+      "title": "Lördagskonsert i parken",
+      "category": "music",
+      "start_time": "2026-03-15T18:00:00Z",
+      "city": "Stockholm",
+      "registered_at": "2026-03-01T12:00:00Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+### Hämta events jag skapat
+
+```http
+GET /api/myevents/created
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "events": [
+    {
+      "id": "abc-456",
+      "title": "Morgonlöpning Södermalm",
+      "category": "Running",
+      "start_time": "2026-03-20T07:00:00Z",
+      "city": "Stockholm"
+    }
+  ],
+  "count": 1
+}
+```
+
+### Hämta chattmeddelanden för event
+
+```http
+GET /api/events/:id/chat
+Authorization: Bearer <token>
+```
+
+**Svar (200):**
+```json
+{
+  "success": true,
+  "messages": [
+    {
+      "id": "msg-001",
+      "event_id": "abc-123",
+      "user_id": "b7f5c2e0-1a2b-4c3d-9e8f-123456789abc",
+      "message": "Vad roligt detta ska bli!",
+      "created_at": "2026-03-10T14:30:00Z"
+    }
+  ],
+  "count": 1
+}
+```
+
+**Fel:** 401 om token saknas/ogiltig, 404 om eventet inte finns.
+
+### Skicka chattmeddelande i event
+
+```http
+POST /api/events/:id/chat
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "message": "Jag kommer! Ses där!"
+}
+```
+
+**Svar (201):**
+```json
+{
+  "success": true,
+  "message": "Meddelande skapat framgångsrikt.",
+  "chatMessage": {
+    "id": "msg-002",
+    "event_id": "abc-123",
+    "user_id": "b7f5c2e0-1a2b-4c3d-9e8f-123456789abc",
+    "message": "Jag kommer! Ses där!",
+    "created_at": "2026-03-10T15:00:00Z"
+  }
+}
+```
+
+**Vanliga fel:**
+
+| Status | Orsak |
+|--------|-------|
+| 400 | Tomt meddelande |
+| 401 | Saknar eller ogiltig token |
+| 404 | Eventet finns inte |

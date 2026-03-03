@@ -644,8 +644,8 @@ npm run dev
 ```
 
 ### 2. Testa endpoints manuellt
-- API: `http://localhost:3000/api/notifications`
-- Swagger UI: `http://localhost:3000/swagger`
+- API: `http://localhost:3001/api/notifications`
+- Swagger UI: `http://localhost:3001/swagger`
 
 ### 3. Generera OpenAPI-specifikation
 ```bash
@@ -669,7 +669,7 @@ Detta skapar:
     "variable": [
         {
             "key": "baseUrl",
-            "value": "http://localhost:3000"
+            "value": "http://localhost:3001"
         }
     ],
     "item": [

@@ -80,7 +80,7 @@ Utgångna tokens rensas automatiskt vid serverstart via `cleanExpiredTokens()`.
 
 ### acl
 
-Regler för rollbaserad åtkomstkontroll (Access Control List). 21 seed-regler.
+Regler för rollbaserad åtkomstkontroll (Access Control List). 24 seed-regler.
 
 | Fält | Typ | Begränsning | Beskrivning |
 |------|-----|-------------|-------------|
@@ -95,6 +95,24 @@ Se [security.md](security.md) för detaljer om hur ACL fungerar.
 
 **Källfil:** `src/db/database-acl.ts`
 
+### chat_messages
+
+Chattmeddelanden inom events. Varje meddelande tillhör ett event och en användare.
+
+| Fält | Typ | Begränsning | Beskrivning |
+|------|-----|-------------|-------------|
+| `id` | TEXT | PRIMARY KEY | UUID (genereras med `uuidv4()`) |
+| `event_id` | TEXT | NOT NULL, FK → events(id) | Eventet meddelandet tillhör |
+| `user_id` | TEXT | NOT NULL, FK → users(id) | Användaren som skrev meddelandet |
+| `message` | TEXT | NOT NULL | Meddelandetext |
+| `created_at` | DATETIME | DEFAULT CURRENT_TIMESTAMP | Tidpunkt |
+
+**Constraints:**
+- `FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE`
+- `FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`
+
+**Källfil:** `src/db/database-chat.ts`
+
 ---
 
 ## Relationer
@@ -104,9 +122,13 @@ users
   │
   ├──< events              (creator_user_id → users.id)
   │      │
-  │      └──< event_registrations  (event_id → events.id, CASCADE)
+  │      ├──< event_registrations  (event_id → events.id, CASCADE)
+  │      │
+  │      └──< chat_messages        (event_id → events.id, CASCADE)
   │
-  └──< event_registrations        (user_id → users.id, CASCADE)
+  ├──< event_registrations        (user_id → users.id, CASCADE)
+  │
+  └──< chat_messages               (user_id → users.id, CASCADE)
 
 
 token_blacklist              (fristående, ingen FK)
@@ -114,11 +136,11 @@ acl                          (konfigurationstabell, ingen FK)
 ```
 
 **Cascade-beteende:**
-- Tar man bort en user → alla dennes event_registrations tas bort automatiskt
-- Tar man bort ett event → alla registreringar till det eventet tas bort automatiskt
+- Tar man bort en user → alla dennes event_registrations och chat_messages tas bort automatiskt
+- Tar man bort ett event → alla registreringar och chattmeddelanden till det eventet tas bort automatiskt
 
 **ID-strategi:**
-- `users` och `events` använder UUID (TEXT) - svårare att gissa, bättre för distribuerade system
+- `users`, `events` och `chat_messages` använder UUID (TEXT) - svårare att gissa, bättre för distribuerade system
 - Stödtabeller (`event_registrations`, `token_blacklist`, `acl`) använder INTEGER AUTOINCREMENT - effektivare indexering
 
 ---
@@ -143,9 +165,13 @@ Seed-data skapas bara i development (`NODE_ENV !== 'production'`). Om tabellen r
 
 - test@example.com registreras automatiskt till första eventet (ID:n hämtas dynamiskt)
 
+### Chattmeddelanden
+
+- Ett seed-meddelande per registrerad deltagare i första eventet
+
 ### ACL-regler
 
-21 regler som täcker alla endpoints. Se [security.md](security.md) för komplett lista.
+24 regler som täcker alla endpoints. Se [security.md](security.md) för komplett lista.
 
 ---
 
