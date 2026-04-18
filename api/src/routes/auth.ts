@@ -353,6 +353,8 @@ router.post(
 			logger.warn({
 				event: "login_failed",
 				reason: "user_not_found",
+				path: req.originalUrl,
+				method: req.method,
 				ip: req.ip,
 			})
 			return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
@@ -366,6 +368,8 @@ router.post(
 				event: "login_failed",
 				reason: "invalid_password",
 				userId: user.id,
+				path: req.originalUrl,
+				method: req.method,
 				ip: req.ip,
 			})
 			return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
@@ -388,6 +392,8 @@ router.post(
 			event: "login_success",
 			userId: user.id,
 			role: user.role,
+			path: req.originalUrl,
+			method: req.method,
 			ip: req.ip,
 		})
 		res.json({
@@ -517,7 +523,13 @@ router.post("/logout", (req: AuthRequest, res: Response) => {
 			.json({ message: "Kunde inte logga ut. Försök igen." })
 	}
 
-	logger.info({ event: "logout", userId: req.user?.id, ip: req.ip })
+	logger.info({
+		event: "logout",
+		userId: req.user?.id,
+		path: req.originalUrl,
+		method: req.method,
+		ip: req.ip,
+	})
 	res.json({ message: "Utloggad." })
 })
 

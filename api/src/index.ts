@@ -46,14 +46,15 @@ app.use(
 		logger,
 		redact: ["req.body", "req.headers.authorization", "req.headers.cookie"],
 		autoLogging: {
-			ignore: (req) => req.url === "/api/health" || req.method === "OPTIONS",
+			ignore: (req) =>
+				req.url?.split("?")[0] === "/api/health" || req.method === "OPTIONS",
 		},
 		serializers: {
 			req(req) {
 				return {
 					method: req.method,
 					url: req.url,
-					ip: req.remoteAddress,
+					ip: req.ip,
 				}
 			},
 			res(res) {
@@ -122,6 +123,7 @@ app.use((err: Error, req: AuthRequest, res: Response, _next: NextFunction) => {
 	logger.error({
 		event: "server_error",
 		error: err.message,
+		stack: err.stack,
 		path: req.path,
 		method: req.method,
 		ip: req.ip,
