@@ -10,6 +10,7 @@
 import type { NextFunction, Response } from "express"
 import config from "../config.js"
 import db from "../db/database.js"
+import logger from "../logger.js"
 import type { AuthRequest } from "./auth.js"
 
 // ================================
@@ -182,8 +183,23 @@ export function createAclMiddleware() {
 
 		// Ingen regel matchade → neka access (secure by default)
 		if (!req.user) {
+			logger.warn({
+				event: "acl_denied",
+				reason: "unauthenticated",
+				path,
+				method,
+				ip: req.ip,
+			})
 			res.status(401).json({ message: "Autentisering krävs." })
 		} else {
+			logger.warn({
+				event: "acl_denied",
+				reason: "forbidden",
+				userId,
+				path,
+				method,
+				ip: req.ip,
+			})
 			res.status(403).json({ message: "Åtkomst nekad." })
 		}
 	}

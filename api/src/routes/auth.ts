@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken"
 import { v4 as uuidv4 } from "uuid"
 import config from "../config.js"
 import db from "../db/database.js"
+import logger from "../logger.js"
 import type { AuthRequest } from "../middleware/auth.js"
 import {
 	getEmailError,
@@ -349,6 +350,11 @@ router.post(
 		if (!user) {
 			// Kör bcrypt ändå för att förhindra timing attack (se DUMMY_HASH ovan)
 			await bcrypt.compare(password, DUMMY_HASH)
+			logger.warn({
+				event: "login_failed",
+				reason: "user_not_found",
+				ip: req.ip,
+			})
 			return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
 		}
 
@@ -356,6 +362,12 @@ router.post(
 		const validPassword = await bcrypt.compare(password, user.password_hash)
 
 		if (!validPassword) {
+			logger.warn({
+				event: "login_failed",
+				reason: "invalid_password",
+				userId: user.id,
+				ip: req.ip,
+			})
 			return res.status(401).json({ message: "Ogiltig e-post eller lösenord." })
 		}
 
@@ -372,6 +384,12 @@ router.post(
 		)
 
 		// skicka token till klienten
+		logger.info({
+			event: "login_success",
+			userId: user.id,
+			role: user.role,
+			ip: req.ip,
+		})
 		res.json({
 			message: "Inloggning lyckades.",
 			token,
@@ -499,6 +517,7 @@ router.post("/logout", (req: AuthRequest, res: Response) => {
 			.json({ message: "Kunde inte logga ut. Försök igen." })
 	}
 
+	logger.info({ event: "logout", userId: req.user?.id, ip: req.ip })
 	res.json({ message: "Utloggad." })
 })
 
