@@ -1,11 +1,12 @@
 import cors from "cors"
-import type { NextFunction, Request, Response } from "express"
-import express from "express"
+import express, { type NextFunction, type Response } from "express"
 import helmet from "helmet"
 import jwt from "jsonwebtoken"
+import { pinoHttp } from "pino-http" // Loggning
 import swaggerUi from "swagger-ui-express"
 import config from "./config.js"
 import db, { initDatabase, seedData } from "./db/database.js"
+import logger from "./logger.js" // Loggning
 // Importera config och databas
 import { createAclMiddleware } from "./middleware/acl.js"
 import type { AuthRequest } from "./middleware/auth.js"
@@ -17,52 +18,6 @@ import registrationRoutes from "./routes/registrations.js"
 import { createOpenApiSpec } from "./swagger.js"
 
 const app = express()
-
-// ANSI färgkoder för terminal
-const colors = {
-	reset: "\x1b[0m",
-	green: "\x1b[32m",
-	yellow: "\x1b[33m",
-	red: "\x1b[31m",
-	cyan: "\x1b[36m",
-	gray: "\x1b[90m",
-}
-
-// Request logger middleware - visar alla requests i terminalen
-const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-	const start = Date.now()
-
-	res.on("finish", () => {
-		const duration = Date.now() - start
-		const status = res.statusCode
-
-		// Färg baserat på statuskod
-		let statusColor = colors.green
-		if (status >= 400) statusColor = colors.yellow
-		if (status >= 500) statusColor = colors.red
-
-		// Metod-färg
-		const methodColors: Record<string, string> = {
-			GET: colors.cyan,
-			POST: colors.green,
-			PUT: colors.yellow,
-			DELETE: colors.red,
-		}
-		const methodColor = methodColors[req.method] || colors.reset
-
-		const timestamp = new Date().toLocaleTimeString("sv-SE")
-
-		console.log(
-			`${colors.gray}[${timestamp}]${colors.reset} ` +
-				`${methodColor}${req.method.padEnd(6)}${colors.reset} ` +
-				`${req.originalUrl} ` +
-				`${statusColor}${status}${colors.reset} ` +
-				`${colors.gray}${duration}ms${colors.reset}`
-		)
-	})
-
-	next()
-}
 
 const openApiSpec = createOpenApiSpec()
 
@@ -86,10 +41,34 @@ const corsOptions = {
 }
 
 // Middleware-kedja (ordningen är viktig!)
+app.use(
+	pinoHttp({
+		logger,
+		redact: ["req.body", "req.headers.authorization", "req.headers.cookie"],
+		autoLogging: {
+			ignore: (req) =>
+				req.url?.split("?")[0] === "/api/health" || req.method === "OPTIONS",
+		},
+		serializers: {
+			req(req) {
+				return {
+					method: req.method,
+					url: req.url,
+					ip: req.ip,
+				}
+			},
+			res(res) {
+				return {
+					statusCode: res.statusCode,
+				}
+			},
+		},
+	})
+)
 app.use(helmet()) // Security headers
 app.use(cors(corsOptions)) // Cross-origin requests with configuration
 app.use(express.json()) // Parse JSON body
-app.use(requestLogger) // Logga alla requests
+
 // Optional token - sätter req.user om giltig JWT finns, annars fortsätter utan
 // Kollar även blacklist så att utloggade tokens inte ger access
 app.use("/api", (req: AuthRequest, _res, next) => {
@@ -137,6 +116,22 @@ app.get("/", (_req, res) => {
 		message:
 			"Välkommen till Joinly API! Se swagger-dokumentationen på /swagger",
 	})
+})
+
+// Global error handler — fångar ohanterade fel som når Express (5xx)
+app.use((err: Error, req: AuthRequest, res: Response, next: NextFunction) => {
+	logger.error({
+		event: "server_error",
+		error: err.message,
+		stack: err.stack,
+		path: req.path,
+		method: req.method,
+		ip: req.ip,
+	})
+	if (res.headersSent) {
+		return next(err)
+	}
+	res.status(500).json({ message: "Internt serverfel." })
 })
 
 // Starta servern
