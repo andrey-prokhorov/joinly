@@ -119,7 +119,7 @@ app.get("/", (_req, res) => {
 })
 
 // Global error handler — fångar ohanterade fel som når Express (5xx)
-app.use((err: Error, req: AuthRequest, res: Response, _next: NextFunction) => {
+app.use((err: Error, req: AuthRequest, res: Response, next: NextFunction) => {
 	logger.error({
 		event: "server_error",
 		error: err.message,
@@ -128,6 +128,9 @@ app.use((err: Error, req: AuthRequest, res: Response, _next: NextFunction) => {
 		method: req.method,
 		ip: req.ip,
 	})
+	if (res.headersSent) {
+		return next(err)
+	}
 	res.status(500).json({ message: "Internt serverfel." })
 })
 
