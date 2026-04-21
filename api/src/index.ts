@@ -100,7 +100,7 @@ app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
 app.use("/api/events", registrationRoutes)
 app.use("/api/myevents", myEventsRoutes)
-if (process.env.SWAGGER_ENABLED === "true") {
+if (config.swagger.enabled) {
 	app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
 }
 
@@ -143,7 +143,7 @@ app.listen(PORT, () => {
 	console.log(`Joinly API körs på http://localhost:${PORT}`)
 	console.log(`Environment: ${config.server.nodeEnv}`)
 	console.log(`Health check: http://localhost:${PORT}/api/health`)
-	if (process.env.SWAGGER_ENABLED === "true") {
+	if (config.swagger.enabled) {
 		console.log(`Swagger docs: http://localhost:${PORT}/swagger`)
 	} else {
 		console.log("Swagger: avstängt (SWAGGER_ENABLED != true)")

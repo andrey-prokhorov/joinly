@@ -16,6 +16,9 @@ interface Config {
 	rateLimit: {
 		enabled: boolean
 	}
+	swagger: {
+		enabled: boolean
+	}
 	isProduction: () => boolean
 	isDevelopment: () => boolean
 	isTest: () => boolean
@@ -37,6 +40,9 @@ export const config: Config = {
 	},
 	rateLimit: {
 		enabled: process.env.RATE_LIMIT_ENABLED !== "false",
+	},
+	swagger: {
+		enabled: process.env.SWAGGER_ENABLED === "true",
 	},
 
 	// Hjälpfunktioner
