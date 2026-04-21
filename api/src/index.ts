@@ -100,7 +100,9 @@ app.use("/api/auth", authRoutes)
 app.use("/api/events", eventRoutes)
 app.use("/api/events", registrationRoutes)
 app.use("/api/myevents", myEventsRoutes)
-app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
+if (process.env.SWAGGER_ENABLED === "true") {
+	app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
+}
 
 // Health endpoint - användbart för CI/CD och monitoring
 app.get("/api/health", (_req, res) => {
@@ -141,5 +143,9 @@ app.listen(PORT, () => {
 	console.log(`Joinly API körs på http://localhost:${PORT}`)
 	console.log(`Environment: ${config.server.nodeEnv}`)
 	console.log(`Health check: http://localhost:${PORT}/api/health`)
-	console.log(`Swagger docs: http://localhost:${PORT}/swagger`)
+	if (process.env.SWAGGER_ENABLED === "true") {
+		console.log(`Swagger docs: http://localhost:${PORT}/swagger`)
+	} else {
+		console.log("Swagger: avstängt (SWAGGER_ENABLED != true)")
+	}
 })
