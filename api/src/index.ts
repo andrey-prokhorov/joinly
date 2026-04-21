@@ -115,8 +115,9 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/", (_req, res) => {
 	res.json({
-		message:
-			"Välkommen till Joinly API! Se swagger-dokumentationen på /swagger",
+		message: config.swagger.enabled
+			? "Välkommen till Joinly API! Se swagger-dokumentationen på /swagger"
+			: "Välkommen till Joinly API!",
 	})
 })
 
@@ -144,6 +145,11 @@ app.listen(PORT, () => {
 	console.log(`Environment: ${config.server.nodeEnv}`)
 	console.log(`Health check: http://localhost:${PORT}/api/health`)
 	if (config.swagger.enabled) {
+		if (config.isProduction()) {
+			console.warn(
+				"VARNING: Swagger är aktiverat i produktion. Inaktivera i prod."
+			)
+		}
 		console.log(`Swagger docs: http://localhost:${PORT}/swagger`)
 	} else {
 		console.log("Swagger: avstängt (SWAGGER_ENABLED != true)")
