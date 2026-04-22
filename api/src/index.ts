@@ -19,10 +19,13 @@ import { createOpenApiSpec } from "./swagger.js"
 
 const app = express()
 
-// Nödvändigt när appen körs bakom reverse proxy (Railway, nginx m.fl.)
-// Utan detta ser rate limitern proxy-IP:t, inte klientens riktiga IP —
-// alla användare delar då samma rate limit-bucket.
-app.set("trust proxy", 1)
+// Aktivera trust proxy bara i produktion — appen körs då bakom en reverse proxy
+// (Railway, nginx m.fl.) som sätter X-Forwarded-For med klientens riktiga IP.
+// I dev/CI finns ingen proxy: utan detta villkor kan en klient sätta X-Forwarded-For
+// till valfri IP och kringgå IP-baserad rate limiting.
+if (config.isProduction()) {
+	app.set("trust proxy", 1)
+}
 
 const openApiSpec = createOpenApiSpec()
 
