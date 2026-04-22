@@ -19,6 +19,11 @@ import { createOpenApiSpec } from "./swagger.js"
 
 const app = express()
 
+// Nödvändigt när appen körs bakom reverse proxy (Railway, nginx m.fl.)
+// Utan detta ser rate limitern proxy-IP:t, inte klientens riktiga IP —
+// alla användare delar då samma rate limit-bucket.
+app.set("trust proxy", 1)
+
 const openApiSpec = createOpenApiSpec()
 
 initDatabase()

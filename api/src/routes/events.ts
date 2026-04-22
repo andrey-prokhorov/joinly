@@ -371,6 +371,8 @@ router.get("/filter/search", (req: AuthRequest, res: Response) => {
  *         description: Bad request - Missing required fields or invalid data
  *       401:
  *         description: Unauthorized - Invalid or missing token
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */
@@ -555,6 +557,8 @@ router.post("/", createEventLimiter, (req: AuthRequest, res: Response) => {
  *         description: Forbidden - Only event creator can update
  *       404:
  *         description: Event not found
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */
@@ -737,6 +741,8 @@ router.put("/:id", updateEventLimiter, (req: AuthRequest, res: Response) => {
  *         description: Forbidden - Only event creator can delete
  *       404:
  *         description: Event not found
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */
@@ -954,6 +960,8 @@ router.get("/:id/chat", (req: AuthRequest, res: Response) => {
  *         description: Unauthorized - Invalid or missing token
  *       404:
  *         description: Event not found
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */

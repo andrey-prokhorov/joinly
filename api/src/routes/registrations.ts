@@ -84,6 +84,8 @@ const isValidUuid = (id: string): boolean =>
  *         description: Event not found
  *       409:
  *         description: Already registered
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  */
 router.post(
 	"/:eventId/register",
@@ -224,6 +226,8 @@ router.post(
  *         description: Not authenticated
  *       404:
  *         description: Event not found or not registered
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  */
 router.delete(
 	"/:eventId/register",
