@@ -19,6 +19,14 @@ import { createOpenApiSpec } from "./swagger.js"
 
 const app = express()
 
+// Aktivera trust proxy bara i produktion — appen körs då bakom en reverse proxy
+// (Railway, nginx m.fl.) som sätter X-Forwarded-For med klientens riktiga IP.
+// I dev/CI finns ingen proxy: utan detta villkor kan en klient sätta X-Forwarded-For
+// till valfri IP och kringgå IP-baserad rate limiting.
+if (config.isProduction()) {
+	app.set("trust proxy", 1)
+}
+
 const openApiSpec = createOpenApiSpec()
 
 initDatabase()
@@ -153,5 +161,10 @@ app.listen(PORT, () => {
 		console.log(`Swagger docs: http://localhost:${PORT}/swagger`)
 	} else {
 		console.log("Swagger: avstängt (SWAGGER_ENABLED != true)")
+	}
+	if (config.rateLimit.enabled) {
+		console.log("Rate limiting: aktiverat")
+	} else {
+		console.warn("Rate limiting: AVSTÄNGT (RATE_LIMIT_ENABLED=false)")
 	}
 })

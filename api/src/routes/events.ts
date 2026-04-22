@@ -4,7 +4,28 @@ const MAX_CHAT_MESSAGE_LENGTH = 3000
 import { type Response, Router } from "express"
 import db from "../db/database.js"
 import type { AuthRequest } from "../middleware/auth.js"
+import { createLimiter } from "../utils/rate-limiters.js"
 
+const chatLimiter = createLimiter(
+	60,
+	60 * 1000,
+	"För många meddelanden. Vänta en stund."
+)
+const createEventLimiter = createLimiter(
+	10,
+	15 * 60 * 1000,
+	"För många events skapade. Försök igen om 15 minuter."
+)
+const updateEventLimiter = createLimiter(
+	20,
+	15 * 60 * 1000,
+	"För många ändringar. Försök igen om 15 minuter."
+)
+const deleteEventLimiter = createLimiter(
+	10,
+	15 * 60 * 1000,
+	"För många borttagningar. Försök igen om 15 minuter."
+)
 const router = Router()
 
 // Typ för Event från databasen
@@ -350,11 +371,13 @@ router.get("/filter/search", (req: AuthRequest, res: Response) => {
  *         description: Bad request - Missing required fields or invalid data
  *       401:
  *         description: Unauthorized - Invalid or missing token
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */
 // POST /api/events - skapa nytt event
-router.post("/", (req: AuthRequest, res: Response) => {
+router.post("/", createEventLimiter, (req: AuthRequest, res: Response) => {
 	const {
 		title,
 		description,
@@ -534,11 +557,13 @@ router.post("/", (req: AuthRequest, res: Response) => {
  *         description: Forbidden - Only event creator can update
  *       404:
  *         description: Event not found
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */
 // PUT /api/events/:id - uppdatera event
-router.put("/:id", (req: AuthRequest, res: Response) => {
+router.put("/:id", updateEventLimiter, (req: AuthRequest, res: Response) => {
 	const { id } = req.params
 	const {
 		title,
@@ -716,11 +741,13 @@ router.put("/:id", (req: AuthRequest, res: Response) => {
  *         description: Forbidden - Only event creator can delete
  *       404:
  *         description: Event not found
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */
 // DELETE /api/events/:id - ta bort event
-router.delete("/:id", (req: AuthRequest, res: Response) => {
+router.delete("/:id", deleteEventLimiter, (req: AuthRequest, res: Response) => {
 	const { id } = req.params
 
 	if (!id) {
@@ -933,10 +960,12 @@ router.get("/:id/chat", (req: AuthRequest, res: Response) => {
  *         description: Unauthorized - Invalid or missing token
  *       404:
  *         description: Event not found
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  *       500:
  *         description: Internal server error
  */
-router.post("/:id/chat", (req: AuthRequest, res: Response) => {
+router.post("/:id/chat", chatLimiter, (req: AuthRequest, res: Response) => {
 	const { id } = req.params
 	const { message } = req.body
 

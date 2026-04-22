@@ -127,16 +127,79 @@ Detta ger säkrare sessionshantering, speciellt viktigt om en token komprometter
 
 ## Rate Limiting
 
-Auth-endpoints skyddas mot brute-force:
+Alla write-endpoints och auth-endpoints skyddas mot överbelastning och brute-force.
 
-| Endpoint | Gräns per IP | Gräns per email | Fönster |
-|----------|-------------|-----------------|---------|
-| `/api/auth/register` | 5 req | - | 15 min |
-| `/api/auth/login` | 10 req | 5 req | 15 min |
+### Auth-endpoints (brute-force-skydd)
 
-Login har dubbel rate limiting (IP + email) för att skydda mot distribuerade attacker.
+| Endpoint | Gräns | Fönster | Nyckel |
+|----------|-------|---------|--------|
+| `POST /api/auth/register` | 5 req | 15 min | Per IP |
+| `POST /api/auth/login` | 10 req | 15 min | Per IP |
+| `POST /api/auth/login` | 5 req | 15 min | Per e-postadress |
 
-Rate limiting kan stängas av med `RATE_LIMIT_ENABLED=false` i `.env` (för testning/CI).
+Login har dubbel rate limiting (IP + e-post) för att skydda mot distribuerade attacker mot ett specifikt konto.
+
+### Write-endpoints (DoS-skydd, kurs 3)
+
+| Endpoint | Gräns | Fönster | Nyckel |
+|----------|-------|---------|--------|
+| `POST /api/events` | 10 req | 15 min | Per IP |
+| `PUT /api/events/:id` | 20 req | 15 min | Per IP |
+| `DELETE /api/events/:id` | 10 req | 15 min | Per IP |
+| `POST /api/events/:id/chat` | 60 req | 1 min | Per IP |
+| `POST /api/events/:eventId/register` | 20 req | 15 min | Per IP |
+| `DELETE /api/events/:eventId/register` | 20 req | 15 min | Per IP |
+
+Chat-gränsen (60/min) motsvarar 1 meddelande per sekund — över normal mänsklig skrivhastighet men långt under vad ett skript genererar.
+
+### Implementation
+
+Rate limiters definieras i `src/utils/rate-limiters.ts` och appliceras direkt på respektive route. `app.set("trust proxy", 1)` är konfigurerat så att `req.ip` returnerar klientens riktiga IP-adress bakom Railway:s reverse proxy.
+
+Rate limiting kan stängas av med `RATE_LIMIT_ENABLED=false` i `.env` (för CI/Newman-tester).
+
+---
+
+## Swagger / API-dokumentation
+
+Swagger UI exponerar hela API-strukturen (alla routes, metoder, scheman och admin-endpoints). En angripare kan kartlägga hela attackytan utan att ha ett konto.
+
+Swagger styrs med miljövariabeln `SWAGGER_ENABLED`:
+
+```
+SWAGGER_ENABLED=false   # default — Swagger dolt i produktion
+SWAGGER_ENABLED=true    # aktivera t.ex. i utvecklingsmiljö
+```
+
+Implementationen i `src/index.ts`:
+
+```typescript
+if (config.swagger.enabled) {
+  app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
+}
+```
+
+Swagger är **alltid dolt i produktion** om inte `SWAGGER_ENABLED=true` sätts explicit. Åtgärdar STRIDE I1.
+
+---
+
+## Loggning (Pino)
+
+API:et använder **Pino** för strukturerad JSON-loggning. Alla loggrader är maskinläsbara och inkluderar tidsstämpel, nivå och kontext.
+
+### Vad som loggas
+
+| Händelse | Lognivå | Inkluderar |
+|----------|---------|------------|
+| Lyckad inloggning | `info` | `userId`, `ip` |
+| Misslyckad inloggning | `warn` | `email` (ej lösenord), `ip` |
+| ACL-avslag (403/401) | `warn` | `route`, `method`, `userId` eller `"anonymous"` |
+| Serverfel (5xx) | `error` | Stack trace |
+| Serverstartup | `info` | Miljö, rate limiting-status, Swagger-status |
+
+### Varför Pino
+
+`console.log` försvinner vid omstart eller redeploy. Med Pino skrivs loggarna till stdout i JSON-format, vilket Railway och andra plattformar fångar och sparar. Det gör det möjligt att utreda incidenter i efterhand. Åtgärdar STRIDE R1.
 
 ---
 
@@ -155,7 +218,9 @@ Följande **måste** vara korrekt konfigurerat i produktion:
 | `JWT_SECRET` bytt från default | Servern vägrar starta med default-värdet |
 | `ACL_ENABLED=true` | Utan ACL kan alla nå alla endpoints |
 | `RATE_LIMIT_ENABLED=true` | Utan rate limiting är brute-force möjlig |
+| `SWAGGER_ENABLED` ej satt (default false) | Swagger exponerar hela API-strukturen publikt |
 | `NODE_ENV=production` | Styr seed-data, felmeddelanden m.m. |
+| Pino stdout fångad av plattformen | Loggar försvinner annars vid omstart |
 | `npm audit --omit=dev` passerar | Inga kända sårbarheter i produktionsberoenden |
 
 ### Säkerhetskontroll före deploy

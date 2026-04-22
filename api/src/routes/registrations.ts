@@ -4,6 +4,18 @@
 import { type Response, Router } from "express"
 import db from "../db/database.js"
 import type { AuthRequest } from "../middleware/auth.js"
+import { createLimiter } from "../utils/rate-limiters.js"
+
+const registerLimiter = createLimiter(
+	20,
+	15 * 60 * 1000,
+	"För många registreringar. Försök igen om 15 minuter."
+)
+const unregisterLimiter = createLimiter(
+	20,
+	15 * 60 * 1000,
+	"För många avanmälningar. Försök igen om 15 minuter."
+)
 
 const router = Router()
 
@@ -72,81 +84,64 @@ const isValidUuid = (id: string): boolean =>
  *         description: Event not found
  *       409:
  *         description: Already registered
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  */
-router.post("/:eventId/register", (req: AuthRequest, res: Response) => {
-	const { eventId } = req.params as { eventId: string }
-	const userId = req.user?.id
+router.post(
+	"/:eventId/register",
+	registerLimiter,
+	(req: AuthRequest, res: Response) => {
+		const { eventId } = req.params as { eventId: string }
+		const userId = req.user?.id
 
-	if (!userId) {
-		res.status(401).json({
-			success: false,
-			message: "Oauktoriserad användare.",
-		})
-		return
-	}
-
-	// Validera UUID-format innan vi frågar databasen
-	if (!isValidUuid(eventId)) {
-		res.status(400).json({
-			success: false,
-			message: "Ogiltigt event-ID format.",
-		})
-		return
-	}
-
-	try {
-		// Kontrollera att eventet existerar
-		const event = db
-			.prepare("SELECT id, end_time FROM events WHERE id = ?")
-			.get(eventId) as DbEvent | undefined
-
-		if (!event) {
-			res.status(404).json({
+		if (!userId) {
+			res.status(401).json({
 				success: false,
-				message: "Event med detta ID hittades inte.",
+				message: "Oauktoriserad användare.",
 			})
 			return
 		}
 
-		// Kontrollera att eventet inte har avslutats
-		if (new Date(event.end_time) < new Date()) {
+		// Validera UUID-format innan vi frågar databasen
+		if (!isValidUuid(eventId)) {
 			res.status(400).json({
 				success: false,
-				message: "Eventet har redan avslutats.",
+				message: "Ogiltigt event-ID format.",
 			})
 			return
 		}
 
-		// Kontrollera att användaren inte redan är registrerad
-		const existing = db
-			.prepare(
-				"SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ?"
-			)
-			.get(eventId, userId)
-
-		if (existing) {
-			res.status(409).json({
-				success: false,
-				message: "Du är redan registrerad för detta event.",
-			})
-			return
-		}
-
-		// Registrera användaren
-		let result: ReturnType<ReturnType<typeof db.prepare>["run"]>
 		try {
-			result = db
-				.prepare(
-					"INSERT INTO event_registrations (event_id, user_id) VALUES (?, ?)"
-				)
-				.run(eventId, userId)
-		} catch (err) {
-			const sqliteError = err as { code?: string; message?: string }
-			const isUniqueConstraint =
-				sqliteError?.code === "SQLITE_CONSTRAINT_UNIQUE" ||
-				(sqliteError?.message ?? "").includes("UNIQUE constraint failed")
+			// Kontrollera att eventet existerar
+			const event = db
+				.prepare("SELECT id, end_time FROM events WHERE id = ?")
+				.get(eventId) as DbEvent | undefined
 
-			if (isUniqueConstraint) {
+			if (!event) {
+				res.status(404).json({
+					success: false,
+					message: "Event med detta ID hittades inte.",
+				})
+				return
+			}
+
+			// Kontrollera att eventet inte har avslutats
+			if (new Date(event.end_time) < new Date()) {
+				res.status(400).json({
+					success: false,
+					message: "Eventet har redan avslutats.",
+				})
+				return
+			}
+
+			// Kontrollera att användaren inte redan är registrerad
+			const existing = db
+				.prepare(
+					"SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ?"
+				)
+				.get(eventId, userId)
+
+			if (existing) {
 				res.status(409).json({
 					success: false,
 					message: "Du är redan registrerad för detta event.",
@@ -154,33 +149,56 @@ router.post("/:eventId/register", (req: AuthRequest, res: Response) => {
 				return
 			}
 
-			throw err
-		}
-		const registration = db
-			.prepare("SELECT * FROM event_registrations WHERE id = ?")
-			.get(result.lastInsertRowid) as DbRegistration | undefined
+			// Registrera användaren
+			let result: ReturnType<ReturnType<typeof db.prepare>["run"]>
+			try {
+				result = db
+					.prepare(
+						"INSERT INTO event_registrations (event_id, user_id) VALUES (?, ?)"
+					)
+					.run(eventId, userId)
+			} catch (err) {
+				const sqliteError = err as { code?: string; message?: string }
+				const isUniqueConstraint =
+					sqliteError?.code === "SQLITE_CONSTRAINT_UNIQUE" ||
+					(sqliteError?.message ?? "").includes("UNIQUE constraint failed")
 
-		if (!registration) {
+				if (isUniqueConstraint) {
+					res.status(409).json({
+						success: false,
+						message: "Du är redan registrerad för detta event.",
+					})
+					return
+				}
+
+				throw err
+			}
+			const registration = db
+				.prepare("SELECT * FROM event_registrations WHERE id = ?")
+				.get(result.lastInsertRowid) as DbRegistration | undefined
+
+			if (!registration) {
+				res.status(500).json({
+					success: false,
+					message: "Registrering skapades men kunde inte hämtas.",
+				})
+				return
+			}
+
+			res.status(201).json({
+				success: true,
+				message: "Registrering genomförd.",
+				registration,
+			})
+		} catch (error) {
+			console.error("Fel vid registrering:", error)
 			res.status(500).json({
 				success: false,
-				message: "Registrering skapades men kunde inte hämtas.",
+				message: "Internt serverfel vid registrering.",
 			})
-			return
 		}
-
-		res.status(201).json({
-			success: true,
-			message: "Registrering genomförd.",
-			registration,
-		})
-	} catch (error) {
-		console.error("Fel vid registrering:", error)
-		res.status(500).json({
-			success: false,
-			message: "Internt serverfel vid registrering.",
-		})
 	}
-})
+)
 
 /**
  * @openapi
@@ -208,67 +226,75 @@ router.post("/:eventId/register", (req: AuthRequest, res: Response) => {
  *         description: Not authenticated
  *       404:
  *         description: Event not found or not registered
+ *       429:
+ *         description: Too many requests - Rate limit exceeded
  */
-router.delete("/:eventId/register", (req: AuthRequest, res: Response) => {
-	const { eventId } = req.params as { eventId: string }
-	const userId = req.user?.id
+router.delete(
+	"/:eventId/register",
+	unregisterLimiter,
+	(req: AuthRequest, res: Response) => {
+		const { eventId } = req.params as { eventId: string }
+		const userId = req.user?.id
 
-	if (!userId) {
-		res.status(401).json({
-			success: false,
-			message: "Oauktoriserad användare.",
-		})
-		return
-	}
-
-	if (!isValidUuid(eventId)) {
-		res.status(400).json({
-			success: false,
-			message: "Ogiltigt event-ID format.",
-		})
-		return
-	}
-
-	try {
-		// Kontrollera att eventet existerar
-		const event = db.prepare("SELECT id FROM events WHERE id = ?").get(eventId)
-
-		if (!event) {
-			res.status(404).json({
+		if (!userId) {
+			res.status(401).json({
 				success: false,
-				message: "Event med detta ID hittades inte.",
+				message: "Oauktoriserad användare.",
 			})
 			return
 		}
 
-		// Ta bort registreringen
-		const result = db
-			.prepare(
-				"DELETE FROM event_registrations WHERE event_id = ? AND user_id = ?"
-			)
-			.run(eventId, userId)
-
-		// result.changes = 0 betyder att ingen rad togs bort (ej registrerad)
-		if (result.changes === 0) {
-			res.status(404).json({
+		if (!isValidUuid(eventId)) {
+			res.status(400).json({
 				success: false,
-				message: "Du är inte registrerad för detta event.",
+				message: "Ogiltigt event-ID format.",
 			})
 			return
 		}
 
-		res.json({
-			success: true,
-			message: "Avregistrering genomförd.",
-		})
-	} catch (error) {
-		console.error("Fel vid avregistrering:", error)
-		res.status(500).json({
-			success: false,
-			message: "Internt serverfel vid avregistrering.",
-		})
+		try {
+			// Kontrollera att eventet existerar
+			const event = db
+				.prepare("SELECT id FROM events WHERE id = ?")
+				.get(eventId)
+
+			if (!event) {
+				res.status(404).json({
+					success: false,
+					message: "Event med detta ID hittades inte.",
+				})
+				return
+			}
+
+			// Ta bort registreringen
+			const result = db
+				.prepare(
+					"DELETE FROM event_registrations WHERE event_id = ? AND user_id = ?"
+				)
+				.run(eventId, userId)
+
+			// result.changes = 0 betyder att ingen rad togs bort (ej registrerad)
+			if (result.changes === 0) {
+				res.status(404).json({
+					success: false,
+					message: "Du är inte registrerad för detta event.",
+				})
+				return
+			}
+
+			res.json({
+				success: true,
+				message: "Avregistrering genomförd.",
+			})
+		} catch (error) {
+			console.error("Fel vid avregistrering:", error)
+			res.status(500).json({
+				success: false,
+				message: "Internt serverfel vid avregistrering.",
+			})
+		}
 	}
-})
+)
 
 /**
  * @openapi

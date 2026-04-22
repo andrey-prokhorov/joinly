@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs"
-import { type NextFunction, type Request, type Response, Router } from "express"
+import { type Response, Router } from "express"
 import rateLimit, { ipKeyGenerator } from "express-rate-limit"
 import jwt from "jsonwebtoken"
 import { v4 as uuidv4 } from "uuid"
@@ -7,6 +7,7 @@ import config from "../config.js"
 import db from "../db/database.js"
 import logger from "../logger.js"
 import type { AuthRequest } from "../middleware/auth.js"
+import { createLimiter, noopMiddleware } from "../utils/rate-limiters.js"
 import {
 	getEmailError,
 	getNameError,
@@ -32,26 +33,14 @@ const uuid = uuidv4()
 // ----------------------------------
 // Kan stängas av via RATE_LIMIT_ENABLED=false (t.ex. vid testkörning i CI)
 // I produktion ska detta ALLTID vara aktiverat.
-const noopMiddleware = (_req: Request, _res: Response, next: NextFunction) =>
-	next()
-
-const createRateLimiter = (max: number, message: string) =>
-	config.rateLimit.enabled
-		? rateLimit({
-				windowMs: 15 * 60 * 1000,
-				max,
-				message: { message },
-				standardHeaders: true,
-				legacyHeaders: false,
-			})
-		: noopMiddleware
-
-const loginLimiterByIp = createRateLimiter(
+const loginLimiterByIp = createLimiter(
 	10,
+	15 * 60 * 1000,
 	"För många inloggningsförsök. Försök igen om 15 minuter."
 )
-const registerLimiter = createRateLimiter(
+const registerLimiter = createLimiter(
 	5,
+	15 * 60 * 1000,
 	"För många registreringsförsök. Försök igen om 15 minuter."
 )
 
