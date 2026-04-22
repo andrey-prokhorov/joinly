@@ -154,4 +154,9 @@ app.listen(PORT, () => {
 	} else {
 		console.log("Swagger: avstängt (SWAGGER_ENABLED != true)")
 	}
+	if (config.rateLimit.enabled) {
+		console.log("Rate limiting: aktiverat")
+	} else {
+		console.warn("Rate limiting: AVSTÄNGT (RATE_LIMIT_ENABLED=false)")
+	}
 })
