@@ -8,10 +8,11 @@ WORKDIR /app
 #kopiera package-filer
 COPY package.json package-lock.json ./
 # installera dependancies mm.
-RUN npm ci 
+RUN npm ci
 
 # kopiera filer
 COPY . .
+RUN npm run build
 # -----------------------------------------
 
 # Frontend runtime
@@ -24,6 +25,10 @@ COPY --from=build /app/dist /usr/share/nginx/html
 
 # sätt rättigheter på mappen.
 RUN chown -R appuser:appgroup /usr/share/nginx/html
+RUN chown -R appuser:appgroup /var/cache/nginx 
+RUN chown -R appuser:appgroup /run 
+RUN chown -R appuser:appgroup /var/run
+
 # kör appen
 USER appuser
 
