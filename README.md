@@ -93,7 +93,45 @@ cd api && npm run test:api
 # Lint (Biome)
 cd api && npm run lint
 cd app && npm run lint
+
+# Docker-tester
+docker-compose up --build -d
+# Testa att allt fungerar, sedan:
+docker-compose down
 ```
+
+## Docker & Deployment
+
+Applikationen kan köras och deployas med Docker:
+
+### Lokal utveckling med Docker
+```bash
+# Bygga och starta båda tjänsterna
+docker-compose up --build
+
+# Stoppa tjänsterna
+docker-compose down
+```
+
+### Deployment till Railway
+Applikationen är konfigurerad för automatisk deployment till Railway:
+
+1. **Manuell deployment:**
+   ```bash
+   # Installera Railway CLI
+   npm install -g @railway/cli
+   
+   # Logga in och deploya
+   railway login
+   cd api && railway up    # Deploy API
+   cd ../app && railway up # Deploy Frontend
+   ```
+
+2. **Automatisk deployment:**
+   - Push till `main` branch triggar automatisk deployment via GitHub Actions
+   - Kräver Railway token i GitHub Secrets
+
+Se [DEPLOYMENT.md](DEPLOYMENT.md) för detaljerade instruktioner.
 
 ## CI/CD
 
@@ -103,6 +141,8 @@ GitHub Actions kör automatiskt vid push och PR:
 - Build (TypeScript-kompilering + Vite)
 - Säkerhetsgranskning (npm audit)
 - API-integrationstester (Newman)
+- Docker build & test (för containerisering)
+- Automatisk deployment till Railway (på push till main)
 
 Branch protection är aktiverad på `main` - alla ändringar går via PR.
 
