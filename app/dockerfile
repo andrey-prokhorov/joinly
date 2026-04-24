@@ -29,6 +29,9 @@ RUN chown -R appuser:appgroup /var/cache/nginx
 RUN chown -R appuser:appgroup /run 
 RUN chown -R appuser:appgroup /var/run
 
+ARG APP_VERSION=dev
+ENV APP_VERSION=$APP_VERSION
+
 # kör appen
 USER appuser
 

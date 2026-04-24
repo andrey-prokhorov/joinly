@@ -1,0 +1,61 @@
+name: Deploy App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/deploy-app.yml'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image name
+        id: image
+        run: |
+          echo "name=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')-app" >> $GITHUB_OUTPUT
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: app/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image.outputs.name }}:latest
+            ${{ steps.image.outputs.name }}:${{ github.sha }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trigger Railway redeploy
+        run: |
+          curl --fail -s -X POST https://backboard.railway.com/graphql/v2 \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
+            -d '{
+              "query": "mutation Redeploy($serviceId: String!, $environmentId: String!) { serviceInstanceRedeploy(serviceId: $serviceId, environmentId: $environmentId) }",
+              "variables": {
+                "serviceId": "${{ secrets.APP_RAILWAY_SERVICE_ID }}",
+                "environmentId": "${{ secrets.APP_RAILWAY_ENVIRONMENT_ID }}"
+              }
+            }'
