@@ -28,7 +28,6 @@ WORKDIR /app
 
 COPY --from=build --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=build --chown=appuser:appgroup /app/dist ./dist
-COPY --from=build --chown=appuser:appgroup /app/data ./data
 COPY --from=build --chown=appuser:appgroup /app/package.json ./
 
 # kör appen
