@@ -2,10 +2,16 @@ name: Deploy API
 
 on:
   push:
-    branches: [main]
+    branches: [main]  
     paths:
       - 'api/**'
       - '.github/workflows/deploy-api.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'api/**'
+      - '.github/workflows/deploy-api.yml'      
 
 permissions:
   contents: read

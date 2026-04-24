@@ -6,6 +6,12 @@ on:
     paths:
       - 'app/**'
       - '.github/workflows/deploy-app.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - '.github/workflows/deploy-app.yml'        
 
 permissions:
   contents: read
