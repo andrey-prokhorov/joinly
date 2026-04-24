@@ -30,10 +30,13 @@ COPY --from=build --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=build --chown=appuser:appgroup /app/dist ./dist
 COPY --from=build --chown=appuser:appgroup /app/package.json ./
 
-RUN mkdir -p data && chown appuser:appgroup data && chmod 755 data
+RUN mkdir -p data && chown appuser:appgroup data
 
 ARG APP_VERSION=dev
 ENV APP_VERSION=$APP_VERSION
+
+ARG DB_PATH=/app/data/joinly.db
+ENV DB_PATH=$DB_PATH
 
 # kör appen
 USER appuser

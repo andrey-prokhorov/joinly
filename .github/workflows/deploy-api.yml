@@ -47,7 +47,9 @@ jobs:
           tags: |
             ${{ steps.image.outputs.name }}:latest
             ${{ steps.image.outputs.name }}:${{ github.sha }}
-          build-args: APP_VERSION=${{ github.sha }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+            DB_PATH=${{ secrets.DB_PATH }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

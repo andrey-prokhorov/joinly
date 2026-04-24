@@ -29,8 +29,8 @@ RUN chown -R appuser:appgroup /var/cache/nginx
 RUN chown -R appuser:appgroup /run 
 RUN chown -R appuser:appgroup /var/run
 
-ARG APP_VERSION=dev
-ENV APP_VERSION=$APP_VERSION
+ARG VITE_API_BASE_URL=https://joinly-api-production.up.railway.app/api
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # kör appen
 USER appuser
