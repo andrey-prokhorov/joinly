@@ -1,0 +1,81 @@
+name: Build, Push & Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute lowercase image names
+        id: images
+        run: |
+          echo "api=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')-api" >> $GITHUB_OUTPUT
+          echo "app=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')-app" >> $GITHUB_OUTPUT
+
+      - name: Build and push API Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./api
+          file: ./api/dockerfile
+          push: true
+          tags: |
+            ${{ steps.images.outputs.api }}:latest
+            ${{ steps.images.outputs.api }}:${{ github.sha }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build and push APP Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./app
+          file: ./app/dockerfile
+          push: true
+          tags: |
+            ${{ steps.images.outputs.app }}:latest
+            ${{ steps.images.outputs.app }}:${{ github.sha }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+          cache-from: type=gha,scope=app
+          cache-to: type=gha,mode=max,scope=app
+
+      - name: Trigger Railway redeploy
+        run: |
+          curl --fail -s -X POST https://backboard.railway.com/graphql/v2 \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
+            -d '{
+              "query": "mutation Redeploy($serviceId: String!, $environmentId: String!) { serviceInstanceRedeploy(serviceId: $serviceId, environmentId: $environmentId) }",
+              "variables": {
+                "serviceId": "${{ secrets.RAILWAY_SERVICE_ID }}",
+                "environmentId": "${{ secrets.RAILWAY_ENVIRONMENT_ID }}"
+              }
+            }'
