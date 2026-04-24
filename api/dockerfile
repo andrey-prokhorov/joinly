@@ -30,6 +30,8 @@ COPY --from=build --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=build --chown=appuser:appgroup /app/dist ./dist
 COPY --from=build --chown=appuser:appgroup /app/package.json ./
 
+RUN mkdir -p data && chown appuser:appgroup data
+
 ARG APP_VERSION=dev
 ENV APP_VERSION=$APP_VERSION
 
