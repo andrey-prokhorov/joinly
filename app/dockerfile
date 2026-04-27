@@ -12,8 +12,10 @@ RUN npm run build
 
 # Stage 2: Servera med nginx-unprivileged (kör som nginx-user, ej root)
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
-# Uppgradera Alpine-paket till senaste säkerhetspatchar (libcrypto3, libexpat, libpng m.fl.)
+# nginx-unprivileged sätter USER 101 — apk kräver root, byt temporärt
+USER root
 RUN apk update && apk upgrade && rm -rf /var/cache/apk/*
+USER 101
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 8080

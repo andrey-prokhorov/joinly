@@ -1,0 +1,7 @@
+ignore:
+  # CVE-2026-33671 — picomatch ReDoS i npm:s interna bundlade beroenden
+  # Berör: picomatch 4.0.3 i /usr/local/lib/node_modules/npm/node_modules/
+  # npm-verktyget används inte i produktion — containern kör bara node dist/index.js
+  # Exploatering kräver att angripare kan skicka extglob-mönster till npm inuti containern
+  # Samma beslut som i api/.trivyignore (dokumenterad accepted risk 2026-04-27)
+  - vulnerability: CVE-2026-33671
