@@ -46,6 +46,7 @@ jobs:
           format: table
           exit-code: '1'
           severity: CRITICAL,HIGH
+          trivyignores: api/.trivyignore
 
       - name: Scan image med Grype
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2  # v7.4.0
