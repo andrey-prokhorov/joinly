@@ -39,7 +39,9 @@ jobs:
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           build-args: |
-            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}
+            VITE_API_BASE_URL=${{ vars.DEPLOY_VITE_API_BASE_URL }}
 
       - name: Trigga Railway-deploy
-        run: curl -s -X POST "${{ secrets.RAILWAY_DEPLOY_HOOK_APP }}"
+        env:
+          RAILWAY_TOKEN: ${{ secrets.DEPLOY_RAILWAY_PROJECT_TOKEN }}
+        run: npx --yes @railway/cli@latest redeploy --service ${{ vars.DEPLOY_RAILWAY_SERVICE_APP_ID }} --yes
