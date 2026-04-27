@@ -19,6 +19,9 @@ interface Config {
 	swagger: {
 		enabled: boolean
 	}
+	registration: {
+		enabled: boolean
+	}
 	isProduction: () => boolean
 	isDevelopment: () => boolean
 	isTest: () => boolean
@@ -43,6 +46,9 @@ export const config: Config = {
 	},
 	swagger: {
 		enabled: process.env.SWAGGER_ENABLED === "true",
+	},
+	registration: {
+		enabled: process.env.REGISTRATION_ENABLED !== "false",
 	},
 
 	// Hjälpfunktioner
