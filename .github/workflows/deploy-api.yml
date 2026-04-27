@@ -48,15 +48,13 @@ jobs:
           severity: CRITICAL,HIGH
           trivyignores: api/.trivyignore
 
-      - name: Konfigurera Grype ignore-lista
-        run: cp .grype.yaml ~/.grype.yaml
-
       - name: Scan image med Grype
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2  # v7.4.0
         with:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           fail-build: true
           severity-cutoff: high
+          only-fixed: true
 
       - name: Trigga Railway-deploy
         env:
