@@ -37,10 +37,9 @@ seedData()
 // CORS configuration
 // CORS_ORIGIN sätts som env-variabel i Railway för att tillåta app-servicens publika URL
 const corsOptions = {
-	origin: [
-		"http://localhost:3000",
-		process.env.CORS_ORIGIN,
-	].filter(Boolean) as string[],
+	origin: ["http://localhost:3000", process.env.CORS_ORIGIN].filter(
+		Boolean
+	) as string[],
 	credentials: true,
 	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 	allowedHeaders: ["Content-Type", "Authorization"],
