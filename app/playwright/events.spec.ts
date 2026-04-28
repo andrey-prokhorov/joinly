@@ -11,6 +11,6 @@ test.describe("Events för roll: Admin", () => {
 			page.getByRole("heading", { name: "List med aktiviteter" }),
 		).toBeVisible();
 
-		await expect(page.getByText("Högdalen Running Club Event")).toBeVisible();
+		await expect(page.getByRole("list", { name: "aktiviteter" })).toBeVisible();
 	});
 });

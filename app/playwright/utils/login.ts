@@ -9,8 +9,6 @@ export const login = async (page: Page) => {
 	await page.getByLabel("Epost").fill(username);
 	await page.getByLabel("Lösenord").fill(password);
 
-	await Promise.all([
-		await page.getByRole("button", { name: "Logga in" }).click(),
-		page.waitForLoadState("networkidle").catch(() => {}),
-	]);
+	await page.getByRole("button", { name: "Logga in" }).click();
+	await page.waitForURL("**/events", { timeout: 10000 });
 };
