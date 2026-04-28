@@ -74,7 +74,7 @@ app.use(
 )
 app.use(helmet()) // Security headers
 app.use(cors(corsOptions)) // Cross-origin requests with configuration
-app.use(express.json()) // Parse JSON body
+app.use(express.json({ limit: "10kb" })) // Parse JSON body, limit skyddar mot stora payload-attacker
 
 // Optional token - sätter req.user om giltig JWT finns, annars fortsätter utan
 // Kollar även blacklist så att utloggade tokens inte ger access
