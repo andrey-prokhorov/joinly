@@ -39,7 +39,6 @@ seedData()
 const corsOptions = {
 	origin: [
 		"http://localhost:3000",
-		"https://joinly-frontend-production.up.railway.app",
 		process.env.CORS_ORIGIN,
 	].filter(Boolean) as string[],
 	credentials: true,
