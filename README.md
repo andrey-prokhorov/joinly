@@ -17,6 +17,9 @@ Du behöver inte gå med i grupper eller planera långt i förväg - se vad som 
 | Linting | Biome (backend + frontend) |
 | Tester | Newman (API-integration + SQL injection), Vitest (unit) |
 | CI/CD | GitHub Actions |
+| Containerisering | Docker (multi-stage builds, non-root) *(Kurs 3)* |
+| Image-registry | GitHub Container Registry (GHCR) *(Kurs 3)* |
+| Deployment | Railway *(Kurs 3)* |
 
 ## Komma igång
 
@@ -103,8 +106,20 @@ GitHub Actions kör automatiskt vid push och PR:
 - Build (TypeScript-kompilering + Vite)
 - Säkerhetsgranskning (npm audit)
 - API-integrationstester (Newman)
+- *(Kurs 3)* Docker-bygge → GHCR → container scanning (Trivy) → Railway-redeploy
 
 Branch protection är aktiverad på `main` - alla ändringar går via PR.
+
+## Deployment *(Kurs 3)*
+
+Applikationen är driftsatt i Railway:
+
+- **API:** https://api-production-4072.up.railway.app
+- **Frontend:** https://app-production-joinly.up.railway.app
+
+Deploy sker automatiskt vid push till `main`: Docker-image byggs → pushas till GHCR → container scanning (Trivy) → Railway startar om med ny image via CLI.
+
+> **OBS — röda "Deployments" i GitHub-sidopanelen:** Det beror på en äldre Railway–GitHub-integration som ersattes av ovanstående pipeline i Kurs 3. Den integrationen försöker fortfarande deploya direkt från GitHub utan Docker-steget och failar därför. Aktiv deployment sker via CI/CD-pipelinen ovan. Se [Wiki: Kurs 3 — Deploy](https://github.com/andrey-prokhorov/joinly/wiki/Kurs3-Deploy) för fullständig dokumentation.
 
 ## Git-workflow
 
