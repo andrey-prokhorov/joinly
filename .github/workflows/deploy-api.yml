@@ -51,4 +51,4 @@ jobs:
       - name: Trigga Railway-deploy
         env:
           RAILWAY_TOKEN: ${{ secrets.DEPLOY_RAILWAY_PROJECT_TOKEN }}
-        run: npx --yes @railway/cli@latest redeploy --service ${{ vars.DEPLOY_RAILWAY_SERVICE_API_ID }} --yes
+        run: npx --yes @railway/cli@4.43.0 redeploy --service ${{ vars.DEPLOY_RAILWAY_SERVICE_API_ID }} --yes
