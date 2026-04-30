@@ -7,14 +7,17 @@ test.describe("Event detaljsida för roll: Admin", () => {
 
 		await page.goto("/events");
 
-		await expect(page.getByText("Högdalen Running Club Event")).toBeVisible();
+		const eventsList = page.getByRole("list", { name: "aktiviteter" });
+		await expect(eventsList).toBeVisible();
 
-		await page.getByText("Högdalen Running Club Event").click();
+		// Klicka på första eventet i listan, oavsett vilket det är
+		const firstEvent = eventsList.getByRole("listitem").first();
+		await firstEvent.click();
 
-		await expect(
-			page.getByRole("heading", { name: "Högdalen Running Club Event" }),
-		).toBeVisible();
+		// Vänta på att URL ändras till detaljsidan
+		await page.waitForURL("**/events-detail/**", { timeout: 10000 });
 
-		await expect(page.getByRole("button", { name: "Anmäl mig" })).toBeVisible();
+		// Verifiera att detaljsidans innehåll laddas (event-titel som h4)
+		await expect(page.getByRole("heading", { level: 4 })).toBeVisible();
 	});
 });

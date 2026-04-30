@@ -148,6 +148,10 @@ interface DbUser {
  */
 // POST /api/auth/register
 router.post("/register", registerLimiter, async (req, res) => {
+	if (!config.registration.enabled) {
+		return res.status(403).json({ message: "Registrering är stängd." })
+	}
+
 	const { email, password, name } = req.body
 
 	// typkontroll + validering (skyddar mot icke-strängvärden som ger 500 istället för 400)

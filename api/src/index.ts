@@ -15,7 +15,6 @@ import authRoutes from "./routes/auth.js"
 import eventRoutes from "./routes/events.js"
 import myEventsRoutes from "./routes/myevents.js"
 import registrationRoutes from "./routes/registrations.js"
-import { createOpenApiSpec } from "./swagger.js"
 
 const app = express()
 
@@ -27,8 +26,6 @@ if (config.isProduction()) {
 	app.set("trust proxy", 1)
 }
 
-const openApiSpec = createOpenApiSpec()
-
 initDatabase()
 seedData()
 
@@ -38,11 +35,11 @@ seedData()
 // }
 
 // CORS configuration
+// CORS_ORIGIN sätts som env-variabel i Railway för att tillåta app-servicens publika URL
 const corsOptions = {
-	origin: [
-		"http://localhost:3000",
-		"https://joinly-frontend-production.up.railway.app",
-	],
+	origin: ["http://localhost:3000", config.cors.origin].filter(
+		Boolean
+	) as string[],
 	credentials: true,
 	methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 	allowedHeaders: ["Content-Type", "Authorization"],
@@ -75,7 +72,7 @@ app.use(
 )
 app.use(helmet()) // Security headers
 app.use(cors(corsOptions)) // Cross-origin requests with configuration
-app.use(express.json()) // Parse JSON body
+app.use(express.json({ limit: "10kb" })) // Parse JSON body, limit skyddar mot stora payload-attacker
 
 // Optional token - sätter req.user om giltig JWT finns, annars fortsätter utan
 // Kollar även blacklist så att utloggade tokens inte ger access
@@ -109,6 +106,10 @@ app.use("/api/events", eventRoutes)
 app.use("/api/events", registrationRoutes)
 app.use("/api/myevents", myEventsRoutes)
 if (config.swagger.enabled) {
+	// Dynamisk import — swagger-jsdoc är ett dev-verktyg och saknas i prod-imagen.
+	// Swagger exponeras aldrig i produktion (SWAGGER_ENABLED=true krävs).
+	const { createOpenApiSpec } = await import("./swagger.js")
+	const openApiSpec = createOpenApiSpec()
 	app.use("/swagger", swaggerUi.serve, swaggerUi.setup(openApiSpec))
 }
 
