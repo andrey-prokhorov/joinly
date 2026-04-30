@@ -5,7 +5,7 @@
 #
 # Varför accepterad risk:
 # - picomatch finns INTE i vår appkods node_modules (bara i vitest, en devDep som
-#   tas bort av `npm prune --omit=dev` vid bygge)
+#   tas bort av `npm prune --production` vid bygge)
 # - npm-verktyget används inte i produktion — containern kör enbart `node dist/index.js`
 # - Exploatering kräver att en angripare kan skicka craftade extglob-mönster till npm
 #   inuti containern, vilket inte är möjligt i vår deployment-kontext
