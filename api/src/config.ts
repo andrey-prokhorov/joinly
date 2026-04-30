@@ -22,6 +22,9 @@ interface Config {
 	registration: {
 		enabled: boolean
 	}
+	cors: {
+		origin: string | undefined
+	}
 	isProduction: () => boolean
 	isDevelopment: () => boolean
 	isTest: () => boolean
@@ -49,6 +52,9 @@ export const config: Config = {
 	},
 	registration: {
 		enabled: process.env.REGISTRATION_ENABLED !== "false",
+	},
+	cors: {
+		origin: process.env.CORS_ORIGIN,
 	},
 
 	// Hjälpfunktioner
