@@ -2,7 +2,7 @@
 
 > **Kurs 3 — Live:** Se [Deployment](#deployment-kurs-3) för live-URL:er, pipeline och förklaring till röda "Deployments" i GitHub-sidopanelen.
 >
-> **Registrering är stängd** i live-miljön (kostnadsskydd på Railway). Testinloggning bifogas vid inlämningen.
+> **Registrering är stängd** i live-miljön. `REGISTRATION_ENABLED=false` är satt i Railway som skydd mot obehöriga och trafik/kostnader. Testinloggning bifogas vid inlämningen.
 
 **Joinly** - en app för att hitta sällskap för träning, snabbt och utan krångel.
 Här kan du enkelt hitta eller skapa aktiviteter som löpning, cykling eller motorcykelturer i närheten av dig.
