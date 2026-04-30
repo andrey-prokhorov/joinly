@@ -1,5 +1,8 @@
 # Joinly
 
+> **Kurs 3 — Live:** API: https://api-production-4072.up.railway.app | Frontend: https://app-production-joinly.up.railway.app
+> Deploy sker via GitHub Actions → GHCR → Railway. De röda "Deployments" i sidopanelen beror på en äldre integration som ersattes i Kurs 3 — se [Wiki: Kurs 3 — Deploy](https://github.com/andrey-prokhorov/joinly/wiki/Kurs3-Deploy).
+
 **Joinly** - en app för att hitta sällskap för träning, snabbt och utan krångel.
 Här kan du enkelt hitta eller skapa aktiviteter som löpning, cykling eller motorcykelturer i närheten av dig.
 Du behöver inte gå med i grupper eller planera långt i förväg - se vad som händer idag eller imorgon och häng på.
